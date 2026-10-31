@@ -20,8 +20,7 @@ content:
     format: json
     fields:
       - name: news
-        label: Noticias
-        description: La web las ordena sola por fecha (las más recientes primero). Para añadir una, pulsa "Add an entry" al final de la lista.
+        label: Noticias (la web las ordena sola por fecha; las nuevas se añaden al final de la lista)
         type: object
         list:
           collapsible:
@@ -67,8 +66,7 @@ content:
     format: json
     fields:
       - name: people
-        label: Equipo actual
-        description: El orden de la lista es el orden en la web (puedes arrastrar para reordenar).
+        label: Equipo actual (el orden de esta lista es el orden de la web; arrastra ⠿ para reordenar)
         type: object
         list:
           collapsible:
@@ -162,8 +160,7 @@ content:
     format: json
     fields:
       - name: publications
-        label: Publicaciones
-        description: La web las ordena sola por año (las más recientes primero).
+        label: Publicaciones (la web las ordena sola por año)
         type: object
         list:
           collapsible:

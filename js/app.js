@@ -114,8 +114,8 @@ const ROUTES = {
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
     return `<section class="hero"><canvas class="bg"></canvas>
       <div class="wrap"><div class="eyebrow">Universitat Autònoma de Barcelona</div>
-      <h1 class="display">Matter &amp; quantum</h1>
-      <p class="lead">The Optics Group studies matter and quantum systems: from liquid crystals and polarimetric imaging to ultracold atoms and topological photonics.</p>
+      <h1 class="display">Quantum &amp; Polarimetry</h1>
+      <p class="lead">The Optics Group studies light-matter and quantum systems: from liquid crystals and polarimetric imaging to ultracold atoms and topological photonics.</p>
       <div class="hero-actions"><a class="btn" href="#/research/publications">Explore our research ${ARR}</a><a class="btn btn-ghost" href="#/join">Join us ${ARR}</a></div></div>
       <canvas class="dissolve" data-color="#040f20"></canvas></section>
     <div class="marquee" aria-hidden="true"><div class="track">${[...TOPICS, ...TOPICS].map(t => `<span class="pill">${t}</span>`).join('')}</div></div>
