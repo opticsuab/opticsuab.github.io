@@ -215,8 +215,8 @@ const ROUTES = {
     const phd = NEWS.find(n => /Open PhD/i.test(n.en));
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
-    /* keyword ribbon: keywords shared by at least two publications (all of them while the list is short) */
-    const shared = KEYWORDS.filter(x => x.n >= 2), ribbon = shared.length >= 8 ? shared : KEYWORDS.slice(0, 16);
+    /* keyword ribbon: keywords shared by at least two publications, in random order on every visit */
+    const ribbon = KEYWORDS.filter(x => x.n >= 2).map(x => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     const topicLinks = ribbon.map(x => `<a class="pill" href="${esc(kwHref(x.k))}">${esc(x.label)}</a>`).join('');
     const topicCopies = ribbon.map(x => `<span class="pill" aria-hidden="true">${esc(x.label)}</span>`).join('');
     return `<section class="hero"><canvas class="bg"></canvas>

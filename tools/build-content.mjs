@@ -3,9 +3,9 @@
  * Content pipeline. Runs on every change to main (see .github/workflows/publish.yml) and can be run
  * locally with `node tools/build-content.mjs`.
  *
- * 1. Keywords: every publication without keywords gets them automatically, from the vocabulary in
- *    data/keywords.json and the paper's metadata on OpenAlex (title, abstract, indexed keywords).
- *    Keywords typed by hand in the panel always win.
+ * 1. Keywords: every publication gets keywords automatically from the keyword bank and the paper's
+ *    metadata on OpenAlex (title, abstract, indexed keywords); new terms join the bank. Keywords set in
+ *    data/publication-keywords.json always win (see the keywords section below).
  * 2. Translations: every text edited in the panel (news, people, home page texts, maintenance screen,
  *    former-member groups, keywords) is translated into the other site languages (en, es, ca), whatever
  *    language it was written in. Translations are stored in data/i18n/<lang>/<collection>.json as
@@ -164,10 +164,22 @@ const abstractOf = w => {
   return words.join(' ');
 };
 
-/* ---------- 1. keywords ---------- */
-const vocab = (readJSON('data/keywords.json', { keywords: [] }).keywords || []).filter(k => k && k.name);
+/* ---------- 1. keywords ----------
+ * data/keywords.json             curated vocabulary (name + terms that detect it), kept by the site maintainers
+ * data/publication-keywords.json curated keywords of specific papers (by DOI, or by title when there is no DOI)
+ * <cache>/keywords-auto.json     keywords found automatically for every other paper
+ * <cache>/keywords-bank.json     the bank: every keyword in use (curated and automatic), alphabetical, with the
+ *                                number of papers; terms found automatically join it and are then detected in
+ *                                later papers too. Keywords shared by two or more papers go to the home ribbon. */
+const curated = (readJSON('data/keywords.json', { keywords: [] }).keywords || []).filter(k => k && k.name);
+const BANK_REL = 'data/keywords-bank.json', AUTO_REL = 'data/keywords-auto.json';
+const learned = ((readCache(BANK_REL, {}).keywords) || []).filter(k => k && k.name && k.auto);
+const vocab = [...curated];
+const known = new Set(curated.map(k => norm(k.name)));
+for (const k of learned) if (!known.has(norm(k.name))) { vocab.push({ name: k.name, match: k.match || [], auto: true }); known.add(norm(k.name)); }
 const canonical = new Map(vocab.map(k => [norm(k.name), k.name]));
 const cleanKeyword = k => { const s = String(k || '').replace(/\s+/g, ' ').trim(); return canonical.get(norm(s)) || s; };
+const cleanList = list => [...new Map((Array.isArray(list) ? list : list ? [list] : []).map(cleanKeyword).filter(Boolean).map(k => [norm(k), k])).values()];
 
 async function suggestKeywords(pub) {
   const title = norm(titleOf(pub.text));
@@ -182,7 +194,7 @@ async function suggestKeywords(pub) {
     return { name: k.name, score: (inTitle ? 4 : 0) + (inIndexed ? 2 : 0) + Math.min(hits, 3) };
   }).filter(k => k.score >= 2).sort((a, b) => b.score - a.score);
   const picked = scored.slice(0, 6).map(k => k.name);
-  // nothing in the vocabulary fits well: fall back to the keywords OpenAlex indexed for the paper
+  // few matches in the bank: add the keywords OpenAlex indexed for the paper (they join the bank)
   for (const k of (work?.keywords || []).filter(k => (k.score ?? 1) >= 0.4)) {
     if (picked.length >= 3) break;
     const name = cleanKeyword(titleCase(k.display_name));
@@ -192,30 +204,36 @@ async function suggestKeywords(pub) {
 }
 
 const pubsDoc = readJSON('data/publications.json', { publications: [] });
-const AUTO_REL = 'data/keywords-auto.json';
+const fixed = readJSON('data/publication-keywords.json', {});
 const autoOld = readCache(AUTO_REL, {}), autoNew = {};
-const pubKey = pub => `${pub.year || ''}|${norm(titleOf(pub.text)).trim()}`;
-let pubsChanged = false;
+const pubKey = pub => { const doi = doiOf(pub.link) || doiOf(pub.text); return doi ? `doi:${doi.toLowerCase()}` : `title:${norm(titleOf(pub.text)).trim()}`; };
+const counts = new Map();
 for (const pub of pubsDoc.publications || []) {
   if (!pub || !pub.text) continue;
-  const current = (Array.isArray(pub.keywords) ? pub.keywords : pub.keywords ? [pub.keywords] : []).map(cleanKeyword).filter(Boolean);
-  const unique = [...new Map(current.map(k => [norm(k), k])).values()];
-  if (unique.length) {
-    if (JSON.stringify(unique) !== JSON.stringify(pub.keywords)) { pub.keywords = unique; pubsChanged = true; }
-    continue;
-  }
   const key = pubKey(pub);
-  let found = Array.isArray(autoOld[key]) && autoOld[key].length ? autoOld[key] : null;
-  if (!found) {
-    found = await suggestKeywords(pub);
-    if (found.length) log(`keywords · ${titleOf(pub.text).slice(0, 70)} → ${found.join(', ')}`);
+  let list = cleanList(fixed[key] && fixed[key].keywords);
+  if (!list.length) list = cleanList(pub.keywords); // keywords written directly in the publication, if any
+  if (!list.length) {
+    list = Array.isArray(autoOld[key]) && autoOld[key].length ? cleanList(autoOld[key]) : null;
+    if (!list) {
+      list = await suggestKeywords(pub);
+      if (list.length) log(`keywords · ${titleOf(pub.text).slice(0, 70)} → ${list.join(', ')}`);
+    }
+    if (list.length) autoNew[key] = list;
   }
-  if (found.length) { pub.keywords = found; autoNew[key] = found; pubsChanged = true; }
+  pub.keywords = list;
+  for (const k of list) {
+    counts.set(k, (counts.get(k) || 0) + 1);
+    if (!canonical.has(norm(k))) { vocab.push({ name: k, match: [k.toLowerCase()], auto: true }); canonical.set(norm(k), k); }
+  }
 }
-if (CACHE_DIR) {
-  writeJSON(AUTO_REL, autoNew);
-  if (pubsChanged) writeJSON('data/publications.json', pubsDoc, { stored: false });
-} else if (pubsChanged) writeJSON('data/publications.json', pubsDoc);
+const bank = vocab
+  .filter(k => !k.auto || counts.get(k.name))
+  .map(k => ({ name: k.name, papers: counts.get(k.name) || 0, shared: (counts.get(k.name) || 0) >= 2, ...(k.auto ? { auto: true } : {}), match: k.match || [] }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+writeJSON(BANK_REL, { keywords: bank });
+writeJSON(AUTO_REL, autoNew);
+writeJSON('data/publications.json', pubsDoc, { stored: false });
 
 /* ---------- 2. translations ---------- */
 const news = readJSON('data/news.json', { news: [] });

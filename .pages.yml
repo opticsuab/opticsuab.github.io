@@ -247,36 +247,6 @@ content:
           - name: link
             label: Enlace (DOI o URL, opcional)
             type: string
-          - name: keywords
-            label: Palabras clave
-            description: Déjalas vacías al añadir un artículo y se asignan solas (a partir del DOI y del título); a los 1–2 minutos las verás en la web, en Publicaciones, debajo del artículo. Si alguna no te convence, escribe aquí las que quieras y se usarán las tuyas. Mejor en inglés; la web las traduce. Las que comparten dos o más artículos aparecen en la cinta de la portada.
-            type: string
-            list: true
-
-  # ------------------------------------------------- VOCABULARIO DE PALABRAS CLAVE
-  - name: keywords
-    label: Palabras clave
-    type: file
-    path: data/keywords.json
-    format: json
-    fields:
-      - name: keywords
-        label: Palabras clave que se asignan solas a los artículos nuevos
-        type: object
-        list:
-          collapsible:
-            collapsed: true
-            summary: "{name}"
-        fields:
-          - name: name
-            label: Palabra clave (en inglés, tal como se mostrará)
-            type: string
-            required: true
-          - name: match
-            label: Términos que la detectan en el título o el resumen del artículo
-            description: En inglés y en minúsculas; basta con el principio de la palabra (p. ej. "polarimet" detecta polarimetry, polarimetric…).
-            type: string
-            list: true
 
   - name: theses
     label: Tesis doctorales
