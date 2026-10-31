@@ -92,6 +92,8 @@ function detectLang(text) {
   // spelling only breaks ties between Spanish and Catalan (English texts often quote Catalan names)
   score.ca += 0.5 * ((s.match(/l·l|[àèò]|ç/g) || []).length + (s.match(/\b[dl]['’]\p{L}/gu) || []).length);
   score.es += 0.5 * ((s.match(/[ñ¿¡á]|ción\b|ciones\b/g) || []).length);
+  // plenty of English function words: English text quoting Spanish/Catalan names or titles
+  if (score.en >= 4 && score.en >= 0.8 * Math.max(score.es, score.ca)) return 'en';
   const best = LANGS.reduce((a, b) => (score[b] > score[a] ? b : a), 'en');
   const others = Math.max(...LANGS.filter(l => l !== best).map(l => score[l]));
   // not sure (short or mixed text): let the translation service detect it
@@ -248,12 +250,13 @@ let translatedCount = 0, pending = 0;
 for (const lang of LANGS) {
   for (const col of collections) {
     const rel = `data/i18n/${lang}/${col}.json`;
-    const old = { ...readCache(rel, {}), ...readJSON(rel, {}) };
+    const kept = readJSON(rel, {}), cached = readCache(rel, {});
     const memory = {};
     for (const [c, text, from] of units) {
       if (c !== col || text in memory) continue;
-      if (typeof old[text] === 'string') { memory[text] = old[text]; continue; } // existing (possibly hand-corrected) translation
+      if (typeof kept[text] === 'string') { memory[text] = kept[text]; continue; } // committed (possibly hand-corrected) translation
       if (from === lang) continue;
+      if (typeof cached[text] === 'string') { memory[text] = cached[text]; continue; }
       const result = await translate(text, from, lang);
       if (result === null) { pending++; continue; }
       memory[text] = result; translatedCount++;
