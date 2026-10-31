@@ -1,4 +1,4 @@
-/* Pixel-grid background, dissolve dividers and pixelated image reveals */
+/* Pixel-grid background, dissolve dividers and soft-focus photo reveals */
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const lerp = (a, b, t) => a + (b - a) * t;
 const mix = (c1, c2, t) => c1.map((v, i) => Math.round(lerp(v, c2[i], t)));
@@ -74,41 +74,29 @@ function dissolve(canvas) {
   new ResizeObserver(paint).observe(canvas); paint();
 }
 
-/* Image resolving from coarse pixels to sharp */
-const pxObserver = new IntersectionObserver(es => es.forEach(e => {
+/* Photos settle into focus as they enter the viewport */
+const photoObserver = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return;
-  pxObserver.unobserve(e.target);
-  resolveImage(e.target);
+  photoObserver.unobserve(e.target);
+  revealPhoto(e.target);
 }), { threshold: 0.15 });
-function resolveImage(box) {
+function revealPhoto(box) {
   const img = box.querySelector('img');
   if (!img) return;
-  const go = () => {
-    const W = box.clientWidth, H = box.clientHeight;
-    if (!W || !H || REDUCED) { box.classList.add('done'); return; }
-    const cv = document.createElement('canvas');
-    cv.width = W; cv.height = H; cv.className = 'pxcv';
-    box.appendChild(cv);
-    const ctx = cv.getContext('2d');
-    const ar = img.naturalWidth / img.naturalHeight, br = W / H;
-    let sw = img.naturalWidth, sh = img.naturalHeight, sx = 0, sy = 0;
-    if (ar > br) { sw = sh * br; sx = (img.naturalWidth - sw) / 2; } else { sh = sw / br; sy = (img.naturalHeight - sh) / 2; }
-    const tmp = document.createElement('canvas'), tctx = tmp.getContext('2d');
-    const levels = [6, 12, 24, 48, 96];
-    let i = 0;
-    (function step() {
-      const n = levels[i];
-      tmp.width = n; tmp.height = Math.max(1, Math.round(n / br));
-      tctx.drawImage(img, sx, sy, sw, sh, 0, 0, tmp.width, tmp.height);
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(tmp, 0, 0, W, H);
-      if (++i < levels.length) setTimeout(step, 110);
-      else { box.classList.add('done'); setTimeout(() => cv.remove(), 450); }
-    })();
+  const settle = () => {
+    box.classList.remove('reveal-pending');
+    box.classList.add(img.naturalWidth ? 'is-ready' : 'image-error');
   };
-  img.complete && img.naturalWidth ? go() : img.addEventListener('load', go, { once: true });
+  if (img.complete) { settle(); return; }
+  img.addEventListener('load', settle, { once: true });
+  img.addEventListener('error', settle, { once: true });
 }
-function initPixelImages(root) { root.querySelectorAll('.pxi').forEach(b => pxObserver.observe(b)); }
+function initPhotoReveals(root) {
+  root.querySelectorAll('.photo-frame').forEach(box => {
+    if (!REDUCED) box.classList.add('reveal-pending');
+    photoObserver.observe(box);
+  });
+}
 
 /* Maintenance screen: pixel gears turning and a pixel wrench tightening the small gear */
 function startGears(canvas) {
