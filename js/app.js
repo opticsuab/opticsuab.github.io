@@ -15,6 +15,7 @@ const NAV = [
 ];
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '';
+let MAINT = { enabled: false };
 let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], LINES = [];
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
@@ -23,6 +24,8 @@ const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
 const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
 async function loadData() {
   const get = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
+  MAINT = await get('maintenance').catch(() => ({ enabled: false }));
+  if (MAINT.enabled && !PREVIEW) return;
   const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
     ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(get));
   SITE = Object.assign(SITE, site);
@@ -219,7 +222,21 @@ const ROUTES = {
 
 /* ---------- router ---------- */
 const main = $('#main'), header = $('#header');
+/* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway. */
+const PREVIEW = new URLSearchParams(location.search).has('preview');
+function renderMaintenance() {
+  document.body.classList.add('maint');
+  document.title = `${MAINT.title || 'Under maintenance'} · Optics Group · UAB`;
+  main.innerHTML = `<section class="maint-screen"><canvas class="bg"></canvas>
+    <div class="maint-box"><canvas class="gears" role="img" aria-label="Animated gears and wrench"></canvas>
+    <div class="eyebrow">Optics Group · Universitat Autònoma de Barcelona</div>
+    <h1>${esc(MAINT.title || 'Under maintenance')}</h1>
+    ${paras(MAINT.message || 'We are improving the website. Please come back soon.').map(t => `<p class="lead">${esc(t)}</p>`).join('')}</div></section>`;
+  $$('canvas.bg', main).forEach(c => startBackground(c, { size: 34 }));
+  $$('canvas.gears', main).forEach(startGears);
+}
 function render() {
+  if (MAINT.enabled && !PREVIEW) return renderMaintenance();
   const path = (location.hash.replace(/^#\/?/, '') || '').split('/').filter(Boolean);
   const key = path[0] || 'home';
   main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path)}</div>`;

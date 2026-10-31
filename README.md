@@ -2,23 +2,23 @@
 
 Web del Grupo de Óptica de la UAB, publicada en **https://opticsuab.eu** con GitHub Pages.
 
-## Cómo editar el contenido (sin tocar código)
+## Editar el contenido
 
-1. Entra en **https://app.pagescms.org** e inicia sesión con GitHub.
-2. Abre el repositorio **opticsuab/opticsuab.github.io**.
-3. En el menú de la izquierda elige qué editar: *Noticias*, *Personas*, *Publicaciones*, etc.
-4. Haz los cambios y pulsa **Save**. La web se actualiza sola en 1–2 minutos.
+1. Entra en **https://app.pagescms.org**.
+2. Abre **opticsuab/opticsuab.github.io**.
+3. Elige la sección en el menú de la izquierda (Noticias, Personas, Publicaciones, Textos de la portada…).
+4. Haz los cambios y pulsa **Save**. La web se actualiza en 1–2 minutos.
+
+**Modo mantenimiento:** en el panel, *Modo mantenimiento* → activar → **Save**. Para volver a mostrar la web, desactivar → **Save**.
 
 ## Estructura
 
-| Carpeta / archivo | Qué contiene |
+| Carpeta / archivo | Contenido |
 |---|---|
-| `index.html`, `css/`, `js/` | Diseño y funcionamiento de la web (no se editan desde el panel) |
-| `data/*.json` | Contenido: noticias, personas, publicaciones, tesis, patentes, textos de la portada (`site.json`), páginas |
-| `img/` | Imágenes (las fotos subidas desde el panel van a `img/news` y `img/people`) |
-| `.pages.yml` | Configuración del panel de edición |
-| `CNAME` | Dominio propio (opticsuab.eu) |
+| `index.html`, `css/`, `js/` | Diseño y funcionamiento |
+| `data/*.json` | Contenido editable desde el panel |
+| `img/` | Imágenes |
+| `.pages.yml` | Configuración del panel |
+| `CNAME` | Dominio (opticsuab.eu) |
 
-Los textos largos de algunas páginas (cursos, colaboraciones, divulgación, entrevistas…) están en `data/pages.json` en formato HTML.
-
-Para cambios de diseño o código, lee [CONTRIBUTING.md](CONTRIBUTING.md).
+Cambios de diseño o código: ver [CONTRIBUTING.md](CONTRIBUTING.md).

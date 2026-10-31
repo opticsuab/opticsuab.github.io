@@ -12,6 +12,23 @@ media:
     output: /img/people
 
 content:
+  # ---------------------------------------------------------- MANTENIMIENTO
+  - name: maintenance
+    label: Modo mantenimiento
+    type: file
+    path: data/maintenance.json
+    format: json
+    fields:
+      - name: enabled
+        label: Web en mantenimiento (actívalo y pulsa Save para ocultar la web; desactívalo para volver a mostrarla)
+        type: boolean
+      - name: title
+        label: Título de la pantalla
+        type: string
+      - name: message
+        label: Mensaje (separa párrafos con una línea en blanco)
+        type: text
+
   # ------------------------------------------------------- TEXTOS PORTADA
   - name: site
     label: Textos de la portada
