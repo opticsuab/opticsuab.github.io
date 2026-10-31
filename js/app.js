@@ -13,11 +13,9 @@ const NAV = [
   { k: 'join', l: 'Join us', sub: [] },
   { k: 'about', l: 'About', sub: [['mission', 'Mission & history'], ['funding', 'Funding & grants'], ['climate', 'Climate commitment'], ['gender', 'Gender & equality'], ['reach', 'How to reach us']] },
 ];
-const TOPICS = ['Polarimetry', 'Liquid crystals', 'Ultracold atoms', 'Topological photonics', 'Structured light', 'Quantum optics', 'Biomedical imaging', 'Quantum thermodynamics', 'Lattice gauge theories', 'Diffractive optics', 'Quantum technologies'];
-const LINES = [
-  { t: 'Classical optics', d: 'Polarimetry, liquid-crystal devices, diffractive optics and structured light, with applications in biomedical imaging and metrology.', tags: ['Mueller polarimetry', 'Liquid crystals', 'Structured light', 'Biomedicine'] },
-  { t: 'Quantum optics & photonics', d: 'Ultracold atoms in optical lattices, topological photonics, quantum thermodynamics and quantum simulation of gauge theories.', tags: ['Ultracold atoms', 'Topological photonics', 'Quantum simulation', 'Quantum technologies'] },
-];
+/* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
+const CONTACT_FORM_KEY = '';
+let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], LINES = [];
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
 const paras = t => String(t || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
@@ -25,8 +23,11 @@ const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
 const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
 async function loadData() {
   const get = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
-  const [news, people, pubs, theses, patents, master, former, pages] = await Promise.all(
-    ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages'].map(get));
+  const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
+    ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(get));
+  SITE = Object.assign(SITE, site);
+  TOPICS = asList(SITE.topics);
+  LINES = asList(SITE.research_lines).map(l => ({ t: l.title || '', d: l.description || '', tags: asList(l.tags) }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
     const [y, m] = String(n.date || '').split('-').map(Number);
     return { y: y || 0, m: m || 1, cat: n.category || 'News', title: n.title, text: paras(n.text), img: asList(n.images), link: n.link || '' };
@@ -113,19 +114,19 @@ const ROUTES = {
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
     return `<section class="hero"><canvas class="bg"></canvas>
-      <div class="wrap"><div class="eyebrow">Universitat Autònoma de Barcelona</div>
-      <h1 class="display">Quantum &amp; Polarimetry</h1>
-      <p class="lead">The Optics Group studies light-matter and quantum systems: from liquid crystals and polarimetric imaging to ultracold atoms and topological photonics.</p>
+      <div class="wrap"><div class="eyebrow">${esc(SITE.hero_eyebrow)}</div>
+      <h1 class="display">${esc(SITE.hero_title)}</h1>
+      <p class="lead">${esc(SITE.hero_subtitle)}</p>
       <div class="hero-actions"><a class="btn" href="#/research/publications">Explore our research ${ARR}</a><a class="btn btn-ghost" href="#/join">Join us ${ARR}</a></div></div>
       <canvas class="dissolve" data-color="#040f20"></canvas></section>
-    <div class="marquee" aria-hidden="true"><div class="track">${[...TOPICS, ...TOPICS].map(t => `<span class="pill">${t}</span>`).join('')}</div></div>
+    <div class="marquee" aria-hidden="true"><div class="track">${[...TOPICS, ...TOPICS].map(t => `<span class="pill">${esc(t)}</span>`).join('')}</div></div>
     <section class="dark" style="padding-block:60px"><div class="wrap"><div class="stats">
       ${[[PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents & registrations'], [PEOPLE.length, 'Current members']].map(([n, l]) => `<div class="stat rv"><b data-count="${n}">0</b><span>${l}</span></div>`).join('')}
     </div></div></section>
     <section><div class="wrap"><div class="head"><div><div class="eyebrow">Latest</div><h2 class="sec">News</h2></div><a class="btn btn-line" href="#/news">All news ${ARR}</a></div>
       ${newsBanner(bannerItems())}</div></section>
     <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">Research</div><h2 class="sec">Two research lines, one shared language</h2>
-      <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${l.t}</h3><p>${l.d}</p><ul>${l.tags.map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('')}</div>
+      <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
       <p style="margin-top:30px"><a class="btn btn-ghost" href="#/research/lines">Research lines ${ARR}</a></p></div></section>
     <section><div class="wrap"><div class="two" style="grid-template-columns:1fr 1.3fr">
       <div><div class="eyebrow">Events</div><h2 class="sec">What's happening</h2><p class="lead">Workshops, conferences and visits hosted or attended by the group.</p><p style="margin-top:22px"><a class="btn btn-line" href="#/news">See the calendar ${ARR}</a></p></div>
@@ -145,7 +146,7 @@ const ROUTES = {
     if (k === 'datasets') return wrapPage(h('Datasets & software', 'Open resources released by the group.'), prosePage(PAGES_HTML.datasets));
     if (k === 'collaborations') return wrapPage(h('Recent collaborations', 'Groups and institutions we work with.'), prosePage(PAGES_HTML.collaborations));
     return `${h('Research lines', 'Two complementary lines of investigation: classical and quantum.')}<section><div class="wrap"><div class="grid g2">
-      ${LINES.map((l, i) => `<div class="line rv" style="--i:${i};background:var(--navy-900);color:#fff"><span class="mono">0${i + 1}</span><h3>${l.t}</h3><p>${l.d}</p><ul>${l.tags.map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('')}</div>
+      ${LINES.map((l, i) => `<div class="line rv" style="--i:${i};background:var(--navy-900);color:#fff"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
       <p style="margin-top:34px"><a class="btn" href="#/research/publications">See publications ${ARR}</a></p></div></section>`;
   },
   people(p) {
@@ -155,7 +156,7 @@ const ROUTES = {
     if (k === 'students') return wrapPage(h('PhD students & postdocs', 'Early-career researchers.'), grp(['Postdoctoral researchers', 'PhD students']));
     if (k === 'honorary') return wrapPage(h('Honorary professors', 'Emeritus and honorary members.'), grp(['Emeritus & honorary professors']));
     if (k === 'alumni') return wrapPage(h('Former members', 'Colleagues who have been part of the group.'), `<div class="prose formerlist">${FORMER}</div>`);
-    return wrapPage(h('Current team', `${PEOPLE.length} people working on matter and quantum systems.`), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
+    return wrapPage(h('Current team', `${PEOPLE.length} people working on light-matter and quantum systems.`), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
   },
   teaching(p) {
     const k = p[1] || 'courses', h = (t, s) => pageHead(p, t, s, [['Teaching', '#/teaching/courses'], [t]]);
@@ -208,9 +209,10 @@ const ROUTES = {
   },
   contact(p) {
     return `${pageHead(p, 'Contact', 'Write to us or find us on campus.', [['Contact']])}<section><div class="wrap two">
-      <form class="f" id="cform"><label>Name<input required name="n" autocomplete="name"></label><label>Email<input required type="email" name="e" autocomplete="email"></label>
-        <label>Topic<select><option>General</option><option>PhD / postdoc</option><option>Collaboration</option><option>Press</option></select></label><label>Message<textarea rows="5" required></textarea></label>
-        <button class="btn" style="justify-self:start">Send message ${ARR}</button></form>
+      <form class="f" id="cform"><label>Name<input required name="name" autocomplete="name" maxlength="120"></label><label>Your email<input required type="email" name="email" autocomplete="email" maxlength="200"></label>
+        <label>Topic<select name="topic"><option>General</option><option>PhD / postdoc</option><option>Collaboration</option><option>Press</option></select></label><label>Message<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
+        <button class="btn" style="justify-self:start">Send message ${ARR}</button><p class="fstatus" role="status" aria-live="polite"></p></form>
       <div class="prose"><h2 style="margin-top:0">Find us</h2><p>Physics Department, Facultat de Ciències, Edifici C (area C3 Parell)<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a href="#/about/reach">How to reach us →</a></p></div></div></section>`;
   },
 };
@@ -261,7 +263,7 @@ function mount(root) {
     nl.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', nl).forEach(x => x.classList.toggle('on', x === b)); c = b.dataset.c; apply(); });
     $('select', nl).addEventListener('change', e => { y = e.target.value; apply(); });
   }
-  $('#cform', root)?.addEventListener('submit', e => { e.preventDefault(); toast('Message sent (demo). Thank you!'); e.target.reset(); });
+  $('#cform', root)?.addEventListener('submit', sendContact);
 }
 
 function banner(root) {
@@ -305,6 +307,22 @@ function magnet(el) {
   if (REDUCED || matchMedia('(hover:none)').matches) return;
   el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.translate = `${(e.clientX - r.left - r.width / 2) * .15}px ${(e.clientY - r.top - r.height / 2) * .25}px`; });
   el.addEventListener('pointerleave', () => { el.style.translate = ''; });
+}
+async function sendContact(e) {
+  e.preventDefault();
+  const f = e.target, btn = $('button', f), st = $('.fstatus', f), d = Object.fromEntries(new FormData(f));
+  if (d.botcheck) return;
+  const say = (msg, ok) => { st.textContent = msg; st.dataset.ok = ok ? '1' : '0'; };
+  if (!CONTACT_FORM_KEY) { say('The contact form is not available yet. Please try again later.', false); return; }
+  btn.disabled = true; say('Sending…', true);
+  try {
+    const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ access_key: CONTACT_FORM_KEY, subject: `[opticsuab.eu] ${d.topic}: message from ${d.name}`, from_name: 'Optics Group website', name: d.name, email: d.email, replyto: d.email, topic: d.topic, message: d.message }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.success) throw new Error(j.message || r.status);
+    f.reset(); say('Thank you! Your message has been sent. We will reply to your email.', true);
+  } catch (err) { console.error(err); say('Sorry, the message could not be sent. Please try again in a few minutes.', false); }
+  finally { btn.disabled = false; }
 }
 function toast(msg) { let t = $('.toast') || document.body.appendChild(Object.assign(document.createElement('div'), { className: 'toast' })); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800); }
 

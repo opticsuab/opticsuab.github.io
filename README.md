@@ -14,9 +14,11 @@ Web del Grupo de Óptica de la UAB, publicada en **https://opticsuab.eu** con Gi
 | Carpeta / archivo | Qué contiene |
 |---|---|
 | `index.html`, `css/`, `js/` | Diseño y funcionamiento de la web (no se editan desde el panel) |
-| `data/*.json` | Contenido: noticias, personas, publicaciones, tesis, patentes, páginas |
+| `data/*.json` | Contenido: noticias, personas, publicaciones, tesis, patentes, textos de la portada (`site.json`), páginas |
 | `img/` | Imágenes (las fotos subidas desde el panel van a `img/news` y `img/people`) |
 | `.pages.yml` | Configuración del panel de edición |
 | `CNAME` | Dominio propio (opticsuab.eu) |
 
 Los textos largos de algunas páginas (cursos, colaboraciones, divulgación, entrevistas…) están en `data/pages.json` en formato HTML.
+
+Para cambios de diseño o código, lee [CONTRIBUTING.md](CONTRIBUTING.md).

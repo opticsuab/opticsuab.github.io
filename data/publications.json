@@ -2,436 +2,523 @@
   "publications": [
     {
       "year": 2025,
+      "short_title": "Progress in quantum structured light",
       "text": "«Progress in quantum structured light». A. Forbes, F. Nothlawala, and A. Vallés. Nat. Photonics, 19, 1291 (2025).",
       "link": "https://www.nature.com/articles/s41566-025-01795-x"
     },
     {
       "year": 2025,
+      "short_title": "IPP and PRT Depolarizing Spaces for the Study of Depolarizing Samples: A Review",
       "text": "«IPP and PRT Depolarizing Spaces for the Study of Depolarizing Samples: A Review». D. Li, I. Montes-Gonzalez, I. Estevez, M. Canabal-Carbia, O. López-Coronado, Y. Mao, A. van Eeckhout, I. Moreno, J. Campos, Z. Guo, Y. Tan, and A. Lizana. Appl. Sci., 15 (18), 10205 (2025).",
       "link": "https://doi.org/10.3390/app151810205"
     },
     {
       "year": 2025,
+      "short_title": "Efficient finite-resource formulation of non-Abelian lattice gauge theories…",
       "text": "«Efficient finite-resource formulation of non-Abelian lattice gauge theories beyond one dimension». P. Fontana, M. Miranda-Riaza, and A. Celi. Phys. Rev. X, 15, 031065(2025).",
       "link": "https://doi.org/10.1103/k9p6-c649"
     },
     {
       "year": 2025,
+      "short_title": "Generalized Eigenvalue Calibration Method for Mueller Imaging Polarimeters…",
       "text": "«Generalized Eigenvalue Calibration Method for Mueller Imaging Polarimeters Based on Micro-Polarized Sensors With Optimal Set of Calibration Samples». I. Montes-Gonzalez, I. Estévez, M. Canabal-Carbia, J. Campos, and A. Lizana. Photonic Sens 15 (3), 250320 (2025).",
       "link": "https://doi.org/10.1007/s13320-025-0767-z"
     },
     {
       "year": 2025,
+      "short_title": "Revealing hidden bioimaging information by isotropic depolarization filtering",
       "text": "«Revealing hidden bioimaging information by isotropic depolarization filtering». M. Canabal-Carbia, I. Estévez, E. Gonzalez-Arnay, I. Montes-Gonzalez, J.J. Gil, A. Barrera, E. García-Caurel, R. Ossikovski, I. Moreno, J. Campos, and A. Lizana. Opt. Laser Technol. 188, 112956 (2025).",
       "link": "https://doi.org/10.1016/j.optlastec.2025.112956"
     },
     {
       "year": 2025,
+      "short_title": "Enhanced Circularly Polarized Lasing in Nanocellulose-Silica Composites",
       "text": "«Enhanced Circularly Polarized Lasing in Nanocellulose-Silica Composites». S. Jo, I. Estévez, A. Lizana, J. Campos, and A. Mihi. Adv. Optical Mater. 13 (17), 2500212 (2025).",
       "link": "https://doi.org/10.1002/adom.202500212"
     },
     {
       "year": 2025,
+      "short_title": "Enhanced Characterization of Depolarizing Samples Using Indices of Polarization…",
       "text": "«Enhanced Characterization of Depolarizing Samples Using Indices of Polarization Purity and Polarizance-Reflection-Transformation Spaces». D. Li, I. Montes-Gonzalez, M. Canabal-Carbia, I. Estévez, O. Lopez-Coronado, Z. Guo, J. Campos, and A. Lizana. Adv. Photon. Nexus 4 (1), 016009 (2025).",
       "link": "https://doi.org/10.1117/1.APN.4.1.016009"
     },
     {
       "year": 2024,
+      "short_title": "Impurity flat band states in the diamond chain",
       "text": "«Impurity flat band states in the diamond chain». A. M. Marques, D. Viedma, V. Ahufinger, and R. G. Dias, Commun. Phys. 7, 387 (2024).",
       "link": "https://doi.org/10.1038/s42005-024-01886-1"
     },
     {
       "year": 2024,
+      "short_title": "Exploring ground states of Fermi-Hubbard model on honeycomb lattices with…",
       "text": "«Exploring ground states of Fermi-Hubbard model on honeycomb lattices with counterdiabaticity». J. Tang, R. Xu, Y. Ding, X. Xu, Y. Ban, M.H. Yung, A. Pérez-Obiol, G. Platero, and X. Chen. npj Quantum Mater. 9, 87 (2024).",
       "link": "https://doi.org/10.1038/s41535-024-00697-5"
     },
     {
       "year": 2024,
+      "short_title": "Flux-mediated effective Su–Schrieffer–Heeger model in an impurity decorated…",
       "text": "«Flux-mediated effective Su–Schrieffer–Heeger model in an impurity decorated diamond chain». D. Viedma, A. M. Marques, R. G. Dias, and V. Ahufinger, APL Photonics 9, 120801 (2024).",
       "link": "https://doi.org/10.1063/5.0232163"
     },
     {
       "year": 2024,
+      "short_title": "Classification of real-world objects using supervised ML-assisted polarimetry:…",
       "text": "«Classification of real-world objects using supervised ML-assisted polarimetry: cost/benefit analysis». R. M. S. Pereira, F. Oliveira, N. Romanyshyn, I. Estevez, J. Borges, S. Clain, and M. I. Vasilevskiy, Appl. Sci. 14 (23), 11059 (2024).",
       "link": "https://doi.org/10.3390/app142311059"
     },
     {
       "year": 2024,
+      "short_title": "Exploring ground states of Fermi-Hubbard model on honeycomb lattices with…",
       "text": "«Exploring ground states of Fermi-Hubbard model on honeycomb lattices with counterdiabaticity». J. Tang, R. Xu, Y. Ding, X. Xu, Y. Ban, M.-H. Yung, A. Pérez-Obiol, G. Platero, and X. Chen, npj Quantum Mater 9, 87 (2024).",
       "link": "https://doi.org/10.1038/s41535-024-00697-5"
     },
     {
       "year": 2024,
+      "short_title": "Combination of Fourier transform Jones matrix and beam coherence polarization…",
       "text": "«Combination of Fourier transform Jones matrix and beam coherence polarization matrix: Application to a double polarizer rectangular aperture». I. Moreno, D. Marco, M. M. Sánchez-López, J. Campos, and A. Lizana, Results Phys. 63, 107867 (2024).",
       "link": "https://doi.org/10.1016/j.rinp.2024.107867"
     },
     {
       "year": 2024,
+      "short_title": "Synthetic dimensions for topological and quantum phases».",
       "text": "«Synthetic dimensions for topological and quantum phases». J. Argüello-Luengo, U. Bhattacharya, A. Celi, R. W. Chhajlany, T. Grass, M. Płodzień, D. Rakshit, T. Salamon, P. Stornati, L. Tarruell, and Maciej Lewenstein, Commun. Phys. 7, 143 (2024).",
       "link": "https://doi.org/10.1038/s42005-024-01636-3"
     },
     {
       "year": 2024,
+      "short_title": "Analysis of the Image Magnification Produced by Inline Holographic Systems…",
       "text": "«Analysis of the Image Magnification Produced by Inline Holographic Systems Based on the Double-Sideband Filter». C. Ramírez, I. Estévez, A. Lizana, J. Campos, and L. García-Canseco, Appl. Sci. 4 (12), 5118 (2024).",
       "link": "https://doi.org/10.3390/app14125118"
     },
     {
       "year": 2024,
+      "short_title": "Polarizance-Reflection-Transformation representation space for sensing and…",
       "text": "«Polarizance-Reflection-Transformation representation space for sensing and distinguishing pure systems». D. Li, B. Liu, K. Guo, I. Estevez, A. Lizana, J. Campos, and Zhongyi Guo, IEEE Sens. J. 24 (9), 14763 – 14769(2024).",
       "link": "https://doi.org/10.1109/JSEN.2024.3377183"
     },
     {
       "year": 2024,
+      "short_title": "Optimized configuration for liquid crystal Stokes polarimeters in the presence…",
       "text": "«Optimized configuration for liquid crystal Stokes polarimeters in the presence of fast-axis orientation errors». I. Montes-Gonzalez, M. Avendaño-Alejo, N. C. Bruce, A. Lizana, and J. Campos, Opt. Lett. 49 (2), 355-358 (2024).",
       "link": "https://doi.org/10.1364/OL.503181"
     },
     {
       "year": 2024,
+      "short_title": "Ultracold atoms carrying orbital angular momentum: Engineering topological…",
       "text": "«Ultracold atoms carrying orbital angular momentum: Engineering topological phases in lattices». E. Nicolau, G. Pelegrí, J. Polo, A. M. Marques, A. J. Daley, J. Mompart, R. G. Dias and V. Ahufinger, EPL 145 (3), 35001 (2024).",
       "link": "https://doi.org/10.1209/0295-5075/ad2432"
     },
     {
       "year": 2024,
+      "short_title": "Mueller matrix imaging polarimeter with polarization camera self-calibration…",
       "text": "«Mueller matrix imaging polarimeter with polarization camera self-calibration applied to structured light components». E. Nabadda, M. M. Sánchez-López, A. Vargas, A. Lizana, J. Campos, and I. Moreno, J. Eur. Opt. Society-Rapid Publ. 20 (1), 5 (2024).",
       "link": "https://doi.org/10.1051/jeos/2024003"
     },
     {
       "year": 2024,
+      "short_title": "Connecting the microscopic depolarizing origin of samples with macroscopic…",
       "text": "«Connecting the microscopic depolarizing origin of samples with macroscopic measures of the Indices of Polarimetric Purity». M. Canabal-Carbia, I. Estévez, E. Nabadda, E. Garcia- Caurel, J. J. Gil, R. Ossikovski, A. Márquez, I. Moreno, J. Campos, and A. Lizana, Opt. Lasers Eng. 172, 107830 (2024).",
       "link": "https://doi.org/10.1016/j.optlaseng.2023.107830"
     },
     {
       "year": 2024,
+      "short_title": "Topological n-root Su-Schrieffer- Heeger model in a non- Hermitian photonic…",
       "text": "«Topological n-root Su-Schrieffer- Heeger model in a non- Hermitian photonic ring system». D. Viedma, A. M. Marques, R. G. Dias, and V. Ahufinger, Nanophotonics 13 (1), 51-61 (2024). Selected as the journal cover.",
       "link": "https://doi.org/10.1515/nanoph-2023-0590"
     },
     {
       "year": 2023,
+      "short_title": "Trapping of Bose-Einstein condensates in a three-dimensional dark focus…",
       "text": "«Trapping of Bose-Einstein condensates in a three-dimensional dark focus generated by conical refraction». D. Pfeiffer, L. Lind, J. Küber, F. Schmaltz, A. Turpin, V. Ahufinger, J. Mompart, and G. Birkl, Phys. Rev. A 108 (5), 053320 (2023).",
       "link": "https://doi.org/10.1103/PhysRevA.108.053320"
     },
     {
       "year": 2023,
+      "short_title": "Depolarizing metrics in the biomedical field: Vision enhancement and…",
       "text": "«Depolarizing metrics in the biomedical field: Vision enhancement and classification of biological tissues». M. Canabal-Carbia, A. Van Eeckhout, C. Rodríguez, E. González-Arnay, I. Estévez, J. J. Gil, E. García-Caurel, R. Ossikovski, J. Campos, and A. Lizana, J. Innov. Opt. Health Sci. 16 (5), 2330004 (2023).",
       "link": "https://doi.org/10.1142/S1793545823300045"
     },
     {
       "year": 2023,
+      "short_title": "Frustrated magnets without geometrical frustration in bosonic flux ladders».",
       "text": "«Frustrated magnets without geometrical frustration in bosonic flux ladders». L. Barbiero, J. Cabedo, M. Lewenstein, L. Tarruell, and A. Celi, Phys. Rev. Research 5 (4), L042008 (2023).",
       "link": "https://doi.org/10.1103/PhysRevResearch.5.L042008"
     },
     {
       "year": 2023,
+      "short_title": "Bosonic orbital Su-Schrieffer-Heeger model in a lattice of rings",
       "text": "«Bosonic orbital Su-Schrieffer-Heeger model in a lattice of rings». E. Nicolau, A. M. Marques, J. Mompart, R. G. Dias, and V. Ahufinger, Phys. Rev. A 108, 023317 (2023)",
       "link": "https://journals.aps.org/pra/abstract/10.1103/PhysRevA.108.023317"
     },
     {
       "year": 2023,
+      "short_title": "Polarimetric Images of Biological Tissues Based on the Arrow Decomposition of…",
       "text": "«Polarimetric Images of Biological Tissues Based on the Arrow Decomposition of Mueller Matrices». J. J. Gil, I. San José, M. Canabal-Carbia, I. Estévez, E. González-Arnay, J. Luque, T. Garnatje, J. Campos, and A. Lizana, Photonics 10 (6), 669 (2023).",
       "link": "https://www.mdpi.com/2304-6732/10/6/669"
     },
     {
       "year": 2023,
+      "short_title": "Topological gauge fields and the composite particle duality",
       "text": "«Topological gauge fields and the composite particle duality». G. Valentí-Rojas, A. J. Baker, and A. Celi, P. Öhberg, Phys. Rev. Research 5, 023128 (2023).",
       "link": "https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.5.023128"
     },
     {
       "year": 2023,
+      "short_title": "Local Hilbert space fragmentation and weak thermalization in Bose-Hubbard…",
       "text": "«Local Hilbert space fragmentation and weak thermalization in Bose-Hubbard diamond necklaces». E. Nicolau, A. M. Marques, J. Mompart, V. Ahufinger, and R. G. Dias, Phys. Rev. B 107, 094312 (2023).",
       "link": "https://journals.aps.org/prb/abstract/10.1103/PhysRevB.107.094312"
     },
     {
       "year": 2023,
+      "short_title": "Mode pumping in photonic lattices using a single tailored auxiliary waveguide",
       "text": "«Mode pumping in photonic lattices using a single tailored auxiliary waveguide». D. Viedma, J. Mompart, and V. Ahufinger, Phys. Rev. A 107 (2), 023506 (2023).",
       "link": "https://journals.aps.org/pra/abstract/10.1103/PhysRevA.107.023506"
     },
     {
       "year": 2023,
+      "short_title": "Calculation and restoration of lost spatial information in…",
       "text": "«Calculation and restoration of lost spatial information in division-of-focal-plane polarization remote sensing using polarization super-resolution technology». D. Yao, H. Liang, J. Campos, L. Yan, C. Yan, C. Jiang, S. Tan, C. Liang, H. Wang, and L. Meng, Int. J. Appl. Earth Obs. Geoinf. 116, 103155 (2023).",
       "link": "https://www.sciencedirect.com/science/article/pii/S1569843222003430?via%3Dihub"
     },
     {
       "year": 2023,
+      "short_title": "Many-body Aharonov-Bohm caging in a lattice of rings",
       "text": "«Many-body Aharonov-Bohm caging in a lattice of rings». E. Nicolau, A. M. Marques, R. G. Dias, J. Mompart, and V. Ahufinger, Phys. Rev. A 107 (2), 023305 (2023).",
       "link": "https://journals.aps.org/pra/abstract/10.1103/PhysRevA.107.023305"
     },
     {
       "year": 2023,
+      "short_title": "Quantum-jump analysis of frequency up-conversion amplification without…",
       "text": "«Quantum-jump analysis of frequency up-conversion amplification without inversion in a four-level scheme». J. L. Rubio, J. Mompart, and V. Ahufinger, Phys. Rev. A 107 (1), 013707 (2023).",
       "link": "https://doi.org/10.1103/PhysRevA.107.013707"
     },
     {
       "year": 2023,
+      "short_title": "Characterization of vine, Vitis vinifera , leaves by Mueller polarimetric…",
       "text": "«Characterization of vine, Vitis vinifera, leaves by Mueller polarimetric microscopy». B. AlBugami, Y. Su, C. Rodríguez, A. Lizana, J. Campos, M. Durfort, R. Ossikovski, and E. Garcia-Caurel, Thin Solid Films 764, 139594 (2023).",
       "link": "https://doi.org/10.1016/j.tsf.2022.139594"
     },
     {
       "year": 2022,
+      "short_title": "Encoding a one-dimensional topological gauge theory in a Raman-coupled…",
       "text": "«Encoding a one-dimensional topological gauge theory in a Raman-coupled Bose-Einstein condensate». C. S. Chisholm, A. Frölian, E. Neri, R. Ramos, L. Tarruell, and A. Celi, Phys. Rev. Research 4, 043088 (2022).",
       "link": "https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.4.043088"
     },
     {
       "year": 2022,
+      "short_title": "Spatially strongly confined atomic excitation via a two dimensional stimulated…",
       "text": "«Spatially strongly confined atomic excitation via a two dimensional stimulated Raman adiabatic passage». H. R. Hamedi, G. Žlabys, V. Ahufinger, T. Halfmann, J. Mompart, and G. Juzeliūnas, Opt. Express 30 (9), pp. 13915-13930 (2022).",
       "link": "https://opg.optica.org/oe/fulltext.cfm?uri=oe-30-9-13915&id=471287"
     },
     {
       "year": 2022,
+      "short_title": "High-efficiency topological pumping with discrete supersymmetry transformations",
       "text": "«High-efficiency topological pumping with discrete supersymmetry transformations». D. Viedma, G. Queraltó, J. Mompart, and V. Ahufinger, Opt. Express 30 (13), pp. 23531-23543 (2022).",
       "link": "https://opg.optica.org/oe/fulltext.cfm?uri=oe-30-13-23531&id=476931"
     },
     {
       "year": 2022,
+      "short_title": "Realizing a 1D topological gauge theory in an optically dressed BEC",
       "text": "«Realizing a 1D topological gauge theory in an optically dressed BEC». A. Frölian, C. S. Chisholm, E. Neri, C. R. Cabrera, R. Ramos, A. Celi, and L. Tarruell, Nature 608, pp. 293-297 (2022).",
       "link": "https://www.nature.com/articles/s41586-022-04943-3"
     },
     {
       "year": 2022,
+      "short_title": "Automatic pseudo-coloring approaches to improve visual perception and contrast…",
       "text": "«Automatic pseudo-coloring approaches to improve visual perception and contrast in polarimetric images of biological tissues». C. Rodríguez, A. Van Eeckhout, E. Garcia-Caurel, A. Lizana, and J. Campos, Sci. Rep. 12, 18479 (2022).",
       "link": "https://www.nature.com/articles/s41598-022-23330-6"
     },
     {
       "year": 2022,
+      "short_title": "Polarimetric observables for the enhanced visualization of plant diseases",
       "text": "«Polarimetric observables for the enhanced visualization of plant diseases». C. Rodríguez, E. Garcia-Caurel, T. Garnatje, M. Serra-Ribas, J. Luque, J. Campos, and A. Lizana, Sci. Rep. 12, 14743 (2022).",
       "link": "https://www.nature.com/articles/s41598-022-19088-6"
     },
     {
       "year": 2022,
+      "short_title": "Optimizing the classification of biological tissues using machin",
       "text": "«Optimizing the classification of biological tissues using machin e learning models based on polarized data». C. Rodríguez, I. Estévez, E. González-Arnay, J. Campos, and A. Lizana, J. Biophotonics 16 (4), e202200308 (2022).",
       "link": "https://onlinelibrary.wiley.com/doi/10.1002/jbio.202200308"
     },
     {
       "year": 2021,
+      "short_title": "Supersymmetry-enhanced stark-chirped rapid-adiabatic-passage in multimode…",
       "text": "«Supersymmetry-enhanced stark-chirped rapid-adiabatic-passage in multimode optical waveguides». D. Viedma, V. Ahufinger, and J. Mompart, Opt. Express 29 (24), 39200-39213 (2021).",
       "link": "https://opg.optica.org/oe/fulltext.cfm?uri=oe-29-24-39200&id=464733"
     },
     {
       "year": 2021,
+      "short_title": "Roadmap on Atomtronics: State of the art and perspective",
       "text": "«Roadmap on Atomtronics: State of the art and perspective». L. Amico, M. Boshier, G. Birkl, A. Minguzzi, C. Miniatura, L. C. Kwek, D. Aghamalyan, V. Ahufinger, D. Anderson, N. Andrei et al., AVS Quantum Sci. 3 (3), 039201 (2021).",
       "link": "https://pubs.aip.org/avs/aqs/article/3/3/039201/570637/Roadmap-on-Atomtronics-State-of-the-art-and"
     },
     {
       "year": 2021,
+      "short_title": "A resource efficient approach for quantum and classical simulations of gauge…",
       "text": "« A resource efficient approach for quantum and classical simulations of gauge theories in particle physics «. J. F. Haase, L. Dellantonio, A. Celi, D. Paulson, A. Kan, K. Jansen, and C. A. Muschik, Quantum 5, 393 (2021).",
       "link": "https://quantum-journal.org/papers/q-2021-02-04-393/#"
     },
     {
       "year": 2021,
+      "short_title": "Dynamical preparation of stripe states in spin-orbit-coupled gases",
       "text": "«Dynamical preparation of stripe states in spin-orbit-coupled gases». J. Cabedo, J. Claramunt, and A. Celi, Phys. Rev. A 104 (3), L031305 (2021).",
       "link": "https://journals.aps.org/pra/abstract/10.1103/PhysRevA.104.L031305"
     },
     {
       "year": 2021,
+      "short_title": "Excited-state quantum phase transitions in spin-orbit-coupled Bose gases",
       "text": "«Excited-state quantum phase transitions in spin-orbit-coupled Bose gases». J.Cabedo, A.Celi, Phys. Rev. Research 3 (4), 043215 (2021).",
       "link": "https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.3.043215"
     },
     {
       "year": 2021,
+      "short_title": "Polarimetric data-based model for tissue recognition",
       "text": "«Polarimetric data-based model for tissue recognition». C. Rodríguez, A. Van Eeckhout, L. Ferrer, E. Garcia-Caurel, E. González-Arnay, J. Campos, and A.Lizana, Biomed. Opt. Express 12 (8), pp. 4852-4872 (2021).",
       "link": "https://opg.optica.org/boe/fulltext.cfm?uri=boe-12-8-4852&id=453335"
     },
     {
       "year": 2021,
+      "short_title": "Unraveling the physical information of depolarizers",
       "text": "«Unraveling the physical information of depolarizers». A. Van Eeckhout, J. J. Gil, E. Garcia-Caurel, J. García, R. Ossikovski, I. San José, I. Moreno, J. Campos, and A. Lizana, Opt. Express 29 (23), pp. 38811-38823 (2021).",
       "link": "https://opg.optica.org/oe/fulltext.cfm?uri=oe-29-23-38811&id=464619"
     },
     {
       "year": 2021,
+      "short_title": "Super-broadband geometric phase devices based on circular polarization…",
       "text": "«Super-broadband geometric phase devices based on circular polarization converter with mirror symmetry «. W. Chen, Y. Yu, Q. Mu, J. Campos, Q. Wang, S. Li, S. Zhang, L. Xuan, Appl. Phys. Lett. 119 (10), 101103 (2021).",
       "link": "https://pubs.aip.org/aip/apl/article/119/10/101103/39622/Super-broadband-geometric-phase-devices-based-on"
     },
     {
       "year": 2021,
+      "short_title": "Polarimetric imaging microscopy for advanced inspection of vegetal tissues",
       "text": "«Polarimetric imaging microscopy for advanced inspection of vegetal tissues». A. Van Eeckhout, E. Garcia-Caurel, T. Garnatje, J. C. Escalera, M. Durfort, J. Vidal, J. J. Gil, J. Campos, and A. Lizana, Sci. Rep. 11, 3913 (2021).",
       "link": "https://www.nature.com/articles/s41598-021-83421-8"
     },
     {
       "year": 2021,
+      "short_title": "Development of optical digital interferometry for visualizing and modelling the…",
       "text": "«Development of optical digital interferometry for visualizing and modelling the mass diffusion of ammonia in water in an absorption process». R. Rives, D. Salavera, J. Campos, and A. Coronas, Exp. Therm. Fluid Sci. 130, 110509 (2021).",
       "link": "https://www.sciencedirect.com/science/article/abs/pii/S0894177721001539?via%3Dihub"
     },
     {
       "year": 2021,
+      "short_title": "Customized depolarization spatial patterns with dynamic retardance functions",
       "text": "«Customized depolarization spatial patterns with dynamic retardance functions». D. Marco, G. López-Morales, M. M. Sánchez- López, A. Lizana, I. Moreno, and J. Campos, Sci. Rep. 11, 9415 (2021).",
       "link": "https://www.nature.com/articles/s41598-021-88515-x"
     },
     {
       "year": 2021,
+      "short_title": "4-domain twisted liquid crystal micropolarizer array for visible linear…",
       "text": "«4-domain twisted liquid crystal micropolarizer array for visible linear polarization imaging». S. Zhang, C. Liu, Z. Sun, Q. Mu, J. Campos, H. Liu, X. Zhang, D. Li, and Q. Wang, Opt. Express 29 (26), pp. 43226-43240 (2021).",
       "link": "https://opg.optica.org/oe/fulltext.cfm?uri=oe-29-26-43226&id=465882"
     },
     {
       "year": 2020,
+      "short_title": "Topological state engineering via supersymmetric transformations",
       "text": "«Topological state engineering via supersymmetric transformations». G. Queraltó, M. Kremer, L. J.Maczewsky, M. Heinrich, J. Mompart, V. Ahufinger, and A. Szameit, Commun. Phys. 3, 49 (2020).",
       "link": "https://doi.org/10.1038/s42005-020-0316-4"
     },
     {
       "year": 2020,
+      "short_title": "Orbital angular momentum dynamics of Bose-Einstein condensates trapped in two…",
       "text": "«Orbital angular momentum dynamics of Bose-Einstein condensates trapped in two stacked rings». E. Nicolau, J. Mompart, B. Juliá-Díaz, and V. Ahufinger, Phys. Rev. A 102 (2), 023331 (2020).",
       "link": "https://doi.org/10.1103/PhysRevA.102.023331"
     },
     {
       "year": 2020,
+      "short_title": "Interaction-induced topological properties of two bosons in flat-band systems",
       "text": "«Interaction-induced topological properties of two bosons in flat-band systems», G. Pelegrí, A. M. Marques, V. Ahufinger, J. Mompart, and R. G. Dias, Phys. Rev. Research 2 (3), 033267 (2020).",
       "link": "https://doi.org/10.1103/PhysRevResearch.2.033267"
     },
     {
       "year": 2020,
+      "short_title": "Effective triangular ladders with staggered flux from spin-orbit coupling in 1D…",
       "text": "«Effective triangular ladders with staggered flux from spin-orbit coupling in 1D optical lattices», J. Cabedo, J. Claramunt, J. Mompart, V. Ahufinger, and A. Celi, Eur. Phys. J. D 74, 123 (2020).",
       "link": "https://doi.org/10.1140/epjd/e2020-10129-1"
     },
     {
       "year": 2020,
+      "short_title": "Artificial gauge field switching using orbital angular momentum modes in…",
       "text": "«Artificial gauge field switching using orbital angular momentum modes in optical waveguides», C. Jörg, G. Queraltó, M. Kremer, G. Pelegrí, J. Schulz, A. Szameit, G. Freymann, J. Mompart, and V. Ahufinger, Light Sci. Appl. 9, 150 (2020).",
       "link": "https://doi.org/10.1038/s41377-020-00385-6"
     },
     {
       "year": 2020,
+      "short_title": "Influence of temporal averaging in the performance of a rotating retarder…",
       "text": "«Influence of temporal averaging in the performance of a rotating retarder imaging Stokes polarimeter». A. Lizana, J. Campos, A. Eeckhout, and A. Márquez, Opt. Express 28 (8), pp. 10981-11000 (2020).",
       "link": "https://doi.org/10.1364/OE.385623"
     },
     {
       "year": 2020,
+      "short_title": "Depolarization metric spaces for biological tissues classification",
       "text": "«Depolarization metric spaces for biological tissues classification». A. Eeckhout, E. Garcia- Caurel, R. Ossikovski, A. Lizana, C. Rodríguez, E. González-Arnay, and J. Campos, J. Biophotonics 13 (8), e202000083 (2020).",
       "link": "https://doi.org/10.1002/jbio.202000083"
     },
     {
       "year": 2020,
+      "short_title": "Displacement-free stereoscopic phase measuring deflectometry based on phase…",
       "text": "«Displacement-free stereoscopic phase measuring deflectometry based on phase difference minimization». H. Zhang, I. Sics, J. Ladrera, M. Llonch, J. Nicolas, and J. Campos, Opt. Express 28 (21), pp. 31658-31674 (2020).",
       "link": "https://doi.org/10.1364/OE.403013"
     },
     {
       "year": 2020,
+      "short_title": "Emerging Two-Dimensional Gauge Theories in Rydberg Configurable Arrays",
       "text": "«Emerging Two-Dimensional Gauge Theories in Rydberg Configurable Arrays». A. Celi, B. Vermersch, O. Viyuela, H. Pichler, M. D. Lukin, and P. Zoller, Phys. Rev. X 10 (2), 021057 (2020).",
       "link": "https://doi.org/10.1103/PhysRevX.10.021057"
     },
     {
       "year": 2020,
+      "short_title": "Simulating Twistronics without a Twist",
       "text": "«Simulating Twistronics without a Twist». T. Salamon, A. Celi, R. W. Chhajlany, I. Frérot, M. Lewenstein, L. Tarruell, and D. Rakshit, Phys. Rev. Lett. 125 (3), 030504 (2020).",
       "link": "https://doi.org/10.1103/PhysRevLett.125.030504"
     },
     {
       "year": 2020,
+      "short_title": "Mueller Matrix Polarimetric Imaging Analysis of Optical Components for the…",
       "text": "«Mueller Matrix Polarimetric Imaging Analysis of Optical Components for the Generation of Cylindrical Vector Beams». G. López-Morales, M. Sánchez-López, A. Lizana, I. Moreno, and J. Campos, Crystals 10 (12), 1155 (2020).",
       "link": "https://doi.org/10.3390/cryst10121155"
     },
     {
       "year": 2020,
+      "short_title": "Simulating lattice gauge theories within quantum technologies",
       "text": "«Simulating lattice gauge theories within quantum technologies». M. C. Bañuls, R. Blatt, J. Catani, A. Celi, J. I. Cirac, M. Dalmonte, L. Fallani, K. Jansen, M. Lewenstein, S. Montangero, C. A. Muschik, B. Reznik, L. Tagliacozzo, K. Acoleyen, F. Verstraete, U. Wiese, M. Wingate, J. Zakrezewski, and P. Zoller, Eur. Phys. J. D 74, 165 (2020).",
       "link": "https://doi.org/10.1140/epjd/e2020-100571-8"
     },
     {
       "year": 2019,
+      "short_title": "Topological edge states with ultracold atoms carrying orbital angular momentum…",
       "text": "«Topological edge states with ultracold atoms carrying orbital angular momentum in a diamond chain». G. Pelegrí, A. M. Marques, R. G. Dias, A. J. Daley, V. Ahufinger, and J. Mompart, Phys. Rev. A 99 (2), 023612 (2019).",
       "link": "https://doi.org/10.1103/PhysRevA.99.023612"
     },
     {
       "year": 2019,
+      "short_title": "Second-order topological corner states with ultracold atoms carrying orbital…",
       "text": "«Second-order topological corner states with ultracold atoms carrying orbital angular momentum in optical lattices». G. Pelegrí, A. M. Marques, V. Ahufinger, J. Mompart, and R. G. Dias, Phys. Rev. B 100 (20), 205109 (2019).",
       "link": "https://doi.org/10.1103/PhysRevB.100.205109"
     },
     {
       "year": 2019,
+      "short_title": "Coherent spin mixing via spin-orbit coupling in Bose gases",
       "text": "«Coherent spin mixing via spin-orbit coupling in Bose gases». J. Cabedo, J. Claramunt, A. Celi, Y. Zhang, V. Ahufinger, and J. Mompart, Phys. Rev. A 100 (6), 063633 (2019).",
       "link": "https://doi.org/10.1103/PhysRevA.100.063633"
     },
     {
       "year": 2019,
+      "short_title": "Training in polarization through a virtual learning environment",
       "text": "«Training in polarization through a virtual learning environment». A. Lizana, M. J. Yzuel, J. C. Escalera, and J. Campos, Proc. of SPIE 11143, 111430V (2019).",
       "link": "https://doi.org/10.1117/12.2523772"
     },
     {
       "year": 2019,
+      "short_title": "Depolarizing metrics for plant samples imaging",
       "text": "«Depolarizing metrics for plant samples imaging». A. Eeckhout, E. Garcia-Caurel, T. Garnatje, M. Durfort, J. C. Escalera, J. Vidal, J. J. Gil, J. Campos, and A. Lizana, PLoS ONE 14 (3), e0213909 (2019).",
       "link": "https://doi.org/10.1371/journal.pone.0213909"
     },
     {
       "year": 2019,
+      "short_title": "Misalignment error analysis in polychromatic division of focal plane Stokes…",
       "text": "«Misalignment error analysis in polychromatic division of focal plane Stokes polarimeters». A. Lizana, J. Campos, A. Eeckhout, and A. Marquez, OSA contin. 2 (5), pp. 1565-1575 (2019).",
       "link": "https://doi.org/10.1364/OSAC.2.001565"
     },
     {
       "year": 2019,
+      "short_title": "Deflectometry encoding the measured angle in a time-dependent intensity signal",
       "text": "«Deflectometry encoding the measured angle in a time-dependent intensity signal». P. Pedreira, J. Nicolas, I. Sics, D. Heinis, A. Fontserè, A. Crisol, and J. Campos, Rev. Sci. Instrum. 90 (2), 021707 (2019).",
       "link": "https://doi.org/10.1063/1.5057768"
     },
     {
       "year": 2019,
+      "short_title": "Diffusion Through a Network of Compartments Separated by Partially-Transmitting…",
       "text": "«Diffusion Through a Network of Compartments Separated by Partially-Transmitting Boundaries». G. Muñoz-Gil, M. A. Garcia-March, C. Manzo, A. Celi, and M. Lewenstein, Front. Phys. 7, 31 (2019).",
       "link": "https://doi.org/10.3389/fphy.2019.00031"
     },
     {
       "year": 2019,
+      "short_title": "Knotting fractional-order knots with the polarization state of light",
       "text": "«Knotting fractional-order knots with the polarization state of light». E. Pisanty, G. J. Machado, V. Vicuña-Hernández, A. Picón, A. Celi, J. P. Torres, and M. Lewenstein, Nat. Photonics 13, pp. 569–574 (2019).",
       "link": "https://doi.org/10.1038/s41566-019-0450-2"
     },
     {
       "year": 2019,
+      "short_title": "Roadmap on STIRAP applications",
       "text": "«Roadmap on STIRAP applications». K. Bergmann, H. Nägerl, C. Panda, G. Gabrielse, E. Miloylyadov, M. Quack, G. Seyfang, G. Wichmann, S. Ospelkaus, A. Kuhn et al., J. Phys. B: At. Mol. Opt. Phys. 52 (20), 202001 (2019).",
       "link": "https://doi.org/10.1088/1361-6455/ab3995"
     },
     {
       "year": 2019,
+      "short_title": "Quantum magnetism with ultracold bosons carrying orbital angular momentum",
       "text": "«Quantum magnetism with ultracold bosons carrying orbital angular momentum». G. Pelegrí, J. Mompart, V. Ahufinger, and A. J. Daley, Phys. Rev. A 100 (2), 023615 (2019).",
       "link": "https://doi.org/10.1103/PhysRevA.100.023615"
     },
     {
       "year": 2019,
+      "short_title": "Wavefront imaging by using an inline holographic microscopy system based on a…",
       "text": "«Wavefront imaging by using an inline holographic microscopy system based on a double-sideband filter». H. Zhang, F. A. Monroy-Ramírez, A. Lizana, C. Iemmi, N. Bennis, P. Morawiak, W. Piecek, and J. Campos, Opt. Lasers Eng. 113, pp. 71-76 (2019).",
       "link": "https://doi.org/10.1016/j.optlaseng.2018.10.003"
     },
     {
       "year": 2019,
+      "short_title": "Special Issue on Liquid Crystal on Silicon Devices: Modeling and Advanced…",
       "text": "«Special Issue on Liquid Crystal on Silicon Devices: Modeling and Advanced Spatial Light Modulation Applications». A. Márquez, and A. Lizana, Appl. Sci. 9 (15), 3049(2019).",
       "link": "https://doi.org/10.3390/app9153049"
     },
     {
       "year": 2019,
+      "short_title": "Depolarizing metrics for plant samples imaging",
       "text": "«Depolarizing metrics for plant samples imaging». A. Eeckhout, E. Garcia-Caurel, T. Garnatje, M. Durfort, J. C. Escalera, J. Vidal, J. J. Gil, J. Campos, and A. Lizana, PLoS ONE 14 (3), e0213909 (2019).",
       "link": "https://doi.org/10.1371/journal.pone.0213909"
     },
     {
       "year": 2018,
+      "short_title": "Integrated photonic devices based on adiabatic transitions between…",
       "text": "«Integrated photonic devices based on adiabatic transitions between supersymmetric structures». G. Queraltó, V. Ahufinger, and J. Mompart, Opt. Express 26 (26), pp. 33797-33806 (2018).",
       "link": "https://doi.org/10.1364/OE.26.033797"
     },
     {
       "year": 2018,
+      "short_title": "Damping of Josephson Oscillations in Strongly Correlated One-Dimensional Atomic…",
       "text": "«Damping of Josephson Oscillations in Strongly Correlated One-Dimensional Atomic Gases». J. Polo, V. Ahufinger, F. W. J. Hekking, and A. Minguzzi, Phys. Rev. Lett. 121 (9), 090404 (2018).",
       "link": "https://doi.org/10.1103/PhysRevLett.121.090404"
     },
     {
       "year": 2018,
+      "short_title": "Atomic-frequency-comb quantum memory via piecewise adiabatic passage",
       "text": "«Atomic-frequency-comb quantum memory via piecewise adiabatic passage». J. L. Rubio, D. Viscor, J. Mompart, and V. Ahufinger, Phys. Rev. A 98 (4), 043834 (2018).",
       "link": "https://doi.org/10.1103/PhysRevA.98.043834"
     },
     {
       "year": 2018,
+      "short_title": "Microparticle Manipulation and Imaging through a Self-Calibrated Liquid Crystal…",
       "text": "«Microparticle Manipulation and Imaging through a Self-Calibrated Liquid Crystal on Silicon Display». H. Zhang, A. Lizana, A. Eeckhout, A. Turpin, C. Ramirez, C. Iemmi, and J. Campos, Appl. Sci. 8 (11), 2310 (2018).",
       "link": "https://doi.org/10.3390/app8112310"
     },
     {
       "year": 2018,
+      "short_title": "Generation of reconfigurable optical traps for microparticles spatial…",
       "text": "«Generation of reconfigurable optical traps for microparticles spatial manipulation through dynamic split lens inspired light structures». A. Lizana, H. Zhang, A. Turpin, A. Eeckhout, F. A. Torres- Ruiz, A. Vargas, C. Ramirez, F. Pi, and J. Campos, Sci. Rep. 8, 11263 (2018).",
       "link": "https://doi.org/10.1038/s41598-018-29540-1"
     },
     {
       "year": 2018,
+      "short_title": "LCoS display phase self-calibration method based on diffractive lens schemes",
       "text": "«LCoS display phase self-calibration method based on diffractive lens schemes». H. Zhang, A. Lizana, C. Iemmi, F. A. Monroy- Ramírez, A. Márquez, I. Moreno, and J. Campos, Opt. Lasers Eng. 106, pp. 147-154 (2018).",
       "link": "https://doi.org/10.1016/j.optlaseng.2018.02.019"
     },
     {
       "year": 2018,
+      "short_title": "Completeness condition for unambiguous profile reconstruction by sub-aperture…",
       "text": "«Completeness condition for unambiguous profile reconstruction by sub-aperture stitching». J. Nicolas, M. Ling, P. Pedreira, J. Campos, and D. Cocco, Opt. Express 26 (21), pp. 27212-27220 (2018).",
       "link": "https://doi.org/10.1364/OE.26.027212"
     },
     {
       "year": 2018,
+      "short_title": "Quantum sensing using imbalanced counter-rotating Bose–Einstein condensate modes",
       "text": "«Quantum sensing using imbalanced counter-rotating Bose–Einstein condensate modes». G. Pelegrí, J. Mompart, and V. Ahufinger, New J. Phys. 20, 103001 (2018)",
       "link": "https://doi.org/10.1088/1367-2630/aae107"
     },
     {
       "year": 2018,
+      "short_title": "Polarimetric imaging of biological tissues based on the indices of polarimetric…",
       "text": "«Polarimetric imaging of biological tissues based on the indices of polarimetric purity «. A. Eeckhout, A. Lizana, E. Garcia-Caurel, J. J. Gil, A. Sansa, C. Rodríguez, I. Estévez, E. González, J. C. Escalera, I. Moreno, and J. Campos, J. Biophotonics 11 (4), e201700189 (2018).",
       "link": "https://doi.org/10.1002/jbio.201700189"
     }

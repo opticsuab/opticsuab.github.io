@@ -12,6 +12,47 @@ media:
     output: /img/people
 
 content:
+  # ------------------------------------------------------- TEXTOS PORTADA
+  - name: site
+    label: Textos de la portada
+    type: file
+    path: data/site.json
+    format: json
+    fields:
+      - name: hero_eyebrow
+        label: Antetítulo (texto pequeño sobre el título)
+        type: string
+      - name: hero_title
+        label: Título grande de la portada
+        type: string
+        required: true
+      - name: hero_subtitle
+        label: Subtítulo de la portada
+        type: text
+      - name: topics
+        label: Temas (cinta que se desplaza bajo la portada)
+        type: string
+        list: true
+      - name: research_lines
+        label: Líneas de investigación
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{title}"
+        fields:
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: description
+            label: Descripción
+            type: text
+          - name: tags
+            label: Etiquetas
+            type: string
+            list: true
+
   # ---------------------------------------------------------------- NOTICIAS
   - name: news
     label: Noticias
@@ -165,12 +206,15 @@ content:
         list:
           collapsible:
             collapsed: true
-            summary: "{year} · {text}"
+            summary: "{year} · {short_title}"
         fields:
           - name: year
             label: Año
             type: number
             required: true
+          - name: short_title
+            label: Título corto (solo sirve para encontrarla en esta lista)
+            type: string
           - name: text
             label: Referencia completa
             type: text
@@ -191,12 +235,15 @@ content:
         list:
           collapsible:
             collapsed: true
-            summary: "{year} · {text}"
+            summary: "{year} · {short_title}"
         fields:
           - name: year
             label: Año
             type: number
             required: true
+          - name: short_title
+            label: Título corto (solo sirve para encontrarla en esta lista)
+            type: string
           - name: text
             label: Referencia completa
             type: text
@@ -217,12 +264,15 @@ content:
         list:
           collapsible:
             collapsed: true
-            summary: "{year} · {text}"
+            summary: "{year} · {short_title}"
         fields:
           - name: year
             label: Año
             type: number
             required: true
+          - name: short_title
+            label: Título corto (solo sirve para encontrarla en esta lista)
+            type: string
           - name: text
             label: Referencia completa
             type: text
@@ -243,12 +293,15 @@ content:
         list:
           collapsible:
             collapsed: true
-            summary: "{year} · {text}"
+            summary: "{year} · {short_title}"
         fields:
           - name: year
             label: Año
             type: number
             required: true
+          - name: short_title
+            label: Título corto (solo sirve para encontrarla en esta lista)
+            type: string
           - name: text
             label: Referencia completa
             type: text

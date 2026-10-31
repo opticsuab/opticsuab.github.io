@@ -276,3 +276,4 @@ form.f input:focus,form.f textarea:focus,form.f select:focus{outline:0;border-co
 .pm-x:hover{background:var(--green-d)}
 @media(max-width:600px){.pm-head{flex-direction:column;align-items:flex-start;padding:56px 20px 22px}.pm-body{padding:22px 20px 26px}.pm-photo img,.pm-photo .noph{width:104px;height:104px}}
 #pm[open]{display:flex;flex-direction:column;overflow:hidden}.pm-head{flex:none}
+form.f .fstatus{margin:0;font-size:.95rem;min-height:1.5em}form.f .fstatus[data-ok="1"]{color:var(--green-d)}form.f .fstatus[data-ok="0"]{color:#b42318}
