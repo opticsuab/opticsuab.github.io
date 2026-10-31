@@ -27,7 +27,6 @@
       "date": "2026-01-01",
       "category": "News",
       "text": "Our group is offering several projects —ranging from quantum thermodynamics to polarimetric imaging —within the PHYNEST programme (Physics for a greener world). PHYNEST is a Horizon Europe MSCA COFUND doctoral programme coordinated by the Universitat Autònoma de Barcelona. It is designed to nurture the next generation of scientific leaders in physics and materials science.\n\nApplication deadline: February 28th webs.uab.cat/phynest/call Contact us for more information about the available projects!",
-      "images": [],
       "link": "https://webs.uab.cat/phynest/phd-positions/"
     },
     {
@@ -45,7 +44,6 @@
       "date": "2025-11-01",
       "category": "News",
       "text": "New article at divulga UAB by A. Celi about simulation of lattice gauge theories. The article is based on the recent work co-authoered by Pierpaolo Fontana, Marc Miranda Riaza and Alessio Celi and published recently at Phys. Rev. X 15, 031065. You can read the disemmination article (in Catalan) at Nou mètode eficient per simular teories fonamentals de la física de partícules!",
-      "images": [],
       "link": "https://doi.org/10.1103/k9p6-c649"
     },
     {
@@ -56,8 +54,7 @@
       "images": [
         "/img/news/63331e_Web-Monica-a.jpg",
         "/img/news/63331e_Web-Monica-b.jpg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "Workshop: BIOAM-2025",
@@ -117,8 +114,7 @@
       "images": [
         "/img/news/b3290f_WhatsApp-Image-2025-07-17-at-20.38.52-1.jpeg",
         "/img/news/ab90ff_WhatsApp-Image-2025-07-17-at-20.38.53.jpeg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "Dr. G. Pelegrí visit",
@@ -145,7 +141,6 @@
       "date": "2025-07-01",
       "category": "Outreach",
       "text": "From 26 June to 16 July, the Optics Group opened again their laboratories to high school students as part of the Campus Ítaca 2025 educational programme.",
-      "images": [],
       "link": "https://www.uab.cat/web/campus-itaca-1345819591004.html"
     },
     {
@@ -237,8 +232,7 @@
       "images": [
         "/img/news/8ad474_Image.jpeg",
         "/img/news/ab5841_shared-image.jpeg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "Career Talk with Optics Expert Roger Artigas",
@@ -264,9 +258,7 @@
       "title": "Outreach Activity: 11F, the International Day of Women and Girls in Science",
       "date": "2025-02-01",
       "category": "Outreach",
-      "text": "On Tuesday, February 19, the Optics Group had the pleasure of welcoming a group of 11 years old students from Bellaterra. During their visit, M. Canabal and I. Estévez led hands-on workshops to introduce the children to the fascinating world of light. Through fun and interactive activities, the students explored why white light is so important and learned about different types of light sources, such as LEDs, lasers, and spectral lamps.\n\nThis outreach activity is part of our ongoing commitment to bring science closer to younger audiences and inspire curiosity about optics from an early age.",
-      "images": [],
-      "link": ""
+      "text": "On Tuesday, February 19, the Optics Group had the pleasure of welcoming a group of 11 years old students from Bellaterra. During their visit, M. Canabal and I. Estévez led hands-on workshops to introduce the children to the fascinating world of light. Through fun and interactive activities, the students explored why white light is so important and learned about different types of light sources, such as LEDs, lasers, and spectral lamps.\n\nThis outreach activity is part of our ongoing commitment to bring science closer to younger audiences and inspire curiosity about optics from an early age."
     },
     {
       "title": "Exhibition: «Les doctores honoris causa de la UAB»",
@@ -286,8 +278,7 @@
       "text": "M. Miranda, C. Iacovelli, J. Bergmann, P. Fontana, Y. Zhai and A. Celi attended the COLD ATOM WORKSHOP 2025, held from January 30th to 31th in València. The conference focused on recent advances in Atom Physics research in Spain.\n\nM. Miranda gave a talk about non-Abelian lattice gauge theories. The other people also presented their research lines in the Optics group, either through posters or presentations.",
       "images": [
         "/img/news/d2c049_f6ef5dd0db6a307ef8db92b78aae426.jpg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "FASLIGHT network update meeting",
@@ -336,8 +327,7 @@
       "text": "Dr. David Viedma has successfully defended his PhD thesis, entitled: «Harnessing topology in photonic waveguide systems».\n\nCongratulations Dr. Viedma!!",
       "images": [
         "/img/news/a0f5ce_image.jpg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "Professor Lu Zhou visit",
@@ -346,8 +336,7 @@
       "text": "We’re happy to have Professor Lu Zhou from East China Normal University visiting our group. Welcome!",
       "images": [
         "/img/news/15511d_Foto_web.jpeg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "JPhD Meeting at ICMAB",
@@ -394,9 +383,7 @@
       "title": "Award: Premio Investigador Postdoctoral RNO2024",
       "date": "2024-07-01",
       "category": "Award",
-      "text": "During RNO2024, Dr. Iván Montes received the Postdoctoral Researcher Award for his oral presentation titled «Experimental Errors in a Mueller Matrix Imaging Polarimeter Based on Liquid Crystal Variable Retarders.» Congratulations, Iván!",
-      "images": [],
-      "link": ""
+      "text": "During RNO2024, Dr. Iván Montes received the Postdoctoral Researcher Award for his oral presentation titled «Experimental Errors in a Mueller Matrix Imaging Polarimeter Based on Liquid Crystal Variable Retarders.» Congratulations, Iván!"
     },
     {
       "title": "Conference: Reunión Nacional de Óptica RNO2024",
@@ -435,16 +422,13 @@
       "title": "Conferences: Non-equilibrium phenomena in strongly correlated ultracold matter",
       "date": "2024-05-01",
       "category": "Event",
-      "text": "V. Ahufinger has presented an invited talk about Hilbert space fragmentation in the Non-equilibrium phenomena in strongly correlated ultracold matter workshop held in Erice from 9 May to 15 May 2024.",
-      "images": [],
-      "link": ""
+      "text": "V. Ahufinger has presented an invited talk about Hilbert space fragmentation in the Non-equilibrium phenomena in strongly correlated ultracold matter workshop held in Erice from 9 May to 15 May 2024."
     },
     {
       "title": "Scholarship: Beca LúZete SEDOPTICA",
       "date": "2024-05-01",
       "category": "Award",
       "text": "M. Canabal-Carbia ha sido una de las 5 personas agraciada con la beca LúZete de SEDOPTICA. Esta beca ayuda a financiar parcialmente la participación de jóvenes investigadores e investigadoras en congresos o eventos científicos de ámbito nacional o internacional enmarcados en todas las áreas de Óptica y Fotónica.",
-      "images": [],
       "link": "https://areajovensedoptica.wordpress.com/2024/05/20/luzete-2024-admitidos-y-plazo-extraordinario/"
     },
     {
@@ -452,7 +436,6 @@
       "date": "2024-05-01",
       "category": "Award",
       "text": "M. Canabal-Carbia has been awarded a 2024 Optics and Photonics Scholarship by SPIE, the international society for optics and photonics, for potential contributions to optics, photonics, or a related field.",
-      "images": [],
       "link": "https://spie.org/membership/student-hub/scholarships/optics-and-photonics-education-scholarships/current-winners"
     },
     {
@@ -490,16 +473,13 @@
       "date": "2024-03-01",
       "category": "Outreach",
       "text": "On Saturday 2 March, the Optics Group opened their laboratories to high school students as part of the Dissabtes de la Física program. The students learned about the principles and applications of optics, such as polarization, diffraction, lasers and holograms. They also had the opportunity to interact with the researchers and ask them questions about their work.",
-      "images": [],
       "link": "https://www.uab.cat/en/physics/dissabtesfisica"
     },
     {
       "title": "Outreach Activity: 11F, the International Day of Women and Girls in Science",
       "date": "2024-02-01",
       "category": "Outreach",
-      "text": "On Tuesday 13 February, we received, at the Optics Group, the visit of students of the primary school of Bellaterra. M. Canabal and I. Estévez gave some workshops on light, including visible and ultraviolet light, lasers and fluorescence and phosphorescence phenomena.",
-      "images": [],
-      "link": ""
+      "text": "On Tuesday 13 February, we received, at the Optics Group, the visit of students of the primary school of Bellaterra. M. Canabal and I. Estévez gave some workshops on light, including visible and ultraviolet light, lasers and fluorescence and phosphorescence phenomena."
     },
     {
       "title": "Conference: SPIE Photonics West",
@@ -520,8 +500,7 @@
       "images": [
         "/img/news/520abc_Faslight.jpeg",
         "/img/news/334def_faslight3.jpeg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "Article selected as the journal cover for Nanophotonics",
@@ -540,16 +519,23 @@
       "text": "Prof. Miguel A. Alonso, professor at École Central de Marseille and the Institut Fresnel, as well as professor of optics at the University of Rochester and senior scientist in the Laboratory for Laser Energetics. Room: C3b/002. Edifici C (Ciencias). Universitat Autònoma de Barcelona.",
       "images": [
         "/img/news/3e8887_2023-11-28_Visita-Miguel-Alonso-edited.jpg"
-      ],
-      "link": ""
+      ]
     },
     {
       "title": "PhD Thesis Defense",
       "date": "2023-11-01",
       "category": "Thesis",
-      "text": "Dr. Eloi Nicolau has successfully defended her PhD Thesis, titled: «Ultracold atoms in coupled ring potentials and flat-band lattices».\n\nCongratulations Dr. Eloi Nicolau!!",
-      "images": [],
-      "link": ""
+      "text": "Dr. Eloi Nicolau has successfully defended her PhD Thesis, titled: «Ultracold atoms in coupled ring potentials and flat-band lattices».\n\nCongratulations Dr. Eloi Nicolau!!"
+    },
+    {
+      "title": "Noticia de prueba",
+      "date": "2026-10-31",
+      "category": "News",
+      "text": "Hoy creamos la nueva página!",
+      "images": [
+        "/img/news/Captura de pantalla 2026-10-31 a la(s) 8.06.52 p.m..png"
+      ],
+      "link": "www.example.com"
     }
   ]
 }
