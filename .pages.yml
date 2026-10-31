@@ -255,7 +255,7 @@ content:
 
   # ------------------------------------------------- VOCABULARIO DE PALABRAS CLAVE
   - name: keywords
-    label: Palabras clave (vocabulario)
+    label: Palabras clave
     type: file
     path: data/keywords.json
     format: json
