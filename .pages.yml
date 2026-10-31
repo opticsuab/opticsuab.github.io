@@ -249,7 +249,7 @@ content:
             type: string
           - name: keywords
             label: Palabras clave
-            description: Déjalas vacías al añadir un artículo y se rellenan solas (a partir del DOI y del título) en unos minutos; después revísalas aquí y quita, cambia o añade las que quieras. Las que escribas tú se respetan siempre. Mejor en inglés; la web las traduce. Las que comparten dos o más artículos aparecen en la cinta de la portada.
+            description: Déjalas vacías al añadir un artículo y se asignan solas (a partir del DOI y del título); a los 1–2 minutos las verás en la web, en Publicaciones, debajo del artículo. Si alguna no te convence, escribe aquí las que quieras y se usarán las tuyas. Mejor en inglés; la web las traduce. Las que comparten dos o más artículos aparecen en la cinta de la portada.
             type: string
             list: true
 

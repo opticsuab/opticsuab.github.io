@@ -5,20 +5,19 @@
  *
  * 1. Keywords: every publication without keywords gets them automatically, from the vocabulary in
  *    data/keywords.json and the paper's metadata on OpenAlex (title, abstract, indexed keywords).
- *    Keywords typed by hand in the panel are always kept.
+ *    Keywords typed by hand in the panel always win.
  * 2. Translations: every text edited in the panel (news, people, home page texts, maintenance screen,
  *    former-member groups, keywords) is translated into the other site languages (en, es, ca), whatever
  *    language it was written in. Translations are stored in data/i18n/<lang>/<collection>.json as
  *    { "source text": "translation" }: an entry is reused while its source text is unchanged, a text that
- *    changes is translated again, and texts that no longer exist are dropped.
+ *    changes is translated again, and texts that no longer exist are dropped. Translations committed to
+ *    the repository (e.g. corrected by hand) take precedence over generated ones.
  *
- * Options:  --site <dir>   also write the results into a copy of the site that is about to be deployed
+ * Options:  --site <dir>   write the results into the copy of the site that is about to be deployed
+ *           --cache <dir>  keep generated content in this folder (the "generated" branch) instead of the
+ *                          repository files, which are then left untouched
  *           --offline      do not call any web service (only reorganises existing data)
  * Env:      GOOGLE_TRANSLATE_API_KEY  use the Google Cloud Translation API instead of the free endpoint
- *           PUBLICATIONS_QUIET_MINUTES  only rewrite data/publications.json in the repository when it has
- *                                       not been edited for this long (default 10), so the panel never
- *                                       finds the file changed under an open editor
- *           PUBLICATIONS_LAST_CHANGE   unix time of the last commit that touched data/publications.json
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -28,9 +27,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const LANGS = ['en', 'es', 'ca'];
 const args = process.argv.slice(2);
 const SITE_DIR = args.includes('--site') ? args[args.indexOf('--site') + 1] : null;
+const CACHE_DIR = args.includes('--cache') ? args[args.indexOf('--cache') + 1] : null;
 const OFFLINE = args.includes('--offline') || process.env.CONTENT_OFFLINE === '1';
-const QUIET_MIN = Number(process.env.PUBLICATIONS_QUIET_MINUTES ?? 10);
-const LAST_CHANGE = Number(process.env.PUBLICATIONS_LAST_CHANGE || 0);
 const log = (...a) => console.log(...a);
 const warn = msg => console.log(process.env.GITHUB_ACTIONS ? `::warning::${msg}` : `WARNING: ${msg}`);
 
@@ -47,18 +45,23 @@ const stringify = (rel, data) => {
   // keep the trailing-newline style of the existing file (the panel saves without one)
   return raw[rel] !== undefined && !raw[rel].endsWith('\n') ? text : text + '\n';
 };
+const readCache = (rel, fallback) => {
+  const file = CACHE_DIR && join(CACHE_DIR, rel);
+  return file && existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : fallback;
+};
 const changed = [];
-function writeJSON(rel, data, { repo = true } = {}) {
+// generated content goes to the cache folder when there is one, otherwise to the repository
+function writeJSON(rel, data, { stored = true } = {}) {
   const text = stringify(rel, data);
   const targets = [];
-  if (repo) targets.push(join(ROOT, rel));
+  if (stored) targets.push(CACHE_DIR ? join(CACHE_DIR, rel) : join(ROOT, rel));
   if (SITE_DIR) targets.push(join(SITE_DIR, rel));
   for (const file of targets) {
     const old = existsSync(file) ? readFileSync(file, 'utf8') : null;
     if (old === text) continue;
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, text);
-    if (file.startsWith(ROOT) && !(SITE_DIR && file.startsWith(SITE_DIR))) changed.push(rel);
+    if (!(SITE_DIR && file.startsWith(SITE_DIR))) changed.push(rel);
   }
 }
 
@@ -109,13 +112,14 @@ async function translateChunk(text, from, to) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ q: [text], target: to, format: 'text', ...(from === 'auto' ? {} : { source: from }) }),
     });
-    return j.data.translations[0].translatedText;
+    const t = j.data.translations[0];
+    return { text: t.translatedText, detected: t.detectedSourceLanguage || from };
   }
   const j = await getJSON(`https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=${from}&tl=${to}`, {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
     body: new URLSearchParams({ q: text }),
   });
-  return (j[0] || []).map(seg => seg[0]).join('');
+  return { text: (j[0] || []).map(seg => seg[0]).join(''), detected: typeof j[2] === 'string' ? j[2] : from };
 }
 async function translate(text, from, to) {
   if (OFFLINE || failures >= 5) return null;
@@ -126,7 +130,11 @@ async function translate(text, from, to) {
     if (!part.trim() || /^\n\s*\n$/.test(part)) { out.push(part); continue; }
     let done = null;
     for (let attempt = 0; attempt < 3 && done === null; attempt++) {
-      try { done = await translateChunk(part, from, to); failures = 0; }
+      try {
+        const r = await translateChunk(part, from, to); failures = 0;
+        // a paragraph already written in the target language stays exactly as written
+        done = String(r.detected || '').toLowerCase().startsWith(to) ? part : r.text;
+      }
       catch (e) { if (attempt === 2) { failures++; warn(`translation ${from}→${to} failed: ${e.message}`); } else await sleep(1500 * (attempt + 1)); }
     }
     if (done === null) return null;
@@ -182,6 +190,9 @@ async function suggestKeywords(pub) {
 }
 
 const pubsDoc = readJSON('data/publications.json', { publications: [] });
+const AUTO_REL = 'data/keywords-auto.json';
+const autoOld = readCache(AUTO_REL, {}), autoNew = {};
+const pubKey = pub => `${pub.year || ''}|${norm(titleOf(pub.text)).trim()}`;
 let pubsChanged = false;
 for (const pub of pubsDoc.publications || []) {
   if (!pub || !pub.text) continue;
@@ -191,14 +202,18 @@ for (const pub of pubsDoc.publications || []) {
     if (JSON.stringify(unique) !== JSON.stringify(pub.keywords)) { pub.keywords = unique; pubsChanged = true; }
     continue;
   }
-  const found = await suggestKeywords(pub);
-  if (found.length) { pub.keywords = found; pubsChanged = true; log(`keywords · ${titleOf(pub.text).slice(0, 70)} → ${found.join(', ')}`); }
+  const key = pubKey(pub);
+  let found = Array.isArray(autoOld[key]) && autoOld[key].length ? autoOld[key] : null;
+  if (!found) {
+    found = await suggestKeywords(pub);
+    if (found.length) log(`keywords · ${titleOf(pub.text).slice(0, 70)} → ${found.join(', ')}`);
+  }
+  if (found.length) { pub.keywords = found; autoNew[key] = found; pubsChanged = true; }
 }
-if (pubsChanged) {
-  const quiet = !LAST_CHANGE || (Date.now() / 1000 - LAST_CHANGE) >= QUIET_MIN * 60;
-  writeJSON('data/publications.json', pubsDoc, { repo: quiet });
-  if (!quiet) log(`publications.json was edited less than ${QUIET_MIN} min ago: keywords go live now and are saved to the panel on a later run.`);
-}
+if (CACHE_DIR) {
+  writeJSON(AUTO_REL, autoNew);
+  if (pubsChanged) writeJSON('data/publications.json', pubsDoc, { stored: false });
+} else if (pubsChanged) writeJSON('data/publications.json', pubsDoc);
 
 /* ---------- 2. translations ---------- */
 const news = readJSON('data/news.json', { news: [] });
@@ -233,7 +248,7 @@ let translatedCount = 0, pending = 0;
 for (const lang of LANGS) {
   for (const col of collections) {
     const rel = `data/i18n/${lang}/${col}.json`;
-    const old = readJSON(rel, {});
+    const old = { ...readCache(rel, {}), ...readJSON(rel, {}) };
     const memory = {};
     for (const [c, text, from] of units) {
       if (c !== col || text in memory) continue;
