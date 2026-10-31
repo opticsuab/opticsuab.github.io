@@ -1,0 +1,555 @@
+{
+  "news": [
+    {
+      "title": "Conference: SPIE Photonics Europe 2026",
+      "date": "2026-04-01",
+      "category": "Event",
+      "text": "From April 12th to 16th, our researchers A. Lizana, I. Estevez, Y. Mao, and J. Bisbal traveled to Strasbourg to participate in the SPIE Photonics Europe Conference. The team presented three significant advancements in polarimetric imaging and liquid crystal technology: A ferroelectric liquid crystal-based Stokes polarimeter, the development of an optimized, multi-wavelength snapshot Stokes polarimeter based on a liquid crystal microstructure, and an review of how liquid crystal technology is driving new developments in biomedical-oriented polarimetric imaging.",
+      "images": [
+        "/img/news/f5dc87_Photonics-Europe-a.jpg",
+        "/img/news/f5dc87_Photonics-Europe-b.jpg",
+        "/img/news/f5dc87_Photonics-Europe-c.jpg"
+      ],
+      "link": "https://spie.org/conferences-and-exhibitions/photonics-europe"
+    },
+    {
+      "title": "Outreach Activity: Dissabtes de la Física",
+      "date": "2026-02-01",
+      "category": "Outreach",
+      "text": "Continuing our commitment to scientific outreach, our group participated in another edition of Dissabtes de la Física on Saturday, February 21. It was an excellent opportunity for high school students to step into a professional research environment and interact directly with our senior researchers and UAB undergraduate students. The day included interactive tours where students moved beyond the classroom to see real-world applications of optics in action.\n\nAs part of this activity, A. Perez-Obiol gave a talk titled “ Simular l’impossible: quan els ordinadors es tornen quàntics ”, which offered a deep dive into our group’s ongoing optical computing research line.",
+      "images": [
+        "/img/news/d0d758_image.jpg"
+      ],
+      "link": "https://www.uab.cat/en/physics/dissabtesfisica"
+    },
+    {
+      "title": "Open PhD positions",
+      "date": "2026-01-01",
+      "category": "News",
+      "text": "Our group is offering several projects —ranging from quantum thermodynamics to polarimetric imaging —within the PHYNEST programme (Physics for a greener world). PHYNEST is a Horizon Europe MSCA COFUND doctoral programme coordinated by the Universitat Autònoma de Barcelona. It is designed to nurture the next generation of scientific leaders in physics and materials science.\n\nApplication deadline: February 28th webs.uab.cat/phynest/call Contact us for more information about the available projects!",
+      "images": [],
+      "link": "https://webs.uab.cat/phynest/phd-positions/"
+    },
+    {
+      "title": "Nature Photonics cover",
+      "date": "2025-12-01",
+      "category": "News",
+      "text": "Our review article on quantum structured light has been selected as the cover article of Nature Photonics’ December issue. This work [ Nat. Photonics 19, 1291 ]—co-authored with collaborators from the University of the Witwatersrand—highlights cutting-edge advances in structured quantum light and its potential for future photonic technologies.\n\nCongratulations to everyone involved!",
+      "images": [
+        "/img/news/25fc5d_Nature_photonics.jpg"
+      ],
+      "link": "https://www.nature.com/articles/s41566-025-01795-x"
+    },
+    {
+      "title": "New article at divulga UAB",
+      "date": "2025-11-01",
+      "category": "News",
+      "text": "New article at divulga UAB by A. Celi about simulation of lattice gauge theories. The article is based on the recent work co-authoered by Pierpaolo Fontana, Marc Miranda Riaza and Alessio Celi and published recently at Phys. Rev. X 15, 031065. You can read the disemmination article (in Catalan) at Nou mètode eficient per simular teories fonamentals de la física de partícules!",
+      "images": [],
+      "link": "https://doi.org/10.1103/k9p6-c649"
+    },
+    {
+      "title": "PhD Thesis Defense",
+      "date": "2025-10-01",
+      "category": "Thesis",
+      "text": "Dra. Monica Canabal-Carbia has successfully defended her PhD Thesis, titled: « Advances in depolarization techniques for applications in biomedicine: unveiling brain structures».\n\nCongratulations Dra. Monica Canabal-Carbia!!",
+      "images": [
+        "/img/news/63331e_Web-Monica-a.jpg",
+        "/img/news/63331e_Web-Monica-b.jpg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "Workshop: BIOAM-2025",
+      "date": "2025-09-01",
+      "category": "Event",
+      "text": "From September 1st to 3rd, 2025, A. Lizana and I. Estevez attended the 4th International Workshop Biophotonics and Optical Angular Momentum ( BIOAM-2025), which provided a forum for researchers working on various domains related to optical angular momentum and polarimetric instrumentation, with a special emphasis on biomedical applications.\n\nA. Lizana presented a talk titled «Characterizing Biological Samples through Polarization-Based Methods».",
+      "images": [
+        "/img/news/cdfce2_2025_09_BIOAM_2025.jpg"
+      ],
+      "link": "https://bioam-2025.sciencesconf.org/"
+    },
+    {
+      "title": "María Josefa Yzuel in «Gigantas en verso»",
+      "date": "2025-08-01",
+      "category": "News",
+      "text": "María Josefa Yzuel featured in « Gigantas en verso» on the Mujeres con ciencia website (August 2025).",
+      "images": [
+        "/img/news/d26671_image-1.jpg"
+      ],
+      "link": "https://mujeresconciencia.com/2025/08/18/maria-josefa-yzuel/"
+    },
+    {
+      "title": "Dr. J. Polo visit",
+      "date": "2025-07-01",
+      "category": "Visit",
+      "text": "Dr. Juan Polo, from Technology Innovation Institute in Abu Dhabi, has visited our group during the second half of July. It was a pleasure to listen to his two seminars on atomtronics and persistent atomic currents as well as to engage in very fruitful discussions with him on these topics. Thank you for your visit Dr. Polo!",
+      "images": [
+        "/img/news/8ed7ad_polos_visit.jpeg"
+      ],
+      "link": "https://www.tii.ae/team/dr-juan-polo"
+    },
+    {
+      "title": "Prof. Yongping Zhang visit",
+      "date": "2025-07-01",
+      "category": "Visit",
+      "text": "On July 29th Prof. Yongping Zhang from Shanghai University visited the optics group at UAB. It was a pleasure to have him and discuss with him. Thank you for your visit Prof. Yongping Zhang!",
+      "images": [
+        "/img/news/aa4b90_yongping_visit.jpeg"
+      ],
+      "link": "https://physics.shu.edu.cn"
+    },
+    {
+      "title": "Photonics Master’s Graduation",
+      "date": "2025-07-01",
+      "category": "Event",
+      "text": "It was a great day at ETSETB yesterday, July 23rd, as the 2024-2025 «Photonics BCN» and Europhotonics master’s students celebrated their graduation! The event’s keynote speaker was Dr. A. Vallés. He gave a talk titled « From Telecom Student to Quantum Optics Lecturer,» sharing his academic and personal journey with the new graduates.\n\nCongratulations!",
+      "images": [
+        "/img/news/d5c72f_image.jpg"
+      ],
+      "link": "https://www.photonics.masters.upc.edu/en/news/graduation-ceremony-for-the-masters-in-photonics-photonics-bcn-and-europhotonics-2024-2025"
+    },
+    {
+      "title": "Prof. Verònica Ahufinger’s farewell celebration",
+      "date": "2025-07-01",
+      "category": "Visit",
+      "text": "On July 17, we gathered to celebrate Professor Verònica Ahufinger’s remarkable career at UAB. Over the past few decades, Verònica has distinguished herself not only as an outstanding educator and pioneering researcher, but also as a generous and inspiring colleague. Though we’ll miss her presence here, we’re thrilled that she’s embarking on a new chapter at ICFO. Wishing you all the very best, Verònica—may your next adventure be as rewarding as the legacy you leave behind!",
+      "images": [
+        "/img/news/b3290f_WhatsApp-Image-2025-07-17-at-20.38.52-1.jpeg",
+        "/img/news/ab90ff_WhatsApp-Image-2025-07-17-at-20.38.53.jpeg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "Dr. G. Pelegrí visit",
+      "date": "2025-07-01",
+      "category": "Visit",
+      "text": "On July 16th Dr. Gerard Pelegrí from University of Strathclyde gave a seminar titled «Quantum optimisation of weighted graph combinatorial problems with neutral atom arrays». It was very interesting to hear about his research and discuss physics with him. Thank you for your visit Dr. Pelegrí!",
+      "images": [
+        "/img/news/3f7ec1_dr_pelegri.jpeg"
+      ],
+      "link": "https://www.strath.ac.uk/"
+    },
+    {
+      "title": "Profs. Weiping Zhang and Yan Ling Xue visit",
+      "date": "2025-07-01",
+      "category": "Visit",
+      "text": "On July 11th we had the pleasure to receive the visit of Prof. Weiping Zhang from Shanghai Jiao Tong University and Prof. Yan Ling Xue from East China Normal University. Thank you for your visits Prof. Weiping Zhang and and Prof. Yan Ling Xue!",
+      "images": [
+        "/img/news/f27ab6_profs_visit.jpeg"
+      ],
+      "link": "https://en.sjtu.edu.cn/"
+    },
+    {
+      "title": "Outreach Activity: Campus Itaca 2025",
+      "date": "2025-07-01",
+      "category": "Outreach",
+      "text": "From 26 June to 16 July, the Optics Group opened again their laboratories to high school students as part of the Campus Ítaca 2025 educational programme.",
+      "images": [],
+      "link": "https://www.uab.cat/web/campus-itaca-1345819591004.html"
+    },
+    {
+      "title": "Conference: Optoel 2025",
+      "date": "2025-07-01",
+      "category": "Event",
+      "text": "From July 2 to 4, several members of the Optics Group attended the Optoel 2025 conference in Terrassa.",
+      "images": [
+        "/img/news/16a00b_Optoel2025.jpg"
+      ],
+      "link": "https://optoel.es/2025/el-congreso/"
+    },
+    {
+      "title": "Dr. J. Ramella-Roman visit",
+      "date": "2025-07-01",
+      "category": "Visit",
+      "text": "On July 3, we had the pleasure of welcoming Dr. J. Ramella-Roman from Florida International University to our group. We truly appreciated the opportunity to engage with her. Thank you so much for visiting us, Dr. Ramella-Roman!",
+      "images": [
+        "/img/news/160ba1_image.jpg"
+      ],
+      "link": "https://web.eng.fiu.edu/jramella/"
+    },
+    {
+      "title": "Workshop : Topological Photonics workshop 2025",
+      "date": "2025-06-01",
+      "category": "Event",
+      "text": "From June 30th to July 2nd, V. Ahufinger and D. Viedma attended the Topological Photonics workshop (TOPOPHOTO2025) in San Sebastián, where recent advancements on the implementation of topology across several photonic platforms were presented.\n\nD. Viedma presented a poster on how one can induce nontrivial topology on a flat band system by using impurities, and how to build such a system in Optical waveguides.",
+      "images": [
+        "/img/news/8eace7_PhotoWeb-1.jpg"
+      ],
+      "link": "https://topophoto2025.dipc.org/"
+    },
+    {
+      "title": "Conference: World of Photonics Congress 2025",
+      "date": "2025-06-01",
+      "category": "Event",
+      "text": "From 22 June to 27 June 2025, I. Estevez, I. Montes and Y. Mao assisted to the World of Photonics Congress 2025 in Munich.\n\nThey shared their latest research.  They presented some of their work related to the analysis and optimization of a Mueller polarimeter, capable of extracting all sixteen elements of a Mueller matrix with just eight measurements and the potential of polarimetric measurements in biomedical imaging. Moreover, they presented a polarization-based Monte Carlo simulation to model Mueller matrices of nanoparticles samples, establishing a causal relationship between light-matter interactions and depolarization metrics.",
+      "images": [
+        "/img/news/c357dc_Imagen_WebOptica.jpg"
+      ],
+      "link": "https://world-of-photonics.com/en/congress/program/"
+    },
+    {
+      "title": "Quantum Days at the UAB",
+      "date": "2025-05-01",
+      "category": "Event",
+      "text": "On Friday, May 30, V. Ahufinger participated in the «La Realitat Quàntica” Jornada de Ciència i Tecnologia Quàntiques organized by the Real Acadèmia de les Ciències i les Arts de Barcelona (RACAB). She gave a talk entitled Simulació quàntica amb àtoms ultrafreds (Quantum simulation with ultracold atoms).",
+      "images": [
+        "/img/news/e726ed_image-2.jpg"
+      ],
+      "link": "https://www.racab.cat/divendres-30-maig-la-realitat-quantica-jornada-de-ciencia-i-tecnologia-quantiques/"
+    },
+    {
+      "title": "Visit: Quantum Transport group at the University of Aveiro",
+      "date": "2025-05-01",
+      "category": "Visit",
+      "text": "From May 19 to May 23, Y. Zhai, D. Viedma and V. Ahufinger visited the Quantum Transport group at the University of Aveiro. It has been a very insightful and productive week. Thank you, Ricardo Dias and Anselmo Marques for hosting us!",
+      "images": [
+        "/img/news/5b6572_Aveiro.jpg"
+      ],
+      "link": "https://sweet.ua.pt/rdias/"
+    },
+    {
+      "title": "International Day of Light",
+      "date": "2025-05-01",
+      "category": "Outreach",
+      "text": "On May 16th, we celebrated the International Day of Light with a fruitful event organized in collaboration with the Facultat de Ciències of the UAB.\n\nDuring the event, attendees enjoyed the talk «Structured Light and Quantum Applications» given by Dr. Adam Vallés from the Optics group.\n\nThroughout the day, students from the faculty participated in various outreach activities hosted by the Student Chapter OPTICA’T UAB. Additionally, the winners of the «Photocat» photo contest were announced and received their awards, which were generously funded by the UAB, OPTICA, OptoSigma, Orlum and SEDOPTICA.",
+      "images": [
+        "/img/news/a9a5c4_PaginaWeb.jpg"
+      ],
+      "link": "https://www.uab.cat/web/detalle-de-noticia/la-facultad-de-ciencias-celebra-el-dia-internacional-de-la-luz-con-gran-participacion-y-entusiasmo-1345803266914.html?noticiaid=1345953875331"
+    },
+    {
+      "title": "Prof. Andrew Forbes visit",
+      "date": "2025-04-01",
+      "category": "Visit",
+      "text": "Prof. Andrew Forbes, from the University of the Witwatersrand, visited our group for a few weeks. During his stay, he gave a series of tutorials and a research talk on structured light and quantum optics, sponsored by the Catalonia Quantum Academy (CQA). Thank you Andrew for such an inspiring and fruitful visit!",
+      "images": [
+        "/img/news/86f2f4_20250423_121622-edited-scaled.jpg",
+        "/img/news/72da52_20250424_095430-edited.jpg"
+      ],
+      "link": "https://www.wits.ac.za/"
+    },
+    {
+      "title": "Calçotada 2025",
+      "date": "2025-03-01",
+      "category": "News",
+      "text": "This March we enjoyed our traditional Calçotada. Thank you everyone one for gathering and cooking delicious calçots!",
+      "images": [
+        "/img/news/8ad474_Image.jpeg",
+        "/img/news/ab5841_shared-image.jpeg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "Career Talk with Optics Expert Roger Artigas",
+      "date": "2025-03-01",
+      "category": "News",
+      "text": "On March 20, the Optics Group organized a special event at the Faculty of Science, where undergraduate students had the opportunity to hear from Dr. Roger Artigas, a leading expert in optical engineering. During the session, he shared his personal and professional journey, reflecting on how his studies in optics shaped his career and offering insights into job opportunities in the field.\n\nDr. R. Artigas, graduated in Physics from the UAB in 1997, is the founder of Sensofar Tech SL, where he currently serves as President and CTO.\n\nThe event was a great opportunity for students to hear firsthand from a leader in the field and learn more about real-world applications and career paths in optics.",
+      "images": [
+        "/img/news/33d1d0_image-5.jpg"
+      ],
+      "link": "https://www.sensofar.com/"
+    },
+    {
+      "title": "Outreach Activity: Dissabtes de la Física",
+      "date": "2025-02-01",
+      "category": "Outreach",
+      "text": "On Saturday, February 22, the Optics Group welcomed high school students into their labs as part of the Dissabtes de la Física outreach program. During the visit, students explored key concepts and real-world applications of optics and photonics. They also had the chance to engage with researchers and UAB undergraduate students.\n\nAs part of this activity, I. Estévez gave a talk titled “ Polarimetria: Descobrint el que és ocult amb llum ” («Polarimetry: Discovering the Hidden with Light»), where she presented the group’s ongoing work on applied polarimetry for the visualization and identification of biological tissues.",
+      "images": [
+        "/img/news/70ddfe_image.jpg"
+      ],
+      "link": "https://www.uab.cat/en/physics/dissabtesfisica"
+    },
+    {
+      "title": "Outreach Activity: 11F, the International Day of Women and Girls in Science",
+      "date": "2025-02-01",
+      "category": "Outreach",
+      "text": "On Tuesday, February 19, the Optics Group had the pleasure of welcoming a group of 11 years old students from Bellaterra. During their visit, M. Canabal and I. Estévez led hands-on workshops to introduce the children to the fascinating world of light. Through fun and interactive activities, the students explored why white light is so important and learned about different types of light sources, such as LEDs, lasers, and spectral lamps.\n\nThis outreach activity is part of our ongoing commitment to bring science closer to younger audiences and inspire curiosity about optics from an early age.",
+      "images": [],
+      "link": ""
+    },
+    {
+      "title": "Exhibition: «Les doctores honoris causa de la UAB»",
+      "date": "2025-02-01",
+      "category": "News",
+      "text": "The Optics Group has collaborated with the UAB Libraries to honor the university’s women honoris causa doctors through a special exhibition (« Les doctores honoris causa de la UAB «). The initiative highlights the contributions of 18 remarkable women who have been recognized by the UAB for their excellence in fields such as science, culture, education, and human rights.\n\nAmong them is physicist Dr. Katarzyna Chalasinska-Macukow, awarded an honoris causa doctorate in 2008. Her nomination was proposed by M. Yzuel and J. Campos in recognition of her close and fruitful collaboration with our research group.\n\nThis exhibition aims to celebrate both the International Day of Women and Girls in Science (February 11) and International Women’s Day (March 8). It will be on display across all UAB Libraries during the months of February and March.\n\nPhotographs courtesy of Biblioteques de la UAB, published on ddd.uab.cat.",
+      "images": [
+        "/img/news/3e65c5_Exposicio-Biblioteca.jpg",
+        "/img/news/8f299c_PXL_20250214_155040221.MP_.jpg"
+      ],
+      "link": "https://www.uab.cat/en/libraries/science-technology-library"
+    },
+    {
+      "title": "COLD ATOM Workshop 2025",
+      "date": "2025-01-01",
+      "category": "Event",
+      "text": "M. Miranda, C. Iacovelli, J. Bergmann, P. Fontana, Y. Zhai and A. Celi attended the COLD ATOM WORKSHOP 2025, held from January 30th to 31th in València. The conference focused on recent advances in Atom Physics research in Spain.\n\nM. Miranda gave a talk about non-Abelian lattice gauge theories. The other people also presented their research lines in the Optics group, either through posters or presentations.",
+      "images": [
+        "/img/news/d2c049_f6ef5dd0db6a307ef8db92b78aae426.jpg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "FASLIGHT network update meeting",
+      "date": "2025-01-01",
+      "category": "Event",
+      "text": "A. Vallés, D. Viedma and J. Fernández presented the research lines of the Optics group in the second meeting of the national FASLIGHT network, from January 20th to 21st, in Santiago de Compostela. The meeting focused on the recent advances of Spanish research groups on the topic of structured light.",
+      "images": [
+        "/img/news/fdd895_Image-2025-01-20-at-18.48.14-edited.jpeg"
+      ],
+      "link": "https://laser.usal.es/faslight/en/home/"
+    },
+    {
+      "title": "Award: Best Student Paper Award",
+      "date": "2025-01-01",
+      "category": "Award",
+      "text": "During SPIE Photonics Wes t 2025, M. Canabal received the Best Student Paper Award for her work titled « Isotropic depolarization filter: outperforming biological samples imaging visualization via polarimetric data processing» presented at the Polarized Light and Optical Angular Momentum for Biomedical Diagnostics 2025. Congratulations, Mónica!",
+      "images": [
+        "/img/news/a56e47_image-4.jpg"
+      ],
+      "link": "https://spie.org/conferences-and-exhibitions/photonics-west"
+    },
+    {
+      "title": "Conference: SPIE Photonics West",
+      "date": "2025-01-01",
+      "category": "Event",
+      "text": "Last week, J. Campos, I. Estevez and M. Canabal attended the #SPIEBiOS conference at Photonics West 2025, held from January 25th to 30th in San Francisco.\n\nThey were thrilled to share their latest results, where they developed a depolarization filter to enhance contrast in polarimetric images, achieving remarkable results in biological tissue inspection.",
+      "images": [
+        "/img/news/dc4372_FotoWeb_PW2025.jpg"
+      ],
+      "link": "https://spie.org/conferences-and-exhibitions/photonics-west"
+    },
+    {
+      "title": "2025 Women in Optics notebook – SPIE",
+      "date": "2025-01-01",
+      "category": "News",
+      "text": "Prof. María J. Yzuel has contributed to the 2025 Women in Optics notebook, a special 20th-anniversary edition that honors the collective impact of women engineers, scientists, industry leaders, and academics.\n\nHappy 20th anniversary!\n\nPhotographs courtesy of SPIE, published on 2025 Women in Optics notebook.",
+      "images": [
+        "/img/news/9a83b2_image-1-edited.jpg"
+      ],
+      "link": "https://www.spie.org/community-support/equity-diversity-inclusion/women-in-optics/2025-wio-notebook"
+    },
+    {
+      "title": "PhD Defense – David Viedma",
+      "date": "2024-11-01",
+      "category": "Thesis",
+      "text": "Dr. David Viedma has successfully defended his PhD thesis, entitled: «Harnessing topology in photonic waveguide systems».\n\nCongratulations Dr. Viedma!!",
+      "images": [
+        "/img/news/a0f5ce_image.jpg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "Professor Lu Zhou visit",
+      "date": "2024-11-01",
+      "category": "Visit",
+      "text": "We’re happy to have Professor Lu Zhou from East China Normal University visiting our group. Welcome!",
+      "images": [
+        "/img/news/15511d_Foto_web.jpeg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "JPhD Meeting at ICMAB",
+      "date": "2024-11-01",
+      "category": "Event",
+      "text": "M. Canabal-Carbia and Y. Mao have attended the JPhD Meeting at ICMAB (Bellaterra, 27-29  November 2024).\n\nM. Canabal-Carbia presented a talk about the use of polarimetric techniques to unveil structures in biological samples. Y. Mao gave a talk about «the potential of inference by applying polarization-based Monte-Carlo simulation». Good job Mónica and Luna!",
+      "images": [
+        "/img/news/45b19c_PresentacionICMABMonica.jpeg",
+        "/img/news/6ec3a0_PhotoLunaPresentation.jpeg"
+      ],
+      "link": "https://jphd.icmab.es/"
+    },
+    {
+      "title": "Nit Europea de la Recerca – UAB",
+      "date": "2024-09-01",
+      "category": "News",
+      "text": "On September 27th, the Optics Group, together with the UAB Student Chapter Optica’t, participated in the European Research Night, organized for the first time at the Universitat Autònoma de Barcelona. This public event is dedicated to science outreach, aiming to bring research and innovation closer to people of all ages in a simple and fun way. We contributed several micro-workshops showing various optical phenomena, making science more accessible and engaging for the community.",
+      "images": [
+        "/img/news/4cbff4_Web-2.jpg"
+      ],
+      "link": "https://www.instagram.com/opticat_uab?igsh=MTB3anBra3J4ZW1iMA=="
+    },
+    {
+      "title": "Outreach workshop for high schools",
+      "date": "2024-09-01",
+      "category": "Outreach",
+      "text": "In September 2024, we participated in our first outreach visit of the 2024/2025 school year at a high school. We had a great time explaining the research we conduct in the Optics Group and explaining various experiments. Thank you for having us, IES La Serreta!",
+      "images": [
+        "/img/news/dd814d_IES-La-Serreta-edited-scaled.jpg"
+      ],
+      "link": "https://www.instagram.com/reel/DAbGD15M70q/?utm_source=ig_web_copy_link"
+    },
+    {
+      "title": "Award: Premio Justiniano Casas de Investigación en Imagen Óptica (9th Edition)",
+      "date": "2024-07-01",
+      "category": "Award",
+      "text": "Dr. Albert Van Eeckhout Alsinet has received the «Justiniano Casas Research Award in Optical Imaging» (9th Edition) for his work related to his doctoral thesis, conducted within the Optics Group, titled « Polarimetric Methods for Image Enhancement in Biological Applications,» supervised by Dr. Juan Campos and Dr. Ángel Lizana. Congratulations, Albert!",
+      "images": [
+        "/img/news/7d1082_premio-Albert_JustinianoCasas.jpg"
+      ],
+      "link": "https://www.sedoptica.es/comites_SEDO/imagen/pjc-ediciones-anteriores.html"
+    },
+    {
+      "title": "Award: Premio Investigador Postdoctoral RNO2024",
+      "date": "2024-07-01",
+      "category": "Award",
+      "text": "During RNO2024, Dr. Iván Montes received the Postdoctoral Researcher Award for his oral presentation titled «Experimental Errors in a Mueller Matrix Imaging Polarimeter Based on Liquid Crystal Variable Retarders.» Congratulations, Iván!",
+      "images": [],
+      "link": ""
+    },
+    {
+      "title": "Conference: Reunión Nacional de Óptica RNO2024",
+      "date": "2024-07-01",
+      "category": "Event",
+      "text": "From July 3rd to 5th, the Optics Group had the pleasure of attending the National Optics Meeting ( RNO2024) in Murcia. It was an excellent opportunity to learn about the current state of research and outreach in Optics and Photonics in Spain, and to connect with researchers and colleagues from all over the country. In addition to enjoying the talks, posters, and plenary sessions, we had the opportunity to share some of our research.",
+      "images": [
+        "/img/news/48aee2_IMG-20240703-WA0021-edited-1.jpg",
+        "/img/news/6c4f2f_IMG-20240704-WA0010.jpg"
+      ],
+      "link": "https://www.rno2024.es/"
+    },
+    {
+      "title": "Outreach Activity: Campus Itaca 2024",
+      "date": "2024-06-01",
+      "category": "Outreach",
+      "text": "From 26 June to 16 July, the Optics Group opened their laboratories to high school students as part of the Campus Ítaca 2024 educational programme. The students explored the fundamentals and practical uses of optics, including color, polarization, diffraction, lasers and holograms. They also had the opportunity to interact with the researchers.",
+      "images": [
+        "/img/news/5b2162_image-1.jpg",
+        "/img/news/ab2ccc_image-3.jpg",
+        "/img/news/c1a39b_image-2.jpg"
+      ],
+      "link": "https://www.uab.cat/web/campus-itaca-1345819591004.html"
+    },
+    {
+      "title": "Conferences: Atomtronics",
+      "date": "2024-05-01",
+      "category": "Event",
+      "text": "V. Ahufinger and A. Pérez-Obiol have attended the Atomtronics workshop in Benasque  (from 19 May to 1 June 2024).\n\nV. Ahufinger presented an invited talk about the use of a lattice of rings loaded with ultracold atoms carrying orbital angular momentum to mimick a paradigmatic one dimensional topological model, the Su-Schieffer-Heeger. A. Pérez-Obiol gave a contributed talk about simulation of lattice Hamiltonians on digital quantum computers, in particular on devising adiabatic and variational algorithms to solve the Fermi-Hubbard and the nuclear shell model on qubits.",
+      "images": [
+        "/img/news/1b72b3_atomtronics-edited-scaled.jpg"
+      ],
+      "link": "https://benasque.org/2024atomtronics/"
+    },
+    {
+      "title": "Conferences: Non-equilibrium phenomena in strongly correlated ultracold matter",
+      "date": "2024-05-01",
+      "category": "Event",
+      "text": "V. Ahufinger has presented an invited talk about Hilbert space fragmentation in the Non-equilibrium phenomena in strongly correlated ultracold matter workshop held in Erice from 9 May to 15 May 2024.",
+      "images": [],
+      "link": ""
+    },
+    {
+      "title": "Scholarship: Beca LúZete SEDOPTICA",
+      "date": "2024-05-01",
+      "category": "Award",
+      "text": "M. Canabal-Carbia ha sido una de las 5 personas agraciada con la beca LúZete de SEDOPTICA. Esta beca ayuda a financiar parcialmente la participación de jóvenes investigadores e investigadoras en congresos o eventos científicos de ámbito nacional o internacional enmarcados en todas las áreas de Óptica y Fotónica.",
+      "images": [],
+      "link": "https://areajovensedoptica.wordpress.com/2024/05/20/luzete-2024-admitidos-y-plazo-extraordinario/"
+    },
+    {
+      "title": "Scholarship: SPIE Optics and Photonics Scholarship",
+      "date": "2024-05-01",
+      "category": "Award",
+      "text": "M. Canabal-Carbia has been awarded a 2024 Optics and Photonics Scholarship by SPIE, the international society for optics and photonics, for potential contributions to optics, photonics, or a related field.",
+      "images": [],
+      "link": "https://spie.org/membership/student-hub/scholarships/optics-and-photonics-education-scholarships/current-winners"
+    },
+    {
+      "title": "Conference: SPIE Photonics Europe",
+      "date": "2024-04-01",
+      "category": "Event",
+      "text": "From 7 to 11 of April 2024, I. Montes-González and M. Canabal-Carbia assisted to the SPIE Photonics Europe conference in Strasburg (France).\n\nThey were delighted to show some of their recent research and connect with researchers of Photonics around Europe. They presented some of their work related to the use of polarimetric techniques emphasizing its potential to improve the visualization and identification of tissue in brain samples and the optimization and calibration of a Mueller matrix imaging polarimeter.",
+      "images": [
+        "/img/news/debe11_AdrianaMonicaIvanPE.jpeg"
+      ],
+      "link": "https://spie.org/conferences-and-exhibitions/photonics-europe"
+    },
+    {
+      "title": "Spring school: EuroPhotonics Spring School",
+      "date": "2024-04-01",
+      "category": "Event",
+      "text": "V. Ahufinger has given a seminar about Designing topology in photonic systems in the EuroPhotonics Spring School 2024, which has taken place on board of the Silja Serenade ferry from Helsinki (Finland) to Stockholm (Sweden) from 3 to 5 April 2024.",
+      "images": [
+        "/img/news/255b8b_spring_school.jpg"
+      ],
+      "link": "https://events.tuni.fi/epss2024/"
+    },
+    {
+      "title": "Outreach Activity: Saló de l’Ensenyament",
+      "date": "2024-03-01",
+      "category": "Outreach",
+      "text": "On the last day of the Education Fair ( Saló de l’Ensenyament), Sunday, March 17, the Optics Group of the Department of Physics organized an activity from 9:30 to 11:30 a.m. in which various optical phenomena – colors, diffraction, fluorescence, reflection, and polarization – were explained, and experiments with light were conducted to discover what it is and how it behaves.",
+      "images": [
+        "/img/news/27417a_EspaiCiencia-UAB.jpeg"
+      ],
+      "link": "https://www.uab.cat/web/sala-de-premsa/detall-noticia/la-uab-presenta-la-seva-oferta-d-estudis-al-salo-de-l-ensenyament-1345829508832.html?detid=1345911533636"
+    },
+    {
+      "title": "Outreach Activity: Dissabtes de la Física",
+      "date": "2024-03-01",
+      "category": "Outreach",
+      "text": "On Saturday 2 March, the Optics Group opened their laboratories to high school students as part of the Dissabtes de la Física program. The students learned about the principles and applications of optics, such as polarization, diffraction, lasers and holograms. They also had the opportunity to interact with the researchers and ask them questions about their work.",
+      "images": [],
+      "link": "https://www.uab.cat/en/physics/dissabtesfisica"
+    },
+    {
+      "title": "Outreach Activity: 11F, the International Day of Women and Girls in Science",
+      "date": "2024-02-01",
+      "category": "Outreach",
+      "text": "On Tuesday 13 February, we received, at the Optics Group, the visit of students of the primary school of Bellaterra. M. Canabal and I. Estévez gave some workshops on light, including visible and ultraviolet light, lasers and fluorescence and phosphorescence phenomena.",
+      "images": [],
+      "link": ""
+    },
+    {
+      "title": "Conference: SPIE Photonics West",
+      "date": "2024-01-01",
+      "category": "Event",
+      "text": "From 27 January to 1 February 2024, J. Campos, I. Estevez and M. Canabal assisted to the #SPIEBiOS conference at the Photonics West Conference in San Francisco.\n\nThey were delighted to show some of their recent research. They presented some of their work related to the use of polarimetric techniques emphasizing its potential to improve the visualization and identification of tissue in brain samples and the optimization and calibration of a Mueller matrix imaging polarimeter.",
+      "images": [
+        "/img/news/fe876e_24PW_charla_Juan.jpg",
+        "/img/news/3c6051_24PW_poster_monica.jpg"
+      ],
+      "link": "https://spie.org/conferences-and-exhibitions/photonics-west"
+    },
+    {
+      "title": "Kick-off meeting: The national FASLIGHT network",
+      "date": "2024-01-01",
+      "category": "Event",
+      "text": "D. Viedma and V. Ahufinger presented the research lines of the Optics group in the kick-off meeting of the national FASLIGHT network, which took place on January 18 and 19, 2024 at the School of Physics of the University of Salamanca, bringing together more than 65 researchers from the 15 nodes that make up the network.",
+      "images": [
+        "/img/news/520abc_Faslight.jpeg",
+        "/img/news/334def_faslight3.jpeg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "Article selected as the journal cover for Nanophotonics",
+      "date": "2024-01-01",
+      "category": "News",
+      "text": "The recent article by D. Viedma, V. Ahufinger and collaborators from the University of Aveiro, titled « Topological n-root Su-Schrieffer-Heeger model in a non-Hermitian photonic ring system «, has been featured on the cover of Volume 13, Issue 1 of Nanophotonics.\n\nThis achievement highlights the interest of the presented results, as well as the quality of the research performed. Congratulations to the authors!",
+      "images": [
+        "/img/news/b0d611_image.jpg"
+      ],
+      "link": "https://doi.org/10.1515/nanoph-2023-0590"
+    },
+    {
+      "title": "Seminar: «Optical polarization: going from 2D to 3D»",
+      "date": "2023-11-01",
+      "category": "Event",
+      "text": "Prof. Miguel A. Alonso, professor at École Central de Marseille and the Institut Fresnel, as well as professor of optics at the University of Rochester and senior scientist in the Laboratory for Laser Energetics. Room: C3b/002. Edifici C (Ciencias). Universitat Autònoma de Barcelona.",
+      "images": [
+        "/img/news/3e8887_2023-11-28_Visita-Miguel-Alonso-edited.jpg"
+      ],
+      "link": ""
+    },
+    {
+      "title": "PhD Thesis Defense",
+      "date": "2023-11-01",
+      "category": "Thesis",
+      "text": "Dr. Eloi Nicolau has successfully defended her PhD Thesis, titled: «Ultracold atoms in coupled ring potentials and flat-band lattices».\n\nCongratulations Dr. Eloi Nicolau!!",
+      "images": [],
+      "link": ""
+    }
+  ]
+}

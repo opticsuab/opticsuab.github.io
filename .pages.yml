@@ -1,0 +1,261 @@
+# Configuración del panel de edición (Pages CMS: https://app.pagescms.org)
+# Cada sección del menú lateral del panel corresponde a un archivo de la carpeta data/.
+
+media:
+  - name: news
+    label: Fotos de noticias
+    input: img/news
+    output: /img/news
+  - name: people
+    label: Fotos de personas
+    input: img/people
+    output: /img/people
+
+content:
+  # ---------------------------------------------------------------- NOTICIAS
+  - name: news
+    label: Noticias
+    type: file
+    path: data/news.json
+    format: json
+    fields:
+      - name: news
+        label: Noticias
+        description: La web las ordena sola por fecha (las más recientes primero). Para añadir una, pulsa "Add an entry" al final de la lista.
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{date} · {title}"
+        fields:
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: date
+            label: Fecha
+            description: Se muestra solo el mes y el año.
+            type: date
+            required: true
+          - name: category
+            label: Categoría
+            type: select
+            required: true
+            default: News
+            options:
+              values: [News, Event, Outreach, Award, Visit, Thesis]
+          - name: text
+            label: Texto
+            description: Separa los párrafos con una línea en blanco. El primer párrafo se usa como resumen en las tarjetas.
+            type: text
+          - name: images
+            label: Fotos
+            description: La primera foto es la portada de la noticia.
+            type: image
+            options:
+              media: news
+              multiple: true
+          - name: link
+            label: Enlace "More information" (opcional)
+            type: string
+
+  # ---------------------------------------------------------------- PERSONAS
+  - name: people
+    label: Personas
+    type: file
+    path: data/people.json
+    format: json
+    fields:
+      - name: people
+        label: Equipo actual
+        description: El orden de la lista es el orden en la web (puedes arrastrar para reordenar).
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{name} · {group}"
+        fields:
+          - name: name
+            label: Nombre
+            type: string
+            required: true
+          - name: group
+            label: Grupo
+            type: select
+            required: true
+            options:
+              values: [Staff, Emeritus & honorary professors, Postdoctoral researchers, PhD students, Associated professors]
+          - name: position
+            label: Cargo
+            type: string
+          - name: office
+            label: Despacho
+            type: string
+          - name: email
+            label: Correo
+            type: string
+          - name: photo
+            label: Foto
+            type: image
+            options:
+              media: people
+          - name: summary
+            label: Resumen corto (tarjeta)
+            type: text
+          - name: about
+            label: Biografía completa (ficha)
+            description: Separa los párrafos con una línea en blanco.
+            type: text
+          - name: status
+            label: Situación (opcional, p. ej. "Voluntary Leave")
+            type: string
+          - name: scholar
+            label: Google Scholar (URL)
+            type: string
+          - name: orcid
+            label: ORCID (URL)
+            type: string
+          - name: scopus
+            label: Scopus (URL)
+            type: string
+          - name: wos
+            label: Web of Science (URL)
+            type: string
+          - name: researcherid
+            label: ResearcherID (URL)
+            type: string
+          - name: linkedin
+            label: LinkedIn (URL)
+            type: string
+          - name: web
+            label: Web personal (URL)
+            type: string
+
+  - name: former
+    label: Antiguos miembros
+    type: file
+    path: data/former-members.json
+    format: json
+    fields:
+      - name: groups
+        label: Grupos
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{title}"
+        fields:
+          - name: title
+            label: Título del grupo
+            type: string
+            required: true
+          - name: names
+            label: Nombres
+            type: string
+            list: true
+
+  # ---------------------------------------------------------- PUBLICACIONES
+  - name: publications
+    label: Publicaciones
+    type: file
+    path: data/publications.json
+    format: json
+    fields:
+      - name: publications
+        label: Publicaciones
+        description: La web las ordena sola por año (las más recientes primero).
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{year} · {text}"
+        fields:
+          - name: year
+            label: Año
+            type: number
+            required: true
+          - name: text
+            label: Referencia completa
+            type: text
+            required: true
+          - name: link
+            label: Enlace (DOI o URL, opcional)
+            type: string
+
+  - name: theses
+    label: Tesis doctorales
+    type: file
+    path: data/theses.json
+    format: json
+    fields:
+      - name: theses
+        label: Tesis doctorales
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{year} · {text}"
+        fields:
+          - name: year
+            label: Año
+            type: number
+            required: true
+          - name: text
+            label: Referencia completa
+            type: text
+            required: true
+          - name: link
+            label: Enlace (DOI o URL, opcional)
+            type: string
+
+  - name: master_theses
+    label: Trabajos de máster
+    type: file
+    path: data/master-theses.json
+    format: json
+    fields:
+      - name: master_theses
+        label: Trabajos de máster
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{year} · {text}"
+        fields:
+          - name: year
+            label: Año
+            type: number
+            required: true
+          - name: text
+            label: Referencia completa
+            type: text
+            required: true
+          - name: link
+            label: Enlace (DOI o URL, opcional)
+            type: string
+
+  - name: patents
+    label: Patentes
+    type: file
+    path: data/patents.json
+    format: json
+    fields:
+      - name: patents
+        label: Patentes
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{year} · {text}"
+        fields:
+          - name: year
+            label: Año
+            type: number
+            required: true
+          - name: text
+            label: Referencia completa
+            type: text
+            required: true
+          - name: link
+            label: Enlace (DOI o URL, opcional)
+            type: string
