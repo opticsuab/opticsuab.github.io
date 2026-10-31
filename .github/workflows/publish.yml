@@ -1,0 +1,83 @@
+name: Publish site
+
+# Every change to main (panel saves, merged pull requests) rebuilds the site:
+# missing translations and publication keywords are generated, saved back to the repository
+# and the result is published on GitHub Pages. The hourly run retries anything that failed
+# and saves keywords that were waiting for the panel to be idle.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-site
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.gen.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 50
+          # deploy key allowed to bypass the main ruleset, so generated content can be saved back
+          ssh-key: ${{ secrets.CONTENT_DEPLOY_KEY }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare site copy
+        run: |
+          mkdir -p "$RUNNER_TEMP/site"
+          rsync -a --exclude .git --exclude .github --exclude tools --exclude README.md --exclude .pages.yml --exclude .DS_Store ./ "$RUNNER_TEMP/site/"
+
+      - name: Translations and keywords
+        id: gen
+        env:
+          GOOGLE_TRANSLATE_API_KEY: ${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
+        run: |
+          export PUBLICATIONS_LAST_CHANGE="$(git log -1 --format=%ct -- data/publications.json)"
+          node tools/build-content.mjs --site "$RUNNER_TEMP/site"
+          # scheduled runs only republish when they produced something new
+          if [ "$GITHUB_EVENT_NAME" != "schedule" ] || [ -n "$(git status --porcelain data)" ] || [ -n "$(git diff --no-index --quiet data/publications.json "$RUNNER_TEMP/site/data/publications.json" || echo diff)" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save generated content to the repository
+        run: |
+          git add data
+          if git diff --cached --quiet; then echo "Nothing new to save."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update translations and publication keywords [skip ci]"
+          git push origin HEAD:main || echo "::warning::Could not save to main (it changed meanwhile or the branch rules block it). The site is still published with the new content; the next run will try again."
+
+      - if: steps.gen.outputs.publish == 'true'
+        uses: actions/configure-pages@v5
+
+      - if: steps.gen.outputs.publish == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
