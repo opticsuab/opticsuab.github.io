@@ -14,7 +14,7 @@ const NAV = [
   { k: 'about', l: 'About', sub: [['mission', 'Mission & history'], ['funding', 'Funding & grants'], ['climate', 'Climate commitment'], ['gender', 'Gender & equality'], ['reach', 'How to reach us']] },
 ];
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
-const CONTACT_FORM_KEY = '';
+const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
 let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], LINES = [];
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
