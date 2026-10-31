@@ -46,10 +46,6 @@ content:
       - name: hero_subtitle
         label: Subtítulo de la portada
         type: text
-      - name: topics
-        label: Temas (cinta que se desplaza bajo la portada)
-        type: string
-        list: true
       - name: research_lines
         label: Líneas de investigación
         type: object
@@ -103,8 +99,20 @@ content:
               values: [News, Event, Outreach, Award, Visit, Thesis]
           - name: text
             label: Texto
-            description: Separa los párrafos con una línea en blanco. El primer párrafo se usa como resumen en las tarjetas.
+            description: Escríbela en inglés, español o catalán; la web la traduce sola a los otros dos idiomas en 1–2 minutos. Separa los párrafos con una línea en blanco. El primer párrafo se usa como resumen en las tarjetas.
             type: text
+          - name: lang
+            label: Idioma en que está escrita (opcional)
+            description: Déjalo vacío y se detecta solo. Elígelo solo si la traducción sale del idioma equivocado.
+            type: select
+            options:
+              values:
+                - value: en
+                  label: English
+                - value: es
+                  label: Español
+                - value: ca
+                  label: Català
           - name: images
             label: Fotos
             description: La primera foto es la portada de la noticia.
@@ -239,6 +247,36 @@ content:
           - name: link
             label: Enlace (DOI o URL, opcional)
             type: string
+          - name: keywords
+            label: Palabras clave
+            description: Déjalas vacías al añadir un artículo y se rellenan solas (a partir del DOI y del título) en unos minutos; después revísalas aquí y quita, cambia o añade las que quieras. Las que escribas tú se respetan siempre. Mejor en inglés; la web las traduce. Las que comparten dos o más artículos aparecen en la cinta de la portada.
+            type: string
+            list: true
+
+  # ------------------------------------------------- VOCABULARIO DE PALABRAS CLAVE
+  - name: keywords
+    label: Palabras clave (vocabulario)
+    type: file
+    path: data/keywords.json
+    format: json
+    fields:
+      - name: keywords
+        label: Palabras clave que se asignan solas a los artículos nuevos
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{name}"
+        fields:
+          - name: name
+            label: Palabra clave (en inglés, tal como se mostrará)
+            type: string
+            required: true
+          - name: match
+            label: Términos que la detectan en el título o el resumen del artículo
+            description: En inglés y en minúsculas; basta con el principio de la palabra (p. ej. "polarimet" detecta polarimetry, polarimetric…).
+            type: string
+            list: true
 
   - name: theses
     label: Tesis doctorales

@@ -2,19 +2,6 @@
   "hero_eyebrow": "Universitat Autònoma de Barcelona",
   "hero_title": "Quantum & Polarimetry",
   "hero_subtitle": "The Optics Group studies light-matter and quantum systems: from liquid crystals and polarimetric imaging to ultracold atoms and topological photonics.",
-  "topics": [
-    "Polarimetry",
-    "Liquid crystals",
-    "Ultracold atoms",
-    "Topological photonics",
-    "Structured light",
-    "Quantum optics",
-    "Biomedical imaging",
-    "Quantum thermodynamics",
-    "Lattice gauge theories",
-    "Diffractive optics",
-    "Quantum technologies"
-  ],
   "research_lines": [
     {
       "title": "Classical optics",

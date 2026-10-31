@@ -1,6 +1,7 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-/* ---------- language: English is the source; es/ca come from js/i18n.js (UI) and data/i18n/<lang>/*.json (content) ---------- */
+/* ---------- language: UI texts come from js/i18n.js; content edited in the panel can be written in any language and is
+   translated automatically into data/i18n/<lang>/*.json (see tools/build-content.mjs) ---------- */
 const pickLang = () => {
   const ok = l => LANGS.some(x => x[0] === l) && l;
   let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
@@ -31,12 +32,12 @@ const NAV = [
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
-let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], SOURCE_TOPICS = [], LINES = [];
+let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', research_lines: [] }, LINES = [], KEYWORDS = [], KW_MEM = {};
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
 const paras = t => String(t || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
 const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
-const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
+const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null, kw: asList(r.keywords).map(String) })).sort((a, b) => b.y - a.y);
 const RECORD_TERMS = {
   es: [
     ['PhD in Physics', 'Doctorado en Física'], ['Phd in Physics', 'Doctorado en Física'],
@@ -68,22 +69,21 @@ const getJSON = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { 
 let RAW = null;
 const OVERLAYS = {};
 const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional translation unavailable: ${f}`, err); return {}; });
-/* Translation overlays are optional: anything missing falls back to the English source. */
+/* Translations are { "source text": "translation" } per language; a text without one is shown as written. */
+const tr = (mem, s) => (s && mem && typeof mem[s] === 'string' && mem[s]) || s;
 async function loadOverlay(lang) {
-  if (lang === 'en') return {};
   if (!OVERLAYS[lang]) {
-    const [news, people, pages, site] = await Promise.all(['news', 'people', 'pages', 'site'].map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
-    OVERLAYS[lang] = { news, people, pages, site };
+    const files = ['news', 'people', 'site', 'keywords', ...(lang === 'en' ? [] : ['pages'])];
+    const loaded = await Promise.all(files.map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
+    OVERLAYS[lang] = Object.fromEntries(files.map((f, i) => [f, loaded[i]]));
   }
   return OVERLAYS[lang];
 }
 async function loadData() {
   MAINT = await getJSON('maintenance').catch(() => ({ enabled: false }));
   if (MAINT.enabled && !PREVIEW) {
-    if (LANG !== 'en') {
-      const overlay = await getOptionalJSON(`i18n/${LANG}/site`);
-      MAINT = Object.assign({}, MAINT, overlay.maintenance || {});
-    }
+    const site = (await loadOverlay(LANG)).site;
+    MAINT = Object.assign({}, MAINT, { title: tr(site, MAINT.title), message: tr(site, MAINT.message) });
     return;
   }
   if (!RAW) {
@@ -91,34 +91,43 @@ async function loadData() {
       ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(getJSON));
     RAW = { news, people, pubs, theses, patents, master, former, pages, site, maint: MAINT };
   }
-  buildData(await loadOverlay(LANG));
+  const [ov, en] = await Promise.all([loadOverlay(LANG), loadOverlay('en')]);
+  buildData(ov, en);
 }
-function buildData(ov) {
-  const { news, people, pubs, theses, patents, master, former } = RAW, os = ov.site || {};
+function buildData(ov, en = {}) {
+  const { news, people, pubs, theses, patents, master, former } = RAW, T = (col, s) => tr(ov[col], s);
+  /* fixed UI terms (positions, statuses) keep the hand-made wording from js/i18n.js when it has one */
+  const term = s => (s && I18N[LANG] && I18N[LANG][s]) ? s : T('people', s);
   const pages = Object.assign({}, RAW.pages, ov.pages || {});
-  SITE = Object.assign({ hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, RAW.site, os.site || {});
-  TOPICS = asList(SITE.topics);
-  SOURCE_TOPICS = asList(RAW.site.topics);
-  LINES = asList(SITE.research_lines).map(l => ({ t: l.title || '', d: l.description || '', tags: asList(l.tags) }));
+  const site = RAW.site || {};
+  SITE = { hero_eyebrow: T('site', site.hero_eyebrow || ''), hero_title: T('site', site.hero_title || ''), hero_subtitle: T('site', site.hero_subtitle || ''),
+    research_lines: asList(site.research_lines).map(l => ({ title: T('site', l.title), description: T('site', l.description), tags: asList(l.tags).map(x => T('site', x)) })) };
+  LINES = SITE.research_lines.map(l => ({ t: l.title || '', d: l.description || '', tags: l.tags }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
-    const [y, m] = String(n.date || '').split('-').map(Number), o = (ov.news || {})[`${n.date}|${n.title}`] || (ov.news || {})[n.title] || {};
-    return { y: y || 0, m: m || 1, cat: n.category || 'News', en: n.title, title: o.title || n.title, text: paras(o.text || n.text), img: asList(n.images), link: n.link || '' };
+    const [y, m] = String(n.date || '').split('-').map(Number);
+    return { y: y || 0, m: m || 1, cat: n.category || 'News', src: n.title, en: tr(en.news, n.title), title: T('news', n.title), text: paras(T('news', n.text)), img: asList(n.images), link: n.link || '' };
   }).sort((a, b) => (b.y - a.y) || (b.m - a.m));
   PEOPLE = (people.people || []).filter(p => p && p.name).map(p => {
-    const o = (ov.people || {})[p.name] || {}, about = paras(o.about || p.about);
-    return { name: p.name, group: p.group, pos: p.position, office: p.office, mail: p.email, photo: p.photo, bio: o.summary || p.summary,
-      about: about.length ? about : null, status: o.status || p.status,
+    const about = paras(T('people', p.about));
+    return { name: p.name, group: p.group, pos: term(p.position), office: p.office, mail: p.email, photo: p.photo, bio: T('people', p.summary),
+      about: about.length ? about : null, status: term(p.status),
       scholar: p.scholar, orcid: p.orcid, scopus: p.scopus, wos: p.wos, rid: p.researcherid, linkedin: p.linkedin, web: p.web };
   });
   PUBS = byYear(pubs.publications || []); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
-  const fg = os.former || {};
-  FORMER = (former.groups || []).map(g => `<h2>${esc(fg[g.title] || g.title)}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
+  /* keywords: one entry per keyword used in the publications, most used first */
+  KW_MEM = ov.keywords || {};
+  const counts = new Map();
+  PUBS.forEach(r => new Set(r.kw).forEach(k => counts.set(k, (counts.get(k) || 0) + 1)));
+  KEYWORDS = [...counts].map(([k, n]) => ({ k, n, label: kwLabel(k) })).sort((a, b) => (b.n - a.n) || a.label.localeCompare(b.label, LANG));
+  FORMER = (former.groups || []).map(g => `<h2>${esc(T('site', g.title))}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
   INTERVIEWS = pages.interviews || ''; GENDER_TALKS = pages.talks || '';
   PAGES_HTML = { outreach: pages.outreach, reach: pages.how_to_reach_us, gender: pages.gender, collaborations: pages.collaborations, links: pages.links, societies: pages.societies, courses: pages.courses, datasets: pages.datasets };
-  MAINT = Object.assign({}, RAW.maint, os.maintenance || {});
+  MAINT = Object.assign({}, RAW.maint, { title: T('site', RAW.maint.title), message: T('site', RAW.maint.message) });
 }
+const kwLabel = k => tr(KW_MEM, k);
+const kwHref = k => `#/research/publications?${new URLSearchParams({ kw: k })}`;
 const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slice(0, 2).join('');
-const newsId = n => `${n.y}-${n.m}-${n.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
+const newsId = n => `${n.y}-${n.m}-${n.src.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
 
 /* ---------- pieces ---------- */
 const imageFrame = (src, alt = '') => `<div class="photo-frame"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
@@ -164,8 +173,8 @@ const openProfile = el => {
 };
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
-const pubRow = (r, i = 0, label) => `<div class="row rv" style="--i:${i % 6}"><span class="yr">${r.y}</span>
-  <div class="t">${esc(localizeRecord(r.t))}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
+const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}><span class="yr">${r.y}</span>
+  <div class="t">${esc(localizeRecord(r.t))}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
   <div class="wrap"><nav class="crumbs" aria-label="${t('Breadcrumb')}"><a href="#/">${t('Home')}</a>${crumbs.map(c => `<span>/</span>${c[1] ? `<a href="${c[1]}">${t(c[0])}</a>` : `<span>${t(c[0])}</span>`}`).join('')}</nav>
   <h1>${esc(t(title))}</h1>${sub ? `<p class="lead">${esc(t(sub))}</p>` : ''}${subnav(path)}</div>
@@ -177,11 +186,12 @@ function subnav(path) {
 }
 const wrapPage = (head, body) => `${head}<section><div class="wrap">${body}</div></section>`;
 const years = rows => [...new Set(rows.map(r => r.y))].sort((a, b) => b - a);
-function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '' } = {}) {
+function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '', keyword = '' } = {}) {
   const ys = years(rows);
+  const kwFilter = keyword ? `<a class="fchip on kwfilter" href="#/research/publications" data-kw-filter="${esc(keyword)}" aria-label="${esc(t('Remove keyword filter: {x}', { x: kwLabel(keyword) }))}">${esc(kwLabel(keyword))}<span aria-hidden="true">×</span></a>` : '';
   return `<div class="tools" data-list><button class="fchip on" data-y="all">${t('All')}</button>${ys.map(y => `<button class="fchip" data-y="${y}">${y}</button>`).join('')}
-    ${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
-    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
+    ${kwFilter}${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
+    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, keyword)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
 const prosePage = html => `<div class="prose">${html}</div>`;
 const flagged = txt => `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
@@ -205,20 +215,17 @@ const ROUTES = {
     const phd = NEWS.find(n => /Open PhD/i.test(n.en));
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
-    const topicLinks = TOPICS.map((topic, i) => {
-      const params = new URLSearchParams({ search: topic });
-      const sourceTopic = SOURCE_TOPICS[i];
-      if (sourceTopic && sourceTopic !== topic) params.set('match', sourceTopic);
-      return `<a class="pill" href="#/research/publications?${esc(params.toString())}">${esc(topic)}</a>`;
-    }).join('');
-    const topicCopies = TOPICS.map(topic => `<span class="pill" aria-hidden="true">${esc(topic)}</span>`).join('');
+    /* keyword ribbon: keywords shared by at least two publications (all of them while the list is short) */
+    const shared = KEYWORDS.filter(x => x.n >= 2), ribbon = shared.length >= 8 ? shared : KEYWORDS.slice(0, 16);
+    const topicLinks = ribbon.map(x => `<a class="pill" href="${esc(kwHref(x.k))}">${esc(x.label)}</a>`).join('');
+    const topicCopies = ribbon.map(x => `<span class="pill" aria-hidden="true">${esc(x.label)}</span>`).join('');
     return `<section class="hero"><canvas class="bg"></canvas>
       <div class="wrap"><div class="eyebrow">${esc(SITE.hero_eyebrow)}</div>
       <h1 class="display">${esc(SITE.hero_title)}</h1>
       <p class="lead">${esc(SITE.hero_subtitle)}</p>
       <div class="hero-actions"><a class="btn" href="#/research/publications">${t('Explore our research')} ${ARR}</a><a class="btn btn-ghost" href="#/join">${t('Join us')} ${ARR}</a></div></div>
       <canvas class="dissolve" data-color="#040f20"></canvas></section>
-    <nav class="marquee" aria-label="${esc(t('Publication topics'))}"><div class="track">${topicLinks}${topicCopies}</div></nav>
+    <nav class="marquee" aria-label="${esc(t('Publication topics'))}"><div class="track" style="--dur:${Math.max(38, ribbon.length * 3.5)}s">${topicLinks}${topicCopies}</div></nav>
     <section class="dark" style="padding-block:60px"><div class="wrap"><div class="stats">
       ${[[PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents & registrations'], [PEOPLE.length, 'Current members']].map(([n, l]) => `<div class="stat rv"><b data-count="${n}">0</b><span>${t(l)}</span></div>`).join('')}
     </div></div></section>
@@ -239,7 +246,7 @@ const ROUTES = {
   research(p, query) {
     const k = p[1] || 'lines', h = (ti, s) => pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]);
     if (k === 'publications') return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', {
-      linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '',
+      linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '', keyword: query.get('kw') || '',
     }));
     if (k === 'patents') return wrapPage(h('Patents', 'Registered inventions and technology transfer.'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
     if (k === 'theses') return wrapPage(h('PhD theses', 'Doctoral theses defended in the group.'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
@@ -395,7 +402,8 @@ function mount(root) {
     const params = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
     const syncSearch = route === '#/research/publications';
     let y = 'all', q = (input?.value || '').trim().toLowerCase(), match = (input?.dataset.match || '').trim().toLowerCase();
-    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.textContent.toLowerCase(); const queryMatch = !q || text.includes(q) || (!!match && text.includes(match)); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    const kw = $('[data-kw-filter]', lst)?.dataset.kwFilter || '';
+    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.textContent.toLowerCase(); const queryMatch = !q || text.includes(q) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
     lst.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
     input?.addEventListener('input', e => {
       const value = e.target.value.trim();

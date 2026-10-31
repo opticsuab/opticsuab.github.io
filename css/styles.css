@@ -101,7 +101,7 @@ canvas.dissolve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:1
 
 /* marquee */
 .marquee{background:var(--navy-950);color:#fff;overflow:hidden;padding:18px 0;border-block:1px solid rgba(255,255,255,.08)}
-.track{display:flex;gap:14px;width:max-content;animation:slide 38s linear infinite}
+.track{display:flex;gap:14px;width:max-content;animation:slide var(--dur,38s) linear infinite}
 .marquee:hover .track{animation-play-state:paused}
 .marquee:focus-within{overflow-x:auto}
 .marquee:focus-within .track{animation:none;transform:none}
@@ -188,6 +188,10 @@ section{padding:clamp(64px,9vw,120px) 0;position:relative}
 .row .t a{text-decoration:none;border-bottom:1px solid var(--green);font-weight:500}.row .t a:hover{background:var(--green);color:#fff}
 .row .go{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:var(--green-d);border:1px solid currentColor;padding:6px 12px;border-radius:999px;transition:background .25s,color .25s}
 .row .go:hover{background:var(--green-d);color:#fff}
+.row .t .kws{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.row .t .kws a.kw{font:500 .62rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--navy-700);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:#fff;transition:background .25s,color .25s,border-color .25s}
+.row .t .kws a.kw:hover,.row .t .kws a.kw.on{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.kwfilter{display:inline-flex;align-items:center;gap:8px;text-decoration:none}.kwfilter span{font-size:1rem;line-height:1}
 .empty{padding:50px;text-align:center;color:var(--muted);border:1px dashed var(--line)}
 
 /* prose (scraped html) */
