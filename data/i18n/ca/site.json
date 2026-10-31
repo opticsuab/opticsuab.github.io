@@ -1,0 +1,52 @@
+{
+  "site": {
+    "hero_eyebrow": "Universitat Autònoma de Barcelona",
+    "hero_title": "Quàntica i polarimetria",
+    "hero_subtitle": "El Grup d’Òptica estudia la llum i la matèria i els sistemes quàntics: des dels cristalls líquids i la imatge polarimètrica fins als àtoms ultrafreds i la fotònica topològica.",
+    "topics": [
+      "Polarimetria",
+      "Cristalls líquids",
+      "Àtoms ultrafreds",
+      "Fotònica topològica",
+      "Llum estructurada",
+      "Òptica quàntica",
+      "Imatge biomèdica",
+      "Termodinàmica quàntica",
+      "Teories de gauge de xarxa",
+      "Òptica difractiva",
+      "Tecnologies quàntiques"
+    ],
+    "research_lines": [
+      {
+        "title": "Òptica clàssica",
+        "description": "Polarimetria, dispositius de cristall líquid, òptica difractiva i llum estructurada, amb aplicacions en imatge biomèdica i metrologia.",
+        "tags": [
+          "Polarimetria de Mueller",
+          "Cristalls líquids",
+          "Llum estructurada",
+          "Biomedicina"
+        ]
+      },
+      {
+        "title": "Òptica i fotònica quàntiques",
+        "description": "Àtoms ultrafreds en xarxes òptiques, fotònica topològica, termodinàmica quàntica i simulació quàntica de teories de gauge.",
+        "tags": [
+          "Àtoms ultrafreds",
+          "Fotònica topològica",
+          "Simulació quàntica",
+          "Tecnologies quàntiques"
+        ]
+      }
+    ]
+  },
+  "maintenance": {
+    "title": "En manteniment",
+    "message": "Estem millorant el lloc web del Grup d’Òptica.\n\nTorneu-hi d’aquí a una estona."
+  },
+  "former": {
+    "Former professors": "Antics professors",
+    "Former Associated Professors": "Antics professors associats",
+    "Former Postdoctoral Researchers": "Antics investigadors postdoctorals",
+    "Former PhD Students": "Antics estudiants de doctorat"
+  }
+}

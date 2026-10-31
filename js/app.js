@@ -1,8 +1,23 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const MON = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* ---------- language: English is the source; es/ca come from js/i18n.js (UI) and data/i18n/<lang>/*.json (content) ---------- */
+const pickLang = () => {
+  const ok = l => LANGS.some(x => x[0] === l) && l;
+  let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
+  return ok(new URLSearchParams(location.search).get('lang')) || ok(saved) || 'en';
+};
+let LANG = pickLang(), MON = MONTHS[LANG];
+const t = (s, v) => {
+  let r = (I18N[LANG] && I18N[LANG][s]) || s.replace(/^step:/, '');
+  if (v) for (const k in v) r = r.replaceAll(`{${k}}`, v[k]);
+  return r;
+};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const ARR = '<span class="arr">→</span>';
+const svg = d => `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
+const I_RIGHT = svg('<path d="M5 12h14M13 6l6 6-6 6"/>');
+const I_LEFT = svg('<path d="M19 12H5M11 6l-6 6 6 6"/>');
+const I_EXT = svg('<path d="M7 17 17 7M8 7h9v9"/>');
+const ARR = `<span class="arr">${I_RIGHT}</span>`;
 
 const NAV = [
   { k: 'research', l: 'Research', sub: [['lines', 'Research lines'], ['publications', 'Publications'], ['patents', 'Patents'], ['theses', 'PhD theses'], ['datasets', 'Datasets & software'], ['collaborations', 'Collaborations']] },
@@ -16,207 +31,289 @@ const NAV = [
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
-let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], LINES = [];
+let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], SOURCE_TOPICS = [], LINES = [];
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
 const paras = t => String(t || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
 const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
 const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
+const RECORD_TERMS = {
+  es: [
+    ['PhD in Physics', 'Doctorado en Física'], ['Phd in Physics', 'Doctorado en Física'],
+    ['Thesis supervisors:', 'Dirección de tesis:'], ['Thesis supervisor:', 'Dirección de tesis:'],
+    ['Master in Quantum Science and Technology', 'Máster en Ciencia y Tecnología Cuánticas'],
+    ['Erasmus Mundus Master’s degree in Photonics', 'Máster Erasmus Mundus en Fotónica'],
+    ['Master in Photonics', 'Máster en Fotónica'],
+    ['Master in Modelling for Science and Engineering', 'Máster en Modelización para la Ciencia y la Ingeniería'],
+    ['Supervisor(s):', 'Dirección:'], ['Supervisors:', 'Directores:'], ['Supervisor:', 'Director:'],
+    ['Publication Number:', 'Número de publicación:'], ['Publication Date:', 'Fecha de publicación:'],
+    ['International Application No.:', 'N.º de solicitud internacional:'], ['International Filing Date:', 'Fecha de presentación internacional:'],
+    ['Applicants:', 'Solicitantes:'],
+  ],
+  ca: [
+    ['PhD in Physics', 'Doctorat en Física'], ['Phd in Physics', 'Doctorat en Física'],
+    ['Thesis supervisors:', 'Direcció de tesi:'], ['Thesis supervisor:', 'Direcció de tesi:'],
+    ['Master in Quantum Science and Technology', 'Màster en Ciència i Tecnologia Quàntiques'],
+    ['Erasmus Mundus Master’s degree in Photonics', 'Màster Erasmus Mundus en Fotònica'],
+    ['Master in Photonics', 'Màster en Fotònica'],
+    ['Master in Modelling for Science and Engineering', 'Màster en Modelització per a la Ciència i l’Enginyeria'],
+    ['Supervisor(s):', 'Direcció:'], ['Supervisors:', 'Directors:'], ['Supervisor:', 'Director:'],
+    ['Publication Number:', 'Número de publicació:'], ['Publication Date:', 'Data de publicació:'],
+    ['International Application No.:', 'Núm. de sol·licitud internacional:'], ['International Filing Date:', 'Data de presentació internacional:'],
+    ['Applicants:', 'Sol·licitants:'],
+  ],
+};
+const localizeRecord = value => (RECORD_TERMS[LANG] || []).reduce((text, [from, to]) => text.replaceAll(from, to), value);
+const getJSON = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
+let RAW = null;
+const OVERLAYS = {};
+const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional translation unavailable: ${f}`, err); return {}; });
+/* Translation overlays are optional: anything missing falls back to the English source. */
+async function loadOverlay(lang) {
+  if (lang === 'en') return {};
+  if (!OVERLAYS[lang]) {
+    const [news, people, pages, site] = await Promise.all(['news', 'people', 'pages', 'site'].map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
+    OVERLAYS[lang] = { news, people, pages, site };
+  }
+  return OVERLAYS[lang];
+}
 async function loadData() {
-  const get = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
-  MAINT = await get('maintenance').catch(() => ({ enabled: false }));
-  if (MAINT.enabled && !PREVIEW) return;
-  const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
-    ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(get));
-  SITE = Object.assign(SITE, site);
+  MAINT = await getJSON('maintenance').catch(() => ({ enabled: false }));
+  if (MAINT.enabled && !PREVIEW) {
+    if (LANG !== 'en') {
+      const overlay = await getOptionalJSON(`i18n/${LANG}/site`);
+      MAINT = Object.assign({}, MAINT, overlay.maintenance || {});
+    }
+    return;
+  }
+  if (!RAW) {
+    const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
+      ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(getJSON));
+    RAW = { news, people, pubs, theses, patents, master, former, pages, site, maint: MAINT };
+  }
+  buildData(await loadOverlay(LANG));
+}
+function buildData(ov) {
+  const { news, people, pubs, theses, patents, master, former } = RAW, os = ov.site || {};
+  const pages = Object.assign({}, RAW.pages, ov.pages || {});
+  SITE = Object.assign({ hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, RAW.site, os.site || {});
   TOPICS = asList(SITE.topics);
+  SOURCE_TOPICS = asList(RAW.site.topics);
   LINES = asList(SITE.research_lines).map(l => ({ t: l.title || '', d: l.description || '', tags: asList(l.tags) }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
-    const [y, m] = String(n.date || '').split('-').map(Number);
-    return { y: y || 0, m: m || 1, cat: n.category || 'News', title: n.title, text: paras(n.text), img: asList(n.images), link: n.link || '' };
+    const [y, m] = String(n.date || '').split('-').map(Number), o = (ov.news || {})[`${n.date}|${n.title}`] || (ov.news || {})[n.title] || {};
+    return { y: y || 0, m: m || 1, cat: n.category || 'News', en: n.title, title: o.title || n.title, text: paras(o.text || n.text), img: asList(n.images), link: n.link || '' };
   }).sort((a, b) => (b.y - a.y) || (b.m - a.m));
-  PEOPLE = (people.people || []).filter(p => p && p.name).map(p => ({
-    name: p.name, group: p.group, pos: p.position, office: p.office, mail: p.email, photo: p.photo, bio: p.summary,
-    about: paras(p.about).length ? paras(p.about) : null, status: p.status,
-    scholar: p.scholar, orcid: p.orcid, scopus: p.scopus, wos: p.wos, rid: p.researcherid, linkedin: p.linkedin, web: p.web }));
+  PEOPLE = (people.people || []).filter(p => p && p.name).map(p => {
+    const o = (ov.people || {})[p.name] || {}, about = paras(o.about || p.about);
+    return { name: p.name, group: p.group, pos: p.position, office: p.office, mail: p.email, photo: p.photo, bio: o.summary || p.summary,
+      about: about.length ? about : null, status: o.status || p.status,
+      scholar: p.scholar, orcid: p.orcid, scopus: p.scopus, wos: p.wos, rid: p.researcherid, linkedin: p.linkedin, web: p.web };
+  });
   PUBS = byYear(pubs.publications || []); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
-  FORMER = (former.groups || []).map(g => `<h2>${esc(g.title)}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
+  const fg = os.former || {};
+  FORMER = (former.groups || []).map(g => `<h2>${esc(fg[g.title] || g.title)}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
   INTERVIEWS = pages.interviews || ''; GENDER_TALKS = pages.talks || '';
   PAGES_HTML = { outreach: pages.outreach, reach: pages.how_to_reach_us, gender: pages.gender, collaborations: pages.collaborations, links: pages.links, societies: pages.societies, courses: pages.courses, datasets: pages.datasets };
+  MAINT = Object.assign({}, RAW.maint, os.maintenance || {});
 }
 const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slice(0, 2).join('');
-const newsId = n => `${n.y}-${n.m}-${n.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
+const newsId = n => `${n.y}-${n.m}-${n.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
 
 /* ---------- pieces ---------- */
-const pxImg = (src, alt = '') => `<div class="pxi"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
+const imageFrame = (src, alt = '') => `<div class="photo-frame"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
+const selectControl = (id, label, options, selected, name = '', variant = '') => {
+  const choice = options.find(([value]) => String(value) === String(selected)) || options[0];
+  const value = String(choice[0]);
+  return `<div class="ui-select ${variant}" data-ui-select data-label="${esc(label)}">
+    <input type="hidden" data-ui-select-value data-default-value="${esc(value)}"${name ? ` name="${esc(name)}"` : ''} value="${esc(value)}">
+    <button class="ui-select-trigger" type="button" data-ui-select-trigger aria-label="${esc(label)}: ${esc(choice[1])}" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(id)}-menu">
+      <span data-ui-select-current>${esc(choice[1])}</span><span class="lang-chevron" aria-hidden="true"></span>
+    </button>
+    <div class="drop ui-select-menu" id="${esc(id)}-menu" role="menu" aria-label="${esc(label)}">
+      ${options.map(([optionValue, optionLabel]) => {
+        const checked = String(optionValue) === value;
+        return `<button class="ui-select-option" type="button" data-ui-select-option role="menuitemradio" data-value="${esc(String(optionValue))}" aria-checked="${checked}" tabindex="${checked ? 0 : -1}">${esc(optionLabel)}</button>`;
+      }).join('')}
+    </div>
+  </div>`;
+};
 const newsCard = (n, i = 0) => {
   const sum = (n.text[0] || '').slice(0, 150) + ((n.text[0] || '').length > 150 ? '…' : '');
   return `<a class="card rv tilt" style="--i:${i}" href="#/news/${newsId(n)}">
-    ${n.img[0] ? pxImg(n.img[0], n.title) : '<div class="noimg"></div>'}
-    <div class="body"><div class="meta"><span class="chip ${n.cat}">${n.cat}</span>${MON[n.m]} ${n.y}</div><h3>${esc(n.title)}</h3><p>${esc(sum)}</p><span class="more">Read more ${ARR}</span></div></a>`;
+    ${n.img[0] ? imageFrame(n.img[0], n.title) : '<div class="noimg"></div>'}
+    <div class="body"><div class="meta"><span class="chip ${n.cat}">${t(n.cat)}</span>${MON[n.m]} ${n.y}</div><h3>${esc(n.title)}</h3><p>${esc(sum)}</p><span class="more">${t('Read more')} ${ARR}</span></div></a>`;
 };
-const personCard = (p, i = 0) => `<article class="person rv" style="--i:${i % 8}" data-p="${PEOPLE.indexOf(p)}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="${esc(p.name)}: view profile">
-  ${p.photo ? pxImg(p.photo, '') : `<div class="noph">${esc(initials(p.name))}</div>`}
-  <div class="body"><h3>${esc(p.name)}</h3><div class="meta">${esc(p.pos || p.group)}${p.office ? ' · ' + esc(p.office) : ''}</div>
-  ${p.bio ? `<p class="bio">${esc(p.bio)}</p>` : ''}<span class="more">View profile ${ARR}</span></div></article>`;
+const personCard = (p, i = 0) => `<article class="person rv" style="--i:${i % 8}" data-p="${PEOPLE.indexOf(p)}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="${esc(t('{name}: view profile', { name: p.name }))}">
+  ${p.photo ? imageFrame(p.photo, '') : `<div class="noph">${esc(initials(p.name))}</div>`}
+  <div class="body"><h3>${esc(p.name)}</h3><div class="meta">${esc(t(p.pos || p.group))}${p.office ? ' · ' + esc(p.office) : ''}</div>
+  ${p.bio ? `<p class="bio">${esc(p.bio)}</p>` : ''}<span class="more">${t('View profile')} ${ARR}</span></div></article>`;
 const LINKS = [['linkedin', 'LinkedIn'], ['scholar', 'Google Scholar'], ['orcid', 'ORCID'], ['scopus', 'Scopus'], ['wos', 'Web of Science'], ['rid', 'ResearcherID'], ['web', 'Website']];
 const profile = p => `<header class="pm-head"><div class="pm-photo">${p.photo ? `<img src="${esc(p.photo)}" alt="">` : `<div class="noph">${esc(initials(p.name))}</div>`}</div>
-  <div class="pm-id"><div class="eyebrow">${esc(p.group)}</div><h2 id="pm-t">${esc(p.name)}</h2>
-  <div class="meta">${esc(p.pos || '')}${p.office ? ' · Office ' + esc(p.office) : ''}</div>
-  ${p.status ? `<span class="chip Event">${esc(p.status)}</span>` : ''}</div></header>
+  <div class="pm-id"><div class="eyebrow">${esc(t(p.group))}</div><h2 id="pm-t">${esc(p.name)}</h2>
+  <div class="meta">${esc(t(p.pos || ''))}${p.office ? ' · ' + esc(t('Office {x}', { x: p.office })) : ''}</div>
+  ${p.status ? `<span class="chip Event">${esc(t(p.status))}</span>` : ''}</div></header>
   <div class="pm-body">${(p.about || (p.bio ? [p.bio] : [])).map(t => `<p>${esc(t)}</p>`).join('')}
-  <div class="pm-links">${p.mail ? `<a class="btn" href="mailto:${esc(p.mail)}">${esc(p.mail)}</a>` : ''}${LINKS.filter(([k]) => p[k]).map(([k, l]) => `<a class="btn btn-line" href="${esc(p[k])}" target="_blank" rel="noopener">${l} ↗</a>`).join('')}</div></div>`;
+  <div class="pm-links">${p.mail ? `<a class="btn" href="mailto:${esc(p.mail)}">${esc(p.mail)}</a>` : ''}${LINKS.filter(([k]) => p[k]).map(([k, l]) => `<a class="btn btn-line" href="${esc(p[k])}" target="_blank" rel="noopener">${l} ${I_EXT}</a>`).join('')}</div></div>`;
 let pmLast;
 const openProfile = el => {
   const p = PEOPLE[+el.dataset.p]; if (!p) return;
   let d = $('#pm'); if (!d) { d = document.createElement('dialog'); d.id = 'pm'; d.setAttribute('aria-labelledby', 'pm-t'); document.body.appendChild(d);
     d.addEventListener('click', e => { if (e.target === d || e.target.closest('.pm-x')) d.close(); }); d.addEventListener('close', () => pmLast && pmLast.focus()); }
-  pmLast = el; d.innerHTML = `<button class="pm-x" aria-label="Close">×</button><div class="pm">${profile(p)}</div>`; d.showModal();
+  pmLast = el; d.innerHTML = `<button class="pm-x" aria-label="${t('Close')}">×</button><div class="pm">${profile(p)}</div>`; d.showModal();
 };
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
 const pubRow = (r, i = 0, label) => `<div class="row rv" style="--i:${i % 6}"><span class="yr">${r.y}</span>
-  <div class="t">${esc(r.t)}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${label || 'Open'} ↗</a>` : '<span></span>'}</div>`;
+  <div class="t">${esc(localizeRecord(r.t))}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
-  <div class="wrap"><nav class="crumbs" aria-label="Breadcrumb"><a href="#/">Home</a>${crumbs.map(c => `<span>/</span>${c[1] ? `<a href="${c[1]}">${c[0]}</a>` : `<span>${c[0]}</span>`}`).join('')}</nav>
-  <h1>${esc(title)}</h1>${sub ? `<p class="lead">${esc(sub)}</p>` : ''}${subnav(path)}</div>
+  <div class="wrap"><nav class="crumbs" aria-label="${t('Breadcrumb')}"><a href="#/">${t('Home')}</a>${crumbs.map(c => `<span>/</span>${c[1] ? `<a href="${c[1]}">${t(c[0])}</a>` : `<span>${t(c[0])}</span>`}`).join('')}</nav>
+  <h1>${esc(t(title))}</h1>${sub ? `<p class="lead">${esc(t(sub))}</p>` : ''}${subnav(path)}</div>
   <canvas class="dissolve" data-color="#f4f7fb"></canvas></header>`;
 function subnav(path) {
   const sec = NAV.find(n => n.k === path[0]);
   if (!sec || !sec.sub.length) return '';
-  return `<div class="subnav">${sec.sub.map(([k, l]) => `<a href="#/${sec.k}/${k}" class="${path[1] === k ? 'on' : ''}">${l}</a>`).join('')}</div>`;
+  return `<div class="subnav">${sec.sub.map(([k, l]) => `<a href="#/${sec.k}/${k}" class="${path[1] === k ? 'on' : ''}">${t(l)}</a>`).join('')}</div>`;
 }
 const wrapPage = (head, body) => `${head}<section><div class="wrap">${body}</div></section>`;
 const years = rows => [...new Set(rows.map(r => r.y))].sort((a, b) => b - a);
-function listPage(rows, label, { search = true, linkLabel } = {}) {
+function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '' } = {}) {
   const ys = years(rows);
-  return `<div class="tools" data-list><button class="fchip on" data-y="all">All</button>${ys.map(y => `<button class="fchip" data-y="${y}">${y}</button>`).join('')}
-    ${search ? '<input class="search" type="search" placeholder="Search ' + label + '…" aria-label="Search">' : ''}</div>
-    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel)).join('')}</div><div class="empty" id="none" hidden>No results.</div>`;
+  return `<div class="tools" data-list><button class="fchip on" data-y="all">${t('All')}</button>${ys.map(y => `<button class="fchip" data-y="${y}">${y}</button>`).join('')}
+    ${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
+    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
 const prosePage = html => `<div class="prose">${html}</div>`;
-const flagged = txt => `<div class="note"><b class="mono">Content to confirm · </b>${txt}</div>`;
+const flagged = txt => `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
 
 
 function newsBanner(items) {
-  return `<div class="banner" data-banner aria-roledescription="carousel" aria-label="Featured news">
+  return `<div class="banner" data-banner aria-roledescription="carousel" aria-label="${t('Featured news')}">
     <div class="bslides">${items.map((n, i) => `<article class="bslide${i ? '' : ' on'}" aria-hidden="${i ? 'true' : 'false'}">
       <div class="bimg">${n.img[0] ? `<img src="${n.img[0]}" alt="" ${i ? 'loading="lazy"' : ''}>` : ''}</div>
-      <div class="btxt"><div class="meta"><span class="chip ${n.cat}">${n.cat}</span>${MON[n.m]} ${n.y}</div>
+      <div class="btxt"><div class="meta"><span class="chip ${n.cat}">${t(n.cat)}</span>${MON[n.m]} ${n.y}</div>
         <h3>${esc(n.title)}</h3><p>${esc((n.text[0] || '').slice(0, 220))}${(n.text[0] || '').length > 220 ? '…' : ''}</p>
-        <a class="btn" href="#/news/${newsId(n)}" tabindex="${i ? -1 : 0}">See more ${ARR}</a></div></article>`).join('')}</div>
-    <div class="bctl"><div class="bdots">${items.map((n, i) => `<button class="bdot${i ? '' : ' on'}" aria-label="News ${i + 1}"><i></i></button>`).join('')}</div>
-      <div class="bnav"><button class="bprev" aria-label="Previous">←</button><button class="bnext" aria-label="Next">→</button></div></div></div>`;
+        <a class="btn" href="#/news/${newsId(n)}" tabindex="${i ? -1 : 0}">${t('See more')} ${ARR}</a></div></article>`).join('')}</div>
+    <div class="bctl"><div class="bdots">${items.map((n, i) => `<button class="bdot${i ? '' : ' on'}" aria-label="${t('News {n}', { n: i + 1 })}"><i></i></button>`).join('')}</div>
+      <div class="bnav"><button class="bprev" aria-label="${t('Previous')}">${I_LEFT}</button><button class="bnext" aria-label="${t('Next')}">${I_RIGHT}</button></div></div></div>`;
 }
 const bannerItems = () => NEWS.filter(n => n.img.length).slice(0, 5);
 
 /* ---------- pages ---------- */
 const ROUTES = {
   home() {
-    const phd = NEWS.find(n => /Open PhD/i.test(n.title));
+    const phd = NEWS.find(n => /Open PhD/i.test(n.en));
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
+    const topicLinks = TOPICS.map((topic, i) => {
+      const params = new URLSearchParams({ search: topic });
+      const sourceTopic = SOURCE_TOPICS[i];
+      if (sourceTopic && sourceTopic !== topic) params.set('match', sourceTopic);
+      return `<a class="pill" href="#/research/publications?${esc(params.toString())}">${esc(topic)}</a>`;
+    }).join('');
+    const topicCopies = TOPICS.map(topic => `<span class="pill" aria-hidden="true">${esc(topic)}</span>`).join('');
     return `<section class="hero"><canvas class="bg"></canvas>
       <div class="wrap"><div class="eyebrow">${esc(SITE.hero_eyebrow)}</div>
       <h1 class="display">${esc(SITE.hero_title)}</h1>
       <p class="lead">${esc(SITE.hero_subtitle)}</p>
-      <div class="hero-actions"><a class="btn" href="#/research/publications">Explore our research ${ARR}</a><a class="btn btn-ghost" href="#/join">Join us ${ARR}</a></div></div>
+      <div class="hero-actions"><a class="btn" href="#/research/publications">${t('Explore our research')} ${ARR}</a><a class="btn btn-ghost" href="#/join">${t('Join us')} ${ARR}</a></div></div>
       <canvas class="dissolve" data-color="#040f20"></canvas></section>
-    <div class="marquee" aria-hidden="true"><div class="track">${[...TOPICS, ...TOPICS].map(t => `<span class="pill">${esc(t)}</span>`).join('')}</div></div>
+    <nav class="marquee" aria-label="${esc(t('Publication topics'))}"><div class="track">${topicLinks}${topicCopies}</div></nav>
     <section class="dark" style="padding-block:60px"><div class="wrap"><div class="stats">
-      ${[[PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents & registrations'], [PEOPLE.length, 'Current members']].map(([n, l]) => `<div class="stat rv"><b data-count="${n}">0</b><span>${l}</span></div>`).join('')}
+      ${[[PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents & registrations'], [PEOPLE.length, 'Current members']].map(([n, l]) => `<div class="stat rv"><b data-count="${n}">0</b><span>${t(l)}</span></div>`).join('')}
     </div></div></section>
-    <section><div class="wrap"><div class="head"><div><div class="eyebrow">Latest</div><h2 class="sec">News</h2></div><a class="btn btn-line" href="#/news">All news ${ARR}</a></div>
+    <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Latest')}</div><h2 class="sec">${t('News')}</h2></div><a class="btn btn-line" href="#/news">${t('All news')} ${ARR}</a></div>
       ${newsBanner(bannerItems())}</div></section>
-    <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">Research</div><h2 class="sec">Two research lines, one shared language</h2>
-      <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
-      <p style="margin-top:30px"><a class="btn btn-ghost" href="#/research/lines">Research lines ${ARR}</a></p></div></section>
+    <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">${t('Research')}</div><h2 class="sec">${t('Two research lines, one shared language')}</h2>
+      <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div></div></section>
     <section><div class="wrap"><div class="two" style="grid-template-columns:1fr 1.3fr">
-      <div><div class="eyebrow">Events</div><h2 class="sec">What's happening</h2><p class="lead">Workshops, conferences and visits hosted or attended by the group.</p><p style="margin-top:22px"><a class="btn btn-line" href="#/news">See the calendar ${ARR}</a></p></div>
-      <div>${events.map((n, i) => `<a class="row rv" style="--i:${i};text-decoration:none" href="#/news/${newsId(n)}"><span class="yr">${MON[n.m]} ${n.y}</span><div class="t"><b>${esc(n.title)}</b></div><span class="go">Details</span></a>`).join('')}</div></div></div></section>
-    <section style="padding-top:0"><div class="wrap"><div class="head"><div><div class="eyebrow">Recent</div><h2 class="sec">New publications</h2></div><a class="btn btn-line" href="#/research/publications">All publications ${ARR}</a></div>
+      <div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t("What's happening")}</h2><p class="lead">${t('Workshops, conferences and visits hosted or attended by the group.')}</p><p style="margin-top:22px"><a class="btn btn-line" href="#/news">${t('See the calendar')} ${ARR}</a></p></div>
+      <div>${events.map((n, i) => `<a class="row rv" style="--i:${i};text-decoration:none" href="#/news/${newsId(n)}"><span class="yr">${MON[n.m]} ${n.y}</span><div class="t"><b>${esc(n.title)}</b></div><span class="go">${t('Details')}</span></a>`).join('')}</div></div></div></section>
+    <section style="padding-top:0"><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Recent')}</div><h2 class="sec">${t('New publications')}</h2></div><a class="btn btn-line" href="#/research/publications">${t('All publications')} ${ARR}</a></div>
       ${PUBS.slice(0, 4).map((r, i) => pubRow(r, i, 'Paper')).join('')}</div></section>
-    <section class="dark"><div class="wrap"><div class="head"><div><div class="eyebrow">People</div><h2 class="sec">Meet the team</h2></div><a class="btn btn-ghost" href="#/people/current">Full team ${ARR}</a></div>
+    <section class="dark"><div class="wrap"><div class="head"><div><div class="eyebrow">${t('People')}</div><h2 class="sec">${t('Meet the team')}</h2></div><a class="btn btn-ghost" href="#/people/current">${t('Full team')} ${ARR}</a></div>
       <div class="grid g4 people">${pis.map(personCard).join('')}</div></div></section>
-    <section><div class="wrap"><div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">Join us</div><h2>${phd ? esc(phd.title) : 'Open positions'}</h2><p>${phd ? esc(phd.text[0]) : 'Check our current opportunities.'}</p></div>
-      <div><a class="btn" href="#/join">See opportunities ${ARR}</a></div></div></div></section>`;
+    <section><div class="wrap"><div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('Join us')}</div><h2>${phd ? esc(phd.title) : t('Open positions')}</h2><p>${phd ? esc(phd.text[0]) : t('Check our current opportunities.')}</p></div>
+      <div><a class="btn" href="#/join">${t('See opportunities')} ${ARR}</a></div></div></div></section>`;
   },
-  research(p) {
-    const k = p[1] || 'lines', h = (t, s) => pageHead(p, t, s, [['Research', '#/research/lines'], [t]]);
-    if (k === 'publications') return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', { linkLabel: 'Paper' }));
+  research(p, query) {
+    const k = p[1] || 'lines', h = (ti, s) => pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]);
+    if (k === 'publications') return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', {
+      linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '',
+    }));
     if (k === 'patents') return wrapPage(h('Patents', 'Registered inventions and technology transfer.'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
     if (k === 'theses') return wrapPage(h('PhD theses', 'Doctoral theses defended in the group.'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
     if (k === 'datasets') return wrapPage(h('Datasets & software', 'Open resources released by the group.'), prosePage(PAGES_HTML.datasets));
     if (k === 'collaborations') return wrapPage(h('Recent collaborations', 'Groups and institutions we work with.'), prosePage(PAGES_HTML.collaborations));
     return `${h('Research lines', 'Two complementary lines of investigation: classical and quantum.')}<section><div class="wrap"><div class="grid g2">
       ${LINES.map((l, i) => `<div class="line rv" style="--i:${i};background:var(--navy-900);color:#fff"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
-      <p style="margin-top:34px"><a class="btn" href="#/research/publications">See publications ${ARR}</a></p></div></section>`;
+      <p style="margin-top:34px"><a class="btn" href="#/research/publications">${t('See publications')} ${ARR}</a></p></div></section>`;
   },
   people(p) {
-    const k = p[1] || 'current', h = (t, s) => pageHead(p, t, s, [['People', '#/people/current'], [t]]);
-    const grp = names => names.map(g => { const l = PEOPLE.filter(x => x.group === g); return l.length ? `<div class="grp">${g}</div><div class="grid g4 people">${l.map(personCard).join('')}</div>` : ''; }).join('');
+    const k = p[1] || 'current', h = (ti, s) => pageHead(p, ti, s, [['People', '#/people/current'], [ti]]);
+    const grp = names => names.map(g => { const l = PEOPLE.filter(x => x.group === g); return l.length ? `<div class="grp">${t(g)}</div><div class="grid g4 people">${l.map(personCard).join('')}</div>` : ''; }).join('');
     if (k === 'investigators') return wrapPage(h('Principal investigators', 'Academic staff leading the group.'), grp(['Staff']));
     if (k === 'students') return wrapPage(h('PhD students & postdocs', 'Early-career researchers.'), grp(['Postdoctoral researchers', 'PhD students']));
     if (k === 'honorary') return wrapPage(h('Honorary professors', 'Emeritus and honorary members.'), grp(['Emeritus & honorary professors']));
     if (k === 'alumni') return wrapPage(h('Former members', 'Colleagues who have been part of the group.'), `<div class="prose formerlist">${FORMER}</div>`);
-    return wrapPage(h('Current team', `${PEOPLE.length} people working on light-matter and quantum systems.`), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
+    return wrapPage(h('Current team', t('{n} people working on light-matter and quantum systems.', { n: PEOPLE.length })), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
   },
   teaching(p) {
-    const k = p[1] || 'courses', h = (t, s) => pageHead(p, t, s, [['Teaching', '#/teaching/courses'], [t]]);
+    const k = p[1] || 'courses', h = (ti, s) => pageHead(p, ti, s, [['Teaching', '#/teaching/courses'], [ti]]);
     if (k === 'master-thesis') return wrapPage(h('Master theses', 'Master projects supervised by the group.'), listPage(MASTER, 'master theses', { linkLabel: 'Open' }));
     if (k === 'seminars') return wrapPage(h('Seminars & summer schools', 'Scientific events organised by the group.'), flagged('The current website has no dedicated seminars page. Workshops and events appear in <a href="#/news">News</a>; please provide the seminar listing.') + `<div class="grid g3">${NEWS.filter(n => n.cat === 'Event').map(newsCard).join('')}</div>`);
     return wrapPage(h('Courses', 'Bachelor and master programmes where the group teaches.'), prosePage(PAGES_HTML.courses));
   },
   outreach(p) {
-    const k = p[1] || 'activities', h = (t, s) => pageHead(p, t, s, [['Outreach', '#/outreach/activities'], [t]]);
+    const k = p[1] || 'activities', h = (ti, s) => pageHead(p, ti, s, [['Outreach', '#/outreach/activities'], [ti]]);
     if (k === 'talks') return wrapPage(h('Talks', 'Outreach talks and gender-equality actions.'), prosePage(GENDER_TALKS));
     if (k === 'interviews') return wrapPage(h('Interviews & press', 'The group in journals, radio, podcasts and webinars.'), prosePage(INTERVIEWS));
-    if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('Photo gallery', 'Moments from the life of the group.'), `<div class="gallery">${all.map(([s, t]) => pxImg(s, t)).join('')}</div>`); }
-    return wrapPage(h('Activities & workshops', 'Bringing optics and photonics to society.'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">Recent outreach news</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
+    if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('Photo gallery', 'Moments from the life of the group.'), `<div class="gallery">${all.map(([s, t]) => imageFrame(s, t)).join('')}</div>`); }
+    return wrapPage(h('Activities & workshops', 'Bringing optics and photonics to society.'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">${t('Recent outreach news')}</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
   },
   news(p) {
     const id = p[1];
     if (id) {
       const n = NEWS.find(x => newsId(x) === id);
-      if (n) return `${pageHead(p, n.title, `${MON[n.m]} ${n.y} · ${n.cat}`, [['News', '#/news'], [n.cat]])}<section><div class="wrap">
-        <div class="prose art">${n.text.map((t, k) => `<p${k ? '' : ' class="lead"'}>${esc(t)}</p>`).join('')}${n.link ? `<p><a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">More information ↗</a></p>` : ''}</div>
+      if (n) return `${pageHead(p, n.title, `${MON[n.m]} ${n.y} · ${t(n.cat)}`, [['News', '#/news'], [n.cat]])}<section><div class="wrap">
+        <div class="prose art">${n.text.map((t, k) => `<p${k ? '' : ' class="lead"'}>${esc(t)}</p>`).join('')}${n.link ? `<p><a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('More information')} ${I_EXT}</a></p>` : ''}</div>
         ${n.img.length ? `<div class="figs" data-n="${n.img.length}">${n.img.map(i => `<figure><img src="${i}" alt="${esc(n.title)}"></figure>`).join('')}</div>` : ''}
-        <p class="prose"><a href="#/news">← All news</a></p></div></section>`;
+        <p class="prose"><a class="inl" href="#/news">${I_LEFT} ${t('All news')}</a></p></div></section>`;
     }
     const cats = [...new Set(NEWS.map(n => n.cat))], ys = years(NEWS);
     return `${pageHead(p, 'News', 'Events, publications, awards and life in the group.', [['News']])}<section><div class="wrap">
-      ${newsBanner(bannerItems())}<div class="grp" style="margin-top:50px">All news</div>
-      <div class="tools" data-news><button class="fchip on" data-c="all">All</button>${cats.map(c => `<button class="fchip" data-c="${c}">${c}</button>`).join('')}<span style="flex:1"></span>
-      <select class="search" style="min-width:120px" aria-label="Year"><option value="all">All years</option>${ys.map(y => `<option>${y}</option>`).join('')}</select></div>
-      <div class="grid g3" id="newsgrid">${NEWS.map((n, i) => newsCard(n, i % 3).replace('class="card', `data-c="${n.cat}" data-y="${n.y}" class="card`)).join('')}</div><div class="empty" id="none" hidden>No news match.</div></div></section>`;
+      ${newsBanner(bannerItems())}<div class="grp" style="margin-top:50px">${t('All news')}</div>
+      <div class="tools" data-news><button class="fchip on" data-c="all">${t('All')}</button>${cats.map(c => `<button class="fchip" data-c="${c}">${t(c)}</button>`).join('')}<span style="flex:1"></span>
+      ${selectControl('news-year', t('Year'), [['all', t('All years')], ...ys.map(y => [String(y), String(y)])], 'all', '', 'ui-select-filter')}</div>
+      <div class="grid g3" id="newsgrid">${NEWS.map((n, i) => newsCard(n, i % 3).replace('class="card', `data-c="${n.cat}" data-y="${n.y}" class="card`)).join('')}</div><div class="empty" id="none" hidden>${t('No news match.')}</div></div></section>`;
   },
   join(p) {
-    const phd = NEWS.find(n => /Open PhD/i.test(n.title));
+    const phd = NEWS.find(n => /Open PhD/i.test(n.en));
     return `${pageHead(p, 'Join us', 'Research positions, theses and visits in optics and photonics.', [['Join us']])}<section><div class="wrap">
-      <div class="head"><div><div class="eyebrow">Open positions</div><h2 class="sec">PhD & postdoc opportunities</h2></div></div>
-      ${phd ? `<div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">PhD · ${MON[phd.m]} ${phd.y}</div><h2>${esc(phd.title)}</h2>${phd.text.map(t => `<p>${esc(t)}</p>`).join('')}</div><div>${phd.link ? `<a class="btn" href="${esc(phd.link)}" target="_blank" rel="noopener">PHYNEST call ↗</a>` : ''}</div></div>` : ''}
+      <div class="head"><div><div class="eyebrow">${t('Open positions')}</div><h2 class="sec">${t('PhD & postdoc opportunities')}</h2></div></div>
+      ${phd ? `<div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('PhD')} · ${MON[phd.m]} ${phd.y}</div><h2>${esc(phd.title)}</h2>${phd.text.map(t => `<p>${esc(t)}</p>`).join('')}</div><div>${phd.link ? `<a class="btn" href="${esc(phd.link)}" target="_blank" rel="noopener">${t('PHYNEST call')} ${I_EXT}</a>` : ''}</div></div>` : ''}
       ${flagged('Postdoc positions are not listed on the current website; this block is ready for them.')}
-      <div class="grp" style="margin-top:60px">How to apply</div>
-      <div class="steps">${[['Explore', 'Read our research lines and publications.'], ['Contact', 'Write to a supervisor with your CV and interests.'], ['Apply', 'Submit the official call documentation.'], ['Join', 'Start your project in the group.']].map(([t, d], i) => `<div class="step rv" style="--i:${i}"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>
-      <div class="grp" style="margin-top:60px">FAQ</div><div style="max-width:800px">${[['Which programmes can I apply through?', 'The group offers projects within the PHYNEST (Horizon Europe MSCA COFUND) doctoral programme, coordinated by UAB.'], ['Who do I contact?', 'Principal investigators are listed in People; write to them directly about available projects.'], ['Can I do a Master or Bachelor thesis?', 'Yes. See the Teaching section for past master theses and programmes.']].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join('')}</div>
-      <p style="margin-top:40px"><a class="btn" href="#/contact">Contact supervisors ${ARR}</a></p></div></section>`;
+      <div class="grp" style="margin-top:60px">${t('How to apply')}</div>
+      <div class="steps">${[['Explore', 'Read our research lines and publications.'], ['Contact', 'Write to a supervisor with your CV and interests.'], ['Apply', 'Submit the official call documentation.'], ['Join', 'Start your project in the group.']].map(([ti, d], i) => `<div class="step rv" style="--i:${i}"><h3>${t('step:' + ti)}</h3><p>${t(d)}</p></div>`).join('')}</div>
+      <div class="grp" style="margin-top:60px">${t('FAQ')}</div><div style="max-width:800px">${[['Which programmes can I apply through?', 'The group offers projects within the PHYNEST (Horizon Europe MSCA COFUND) doctoral programme, coordinated by UAB.'], ['Who do I contact?', 'Principal investigators are listed in People; write to them directly about available projects.'], ['Can I do a Master or Bachelor thesis?', 'Yes. See the Teaching section for past master theses and programmes.']].map(([q, a]) => `<details><summary>${t(q)}</summary><p>${t(a)}</p></details>`).join('')}</div>
+      <p style="margin-top:40px"><a class="btn" href="#/contact">${t('Contact supervisors')} ${ARR}</a></p></div></section>`;
   },
   about(p) {
-    const k = p[1] || 'mission', h = (t, s) => pageHead(p, t, s, [['About', '#/about/mission'], [t]]);
+    const k = p[1] || 'mission', h = (ti, s) => pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]);
     if (k === 'funding') return wrapPage(h('Funding & grants', ''), flagged('No funding information on the current website. Please provide projects, grants and logos.'));
     if (k === 'climate') return wrapPage(h('Climate commitment', ''), flagged('The climate-actions page of the current website is empty. Please provide the content.'));
     if (k === 'gender') return wrapPage(h('Gender & equality', 'Actions promoting equality in physics.'), prosePage(PAGES_HTML.gender));
     if (k === 'reach') return wrapPage(h('How to reach us', ''), prosePage(PAGES_HTML.reach));
-    return wrapPage(h('Mission & history', 'Light, from fundamentals to applications.'), `<div class="prose"><p>The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.</p></div>
-      <div class="stats" style="margin-top:40px;border-color:var(--line)">${[[PEOPLE.length, 'Members'], [PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents']].map(([n, l]) => `<div class="stat" style="border-color:var(--line)"><b data-count="${n}">0</b><span style="color:var(--muted)">${l}</span></div>`).join('')}</div>${flagged('A fuller history of the group can be added here.')}`);
+    return wrapPage(h('Mission & history', 'Light, from fundamentals to applications.'), `<div class="prose"><p>${t('The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.')}</p></div>
+      <div class="stats" style="margin-top:40px;border-color:var(--line)">${[[PEOPLE.length, 'Members'], [PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents']].map(([n, l]) => `<div class="stat" style="border-color:var(--line)"><b data-count="${n}">0</b><span style="color:var(--muted)">${t(l)}</span></div>`).join('')}</div>${flagged('A fuller history of the group can be added here.')}`);
   },
   contact(p) {
     return `${pageHead(p, 'Contact', 'Write to us or find us on campus.', [['Contact']])}<section><div class="wrap two">
-      <form class="f" id="cform"><label>Name<input required name="name" autocomplete="name" maxlength="120"></label><label>Your email<input required type="email" name="email" autocomplete="email" maxlength="200"></label>
-        <label>Topic<select name="topic"><option>General</option><option>PhD / postdoc</option><option>Collaboration</option><option>Press</option></select></label><label>Message<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
+      <form class="f" id="cform"><label>${t('Name')}<input required name="name" autocomplete="name" maxlength="120"></label><label>${t('Your email')}<input required type="email" name="email" autocomplete="email" maxlength="200"></label>
+        <label>${t('Topic')}${selectControl('contact-topic', t('Topic'), ['General', 'PhD / postdoc', 'Collaboration', 'Press'].map(o => [o, t(o)]), 'General', 'topic', 'ui-select-field')}</label><label>${t('Message')}<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
         <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
-        <button class="btn" style="justify-self:start">Send message ${ARR}</button><p class="fstatus" role="status" aria-live="polite"></p></form>
-      <div class="prose"><h2 style="margin-top:0">Find us</h2><p>Physics Department, Facultat de Ciències, Edifici C (area C3 Parell)<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a href="#/about/reach">How to reach us →</a></p></div></div></section>`;
+        <button class="btn" type="submit" style="justify-self:start">${t('Send message')} ${ARR}</button><p class="fstatus" role="status" aria-live="polite"></p></form>
+      <div class="prose"><h2 style="margin-top:0">${t('Find us')}</h2><p>${t('Physics Department, Facultat de Ciències, Edifici C (area C3 Parell)')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a class="inl" href="#/about/reach">${t('How to reach us')} ${I_RIGHT}</a></p></div></div></section>`;
   },
 };
 
@@ -224,31 +321,54 @@ const ROUTES = {
 const main = $('#main'), header = $('#header');
 /* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway. */
 const PREVIEW = new URLSearchParams(location.search).has('preview');
+function updateChrome() {
+  document.documentElement.lang = LANG;
+  $('meta[name="description"]').content = DESC[LANG] || DESC.en;
+  $$('[data-i18n]').forEach(el => { el.dataset.i18nSource ||= el.textContent; el.textContent = t(el.dataset.i18nSource); });
+  $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  $('#lang-label').textContent = t('Language');
+  $('#lang-current').textContent = LANGS.find(([code]) => code === LANG)[2];
+  $('#lang-menu').innerHTML = LANGS.map(([code, label, short]) => `<button class="lang-option" type="button" role="menuitemradio" data-lang="${code}" aria-checked="${code === LANG}" tabindex="${code === LANG ? 0 : -1}">${label} (${short})</button>`).join('');
+  $('#nav').innerHTML = NAV.map(n => `<div><a class="top" data-k="${n.k}" href="#/${n.k}${n.sub[0] ? '/' + n.sub[0][0] : ''}">${t(n.l)}</a>${n.sub.length ? `<div class="drop">${n.sub.map(([k, l]) => `<a href="#/${n.k}/${k}">${t(l)}</a>`).join('')}</div>` : ''}</div>`).join('');
+  $('#footlinks').innerHTML = NAV.map(n => `<a href="#/${n.k}${n.sub[0] ? '/' + n.sub[0][0] : ''}">${t(n.l)}</a>`).join('');
+  $('#footbrand').textContent = t('Optics Group · UAB');
+  $('#footaddress').innerHTML = `${t('Physics Department, Facultat de Ciències, Edifici C')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra`;
+  $('#footlegal').textContent = t('Optics Group UAB');
+}
+function showLoadError() {
+  main.innerHTML = `<section><div class="wrap"><h1>${t('Content could not be loaded')}</h1><p>${t('Please reload the page in a few seconds.')}</p></div></section>`;
+}
 function renderMaintenance() {
   document.body.classList.add('maint');
-  document.title = `${MAINT.title || 'Under maintenance'} · Optics Group · UAB`;
+  document.title = `${MAINT.title || t('Under maintenance')} · ${t('Optics Group · UAB')}`;
   main.innerHTML = `<section class="maint-screen"><canvas class="bg"></canvas>
-    <div class="maint-box"><canvas class="gears" role="img" aria-label="Animated gears and wrench"></canvas>
-    <div class="eyebrow">Optics Group · Universitat Autònoma de Barcelona</div>
-    <h1>${esc(MAINT.title || 'Under maintenance')}</h1>
+    <div class="maint-box"><canvas class="gears" role="img" aria-label="${t('Animated gears and wrench')}"></canvas>
+    <div class="eyebrow">${t('Optics Group · Universitat Autònoma de Barcelona')}</div>
+    <h1>${esc(MAINT.title || t('Under maintenance'))}</h1>
     ${paras(MAINT.message || 'We are improving the website. Please come back soon.').map(t => `<p class="lead">${esc(t)}</p>`).join('')}</div></section>`;
   $$('canvas.bg', main).forEach(c => startBackground(c, { size: 34 }));
   $$('canvas.gears', main).forEach(startGears);
 }
 function render() {
   if (MAINT.enabled && !PREVIEW) return renderMaintenance();
-  const path = (location.hash.replace(/^#\/?/, '') || '').split('/').filter(Boolean);
+  document.body.classList.remove('maint');
+  const hash = location.hash.slice(1);
+  const queryIndex = hash.indexOf('?');
+  const hashPath = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
+  const query = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
+  const path = hashPath.replace(/^\/?/, '').split('/').filter(Boolean);
   const key = path[0] || 'home';
-  main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path)}</div>`;
+  main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path, query)}</div>`;
+  updateChrome();
   $$('.nav a.top').forEach(a => a.classList.toggle('on', a.dataset.k === key));
-  document.title = (path.length ? path.map(s => s.replace(/-/g, ' ')).join(' · ') + ' · ' : '') + 'Optics Group · UAB';
+  document.title = `${main.querySelector('h1')?.textContent || t('Optics Group')} · ${t('Optics Group · UAB')}`;
   scrollTo({ top: 0, behavior: 'instant' });
   closeMenu(); mount(main);
 }
 function mount(root) {
   $$('canvas.bg', root).forEach(c => startBackground(c, { size: c.closest('.call') ? 26 : 34 }));
   $$('canvas.dissolve', root).forEach(dissolve);
-  initPixelImages(root);
+  initPhotoReveals(root);
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
   $$('.rv', root).forEach(el => io.observe(el));
   const cio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; cio.unobserve(e.target); counter(e.target); }));
@@ -266,19 +386,38 @@ function mount(root) {
     });
   });
   $$('.tilt', root).forEach(tilt);
+  $$('.marquee a.pill', root).forEach(link => link.addEventListener('focus', () => link.scrollIntoView({ block: 'nearest', inline: 'nearest' })));
   const lst = $('[data-list]', root);
   if (lst) {
-    let y = 'all', q = '';
-    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const ok = (y === 'all' || r.firstElementChild.textContent === y) && (!q || r.textContent.toLowerCase().includes(q)); r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    const input = $('.search', lst);
+    const hash = location.hash, queryIndex = hash.indexOf('?');
+    const route = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
+    const params = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
+    const syncSearch = route === '#/research/publications';
+    let y = 'all', q = (input?.value || '').trim().toLowerCase(), match = (input?.dataset.match || '').trim().toLowerCase();
+    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.textContent.toLowerCase(); const queryMatch = !q || text.includes(q) || (!!match && text.includes(match)); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
     lst.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
-    $('.search', lst)?.addEventListener('input', e => { q = e.target.value.toLowerCase(); apply(); });
+    input?.addEventListener('input', e => {
+      const value = e.target.value.trim();
+      q = value.toLowerCase();
+      match = '';
+      e.target.removeAttribute('data-match');
+      if (syncSearch) {
+        if (value) params.set('search', value); else params.delete('search');
+        params.delete('match');
+        const queryString = params.toString();
+        history.replaceState(history.state, '', `${location.pathname}${location.search}${route}${queryString ? `?${queryString}` : ''}`);
+      }
+      apply();
+    });
+    apply();
   }
   const nl = $('[data-news]', root);
   if (nl) {
     let c = 'all', y = 'all';
     const apply = () => { let n = 0; $$('#newsgrid .card').forEach(el => { const ok = (c === 'all' || el.dataset.c === c) && (y === 'all' || el.dataset.y === y); el.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
     nl.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', nl).forEach(x => x.classList.toggle('on', x === b)); c = b.dataset.c; apply(); });
-    $('select', nl).addEventListener('change', e => { y = e.target.value; apply(); });
+    $('[data-ui-select-value]', nl)?.addEventListener('change', e => { y = e.target.value; apply(); });
   }
   $('#cform', root)?.addEventListener('submit', sendContact);
 }
@@ -327,27 +466,178 @@ function magnet(el) {
 }
 async function sendContact(e) {
   e.preventDefault();
-  const f = e.target, btn = $('button', f), st = $('.fstatus', f), d = Object.fromEntries(new FormData(f));
+  const f = e.target, btn = $('button[type="submit"]', f), st = $('.fstatus', f), d = Object.fromEntries(new FormData(f));
   if (d.botcheck) return;
   const say = (msg, ok) => { st.textContent = msg; st.dataset.ok = ok ? '1' : '0'; };
-  if (!CONTACT_FORM_KEY) { say('The contact form is not available yet. Please try again later.', false); return; }
-  btn.disabled = true; say('Sending…', true);
+  if (!CONTACT_FORM_KEY) { say(t('The contact form is not available yet. Please try again later.'), false); return; }
+  btn.disabled = true; say(t('Sending…'), true);
   try {
     const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ access_key: CONTACT_FORM_KEY, subject: `[opticsuab.eu] ${d.topic}: message from ${d.name}`, from_name: 'Optics Group website', name: d.name, email: d.email, replyto: d.email, topic: d.topic, message: d.message }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.success) throw new Error(j.message || r.status);
-    f.reset(); say('Thank you! Your message has been sent. We will reply to your email.', true);
-  } catch (err) { console.error(err); say('Sorry, the message could not be sent. Please try again in a few minutes.', false); }
+    f.reset(); say(t('Thank you! Your message has been sent. We will reply to your email.'), true);
+  } catch (err) { console.error(err); say(t('Sorry, the message could not be sent. Please try again in a few minutes.'), false); }
   finally { btn.disabled = false; }
 }
 function toast(msg) { let t = $('.toast') || document.body.appendChild(Object.assign(document.createElement('div'), { className: 'toast' })); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800); }
 
 /* ---------- shell ---------- */
-$('#nav').innerHTML = NAV.map(n => `<div><a class="top" data-k="${n.k}" href="#/${n.k}${n.sub[0] ? '/' + n.sub[0][0] : ''}">${n.l}</a>${n.sub.length ? `<div class="drop">${n.sub.map(([k, l]) => `<a href="#/${n.k}/${k}">${l}</a>`).join('')}</div>` : ''}</div>`).join('');
-$('#footlinks').innerHTML = NAV.map(n => `<a href="#/${n.k}${n.sub[0] ? '/' + n.sub[0][0] : ''}">${n.l}</a>`).join('');
+updateChrome();
 $('#year').textContent = new Date().getFullYear();
 const closeMenu = () => { $('#nav').classList.remove('open'); $('#burger').setAttribute('aria-expanded', 'false'); header.classList.remove('menu'); };
+const langPicker = $('#lang-picker'), langTrigger = $('#lang-trigger'), langMenu = $('#lang-menu');
+const closeLanguageMenu = (restoreFocus = false) => {
+  langPicker.classList.remove('open');
+  langTrigger.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) langTrigger.focus();
+};
+const openLanguageMenu = () => {
+  langPicker.classList.add('open');
+  langTrigger.setAttribute('aria-expanded', 'true');
+  $('[role="menuitemradio"][aria-checked="true"]', langMenu)?.focus();
+};
+langTrigger.addEventListener('click', () => {
+  if (langPicker.classList.contains('open')) closeLanguageMenu();
+  else openLanguageMenu();
+});
+langTrigger.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  openLanguageMenu();
+});
+langMenu.addEventListener('keydown', e => {
+  const options = $$('[role="menuitemradio"]', langMenu), index = options.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    options[(index + (e.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length]?.focus();
+  } else if (e.key === 'Home' || e.key === 'End') {
+    e.preventDefault();
+    options[e.key === 'Home' ? 0 : options.length - 1]?.focus();
+  }
+});
+langMenu.addEventListener('click', async e => {
+  const option = e.target.closest('[data-lang]');
+  if (!option) return;
+  const nextLang = option.dataset.lang;
+  closeLanguageMenu(true);
+  if (nextLang === LANG) return;
+  LANG = nextLang;
+  MON = MONTHS[LANG];
+  try { localStorage.setItem('lang', LANG); } catch (e) { /* selection still works for this page load */ }
+  updateChrome();
+  try { await loadData(); render(); }
+  catch (err) { console.error(err); showLoadError(); }
+});
+langPicker.addEventListener('focusout', e => { if (!langPicker.contains(e.relatedTarget)) closeLanguageMenu(); });
+document.addEventListener('click', e => { if (!langPicker.contains(e.target)) closeLanguageMenu(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && langPicker.classList.contains('open')) {
+    e.preventDefault();
+    closeLanguageMenu(true);
+  }
+});
+const closeUiSelect = (control, restoreFocus = false) => {
+  control.classList.remove('open');
+  const trigger = $('[data-ui-select-trigger]', control);
+  trigger?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) trigger?.focus();
+};
+const closeUiSelects = (except = null) => {
+  $$('[data-ui-select].open').forEach(control => { if (control !== except) closeUiSelect(control); });
+};
+const syncUiSelect = (control, value, notify = false) => {
+  const options = $$('.ui-select-option', control);
+  const selected = options.find(option => option.dataset.value === String(value));
+  const input = $('[data-ui-select-value]', control), current = $('[data-ui-select-current]', control);
+  if (!selected || !input || !current) return;
+  input.value = selected.dataset.value;
+  current.textContent = selected.textContent;
+  $('[data-ui-select-trigger]', control)?.setAttribute('aria-label', `${control.dataset.label}: ${selected.textContent}`);
+  options.forEach(option => {
+    const checked = option === selected;
+    option.setAttribute('aria-checked', String(checked));
+    option.tabIndex = checked ? 0 : -1;
+  });
+  if (notify) input.dispatchEvent(new Event('change', { bubbles: true }));
+};
+const openUiSelect = control => {
+  closeUiSelects(control);
+  const trigger = $('[data-ui-select-trigger]', control);
+  const options = $$('.ui-select-option', control);
+  const selected = options.find(option => option.getAttribute('aria-checked') === 'true') || options[0];
+  if (!trigger || !selected) return;
+  control.classList.add('open');
+  trigger.setAttribute('aria-expanded', 'true');
+  options.forEach(option => { option.tabIndex = option === selected ? 0 : -1; });
+  requestAnimationFrame(() => { if (control.isConnected && control.classList.contains('open')) selected.focus(); });
+};
+document.addEventListener('click', e => {
+  const target = e.target instanceof Element ? e.target : null;
+  const option = target?.closest('[data-ui-select-option]');
+  if (option) {
+    const control = option.closest('[data-ui-select]');
+    syncUiSelect(control, option.dataset.value, true);
+    closeUiSelect(control, true);
+    return;
+  }
+  const trigger = target?.closest('[data-ui-select-trigger]');
+  if (trigger) {
+    const control = trigger.closest('[data-ui-select]');
+    if (control.classList.contains('open')) closeUiSelect(control);
+    else openUiSelect(control);
+    return;
+  }
+  closeUiSelects();
+});
+document.addEventListener('focusin', e => {
+  const control = e.target instanceof Element ? e.target.closest('[data-ui-select]') : null;
+  closeUiSelects(control);
+});
+document.addEventListener('keydown', e => {
+  const target = e.target instanceof Element ? e.target : null;
+  const trigger = target?.closest('[data-ui-select-trigger]');
+  const option = target?.closest('[data-ui-select-option]');
+  if (trigger && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    e.preventDefault();
+    openUiSelect(trigger.closest('[data-ui-select]'));
+    return;
+  }
+  if (option) {
+    const control = option.closest('[data-ui-select]'), options = $$('.ui-select-option', control), index = options.indexOf(option);
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeUiSelect(control, true);
+      return;
+    }
+    let next = -1;
+    if (e.key === 'ArrowDown') next = (index + 1) % options.length;
+    else if (e.key === 'ArrowUp') next = (index - 1 + options.length) % options.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = options.length - 1;
+    if (next >= 0) {
+      e.preventDefault();
+      options.forEach((item, i) => { item.tabIndex = i === next ? 0 : -1; });
+      options[next].focus();
+    }
+    return;
+  }
+  if (e.key === 'Escape') {
+    const open = $('[data-ui-select].open');
+    if (open) { e.preventDefault(); closeUiSelect(open, true); }
+  }
+});
+document.addEventListener('reset', e => {
+  const form = e.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  requestAnimationFrame(() => {
+    if (e.defaultPrevented) return;
+    $$('[data-ui-select]', form).forEach(control => {
+      const input = $('[data-ui-select-value]', control);
+      if (input) syncUiSelect(control, input.dataset.defaultValue ?? input.value);
+    });
+  });
+});
 $('#burger').addEventListener('click', () => { const o = $('#nav').classList.toggle('open'); $('#burger').setAttribute('aria-expanded', o); header.classList.toggle('menu', o); });
 $('#nav').addEventListener('click', e => { if (e.target.closest('a')) closeMenu(); });
 addEventListener('scroll', () => {
@@ -357,5 +647,5 @@ addEventListener('scroll', () => {
 addEventListener('hashchange', render);
 loadData().then(render).catch(err => {
   console.error(err);
-  main.innerHTML = '<section><div class="wrap"><h1>Content could not be loaded</h1><p>Please reload the page in a few seconds.</p></div></section>';
+  showLoadError();
 });

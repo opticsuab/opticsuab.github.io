@@ -13,32 +13,40 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=45">
+<link rel="stylesheet" href="css/styles.css?v=58">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main" data-i18n>Skip to content</a>
 <div class="progress" id="progress"></div>
 <header class="site-header" id="header">
   <div class="wrap bar">
-    <a class="brand" href="#/" aria-label="Optics Group UAB – Home">
+    <a class="brand" href="#/" aria-label="Optics Group UAB – Home" data-i18n-aria="Optics Group UAB – Home">
       <img class="logo-img" src="img/logo.svg" alt="UAB" width="176" height="40">
-      <span class="brand-name">Optics Group</span>
+      <span class="brand-name" data-i18n>Optics Group</span>
     </a>
-    <nav id="nav" class="nav" aria-label="Main"></nav>
-    <a class="btn btn-ghost cta-contact" href="#/contact">Contact</a>
-    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
+    <nav id="nav" class="nav" aria-label="Main" data-i18n-aria="Main"></nav>
+    <div class="lang-picker" id="lang-picker">
+      <span class="sr-only" id="lang-label">Language</span>
+      <button class="lang-trigger" id="lang-trigger" type="button" aria-labelledby="lang-label lang-current" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu">
+        <span id="lang-current">EN</span><span class="lang-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="drop lang-menu" id="lang-menu" role="menu" aria-labelledby="lang-label"></div>
+    </div>
+    <a class="btn btn-ghost cta-contact" href="#/contact" data-i18n>Contact</a>
+    <button class="burger" id="burger" aria-label="Menu" data-i18n-aria="Menu" aria-expanded="false"><span></span><span></span></button>
   </div>
 </header>
 <main id="main" tabindex="-1"></main>
 <footer class="site-footer">
   <div class="wrap foot">
-    <div><strong>Optics Group · UAB</strong><p>Physics Department, Facultat de Ciències, Edifici C<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra</p></div>
-    <div><strong>Explore</strong><p id="footlinks"></p></div>
-    <div><strong>Contact</strong><p><a href="#/contact">Contact us</a><a href="#/join">Join us</a><a href="https://webs.uab.cat/optics/es/" target="_blank" rel="noopener">Current website</a></p></div>
+    <div><strong id="footbrand">Optics Group · UAB</strong><p id="footaddress">Physics Department, Facultat de Ciències, Edifici C<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra</p></div>
+    <div><strong data-i18n>Explore</strong><p id="footlinks"></p></div>
+    <div><strong data-i18n>Contact</strong><p id="footcontact"><a href="#/contact" data-i18n>Contact us</a><a href="#/join" data-i18n>Join us</a><a href="https://webs.uab.cat/optics/es/" target="_blank" rel="noopener" data-i18n>Current website</a></p></div>
   </div>
-  <div class="wrap legal">© <span id="year"></span> Optics Group UAB</div>
+  <div class="wrap legal">© <span id="year"></span> <span id="footlegal">Optics Group UAB</span></div>
 </footer>
-<script src="js/bg.js?v=45"></script>
-<script src="js/app.js?v=45"></script>
+<script src="js/bg.js?v=58"></script>
+<script src="js/i18n.js?v=58"></script>
+<script src="js/app.js?v=58"></script>
 </body>
 </html>
