@@ -94,7 +94,7 @@ function body(path, lang) {
     case 'people/honorary': return head + people(['Emeritus & honorary professors']);
     case 'news': return head + `<ul>${news.map(n => `<li>${esc(MONTHS[lang][n.m])} ${n.y} · ${link(`news/${n.id}`, lang, tr(lang, 'news', n.title))}</li>`).join('')}</ul>`;
     case 'about/mission': return head + `<p>${esc(T('The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.'))}</p>`;
-    case 'contact': return head + `<p>${esc(T('Physics Department, Facultat de Ciències, Edifici C (area C3 Parell)'))}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p>`;
+    case 'contact': return head + `<p>${esc(T('Physics Department, Facultat de Ciències, Edifici C (C3 Parell, floor 0/−1)'))}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p>`;
     default: return head;
   }
 }

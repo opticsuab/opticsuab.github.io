@@ -2,7 +2,8 @@
    Source of js/building3d.js: after editing, run `bash tools/build-3d.sh` and commit both files.
    Schematic model drawn from the faculty's floor-plan diagram: a central spine with paired "Senar" (west) and
    "Parell" (east) towers, wings ("ala") and the C0 block with two courtyards. The Optics Group is highlighted in
-   the C3B Parell wing, floors 0 and −1.
+   C3 Parell, floor 0/−1: the lower wing next to C3 ("C3B" in the faculty's diagram), half a level below the ground
+   floor (the translucent ground plane cuts that floor in half).
 
    mountBuilding(container, { labels }) builds the scene inside `container` and returns a function that frees it. */
 import {
@@ -46,7 +47,7 @@ function plan() {
   return parts;
 }
 const US = 'C3B Parell ala';
-const US_FLOORS = 2;                /* floors −1 and 0 */
+const US_FLOORS = 1;                /* floor 0/−1, half a level below the ground floor */
 const MODULE_LABELS = ['C7', 'C5', 'C3', 'C1', 'C0', 'C2'];
 
 /* horizontal floor lines around a box */
@@ -60,7 +61,7 @@ function floorLines(x0, x1, z0, z1, floors) {
 }
 
 export function mountBuilding(container, opts = {}) {
-  const L = Object.assign({ us: 'Optics Group', usSub: 'C3B Parell wing · floors 0 and −1', hint: 'Drag to rotate' }, opts.labels || {});
+  const L = Object.assign({ us: 'Optics Group', usSub: 'C3 Parell · floor 0/−1', hint: 'Drag to rotate' }, opts.labels || {});
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = container.querySelector('canvas');
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });

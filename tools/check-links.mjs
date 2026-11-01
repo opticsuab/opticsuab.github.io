@@ -29,7 +29,9 @@ for (const [file, key, label] of [['publications', 'publications', 'Publicación
   for (const r of read(`data/${file}.json`)[key] || []) add(r.link, `${label} ${r.year} «${short(r.short_title || r.text)}»`);
 }
 const pageFiles = ['data/pages.json', ...['es', 'ca'].map(l => `data/i18n/${l}/pages.json`).filter(f => existsSync(join(ROOT, f)))];
-for (const f of pageFiles) for (const [k, html] of Object.entries(read(f))) for (const m of String(html).matchAll(/href="([^"]+)"/g)) add(m[1], `Página larga «${k}» (${f.includes('/es/') ? 'es' : f.includes('/ca/') ? 'ca' : 'en'})`);
+/* only the long pages the site shows (js/app.js → PAGES_HTML); "links" and "societies" are not published yet */
+const SHOWN = new Set(['outreach', 'how_to_reach_us', 'gender', 'collaborations', 'courses', 'datasets', 'interviews', 'talks']);
+for (const f of pageFiles) for (const [k, html] of Object.entries(read(f))) if (SHOWN.has(k)) for (const m of String(html).matchAll(/href="([^"]+)"/g)) add(m[1], `Página larga «${k}» (${f.includes('/es/') ? 'es' : f.includes('/ca/') ? 'ca' : 'en'})`);
 
 /* ---------- check ---------- */
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36';
@@ -47,9 +49,13 @@ async function probe(url) {
   }
   return { status: 0, error: 'unknown' };
 }
+/* broken: the page or the site is gone (404, 410, unknown domain, Cloudflare "origin down" 52x, expired certificate).
+   could not check: the site refuses robots or did not answer from GitHub's servers (timeouts, resets, incomplete
+   certificate chains that browsers complete on their own, temporary 5xx) — these usually work in a browser. */
+const UNCHECKABLE = /TIMEOUT|Timeout|ABORT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|EPROTO|UNABLE_TO_VERIFY_LEAF_SIGNATURE|UNABLE_TO_GET_ISSUER_CERT|SELF_SIGNED_CERT_IN_CHAIN|ERR_TLS|UND_ERR_SOCKET/;
 const classify = r => {
   if (r.status >= 200 && r.status < 400) return 'ok';
-  if ([401, 403, 418, 429, 999].includes(r.status) || (r.status === 0 && /TIMEOUT|Timeout|ABORT/i.test(r.error || ''))) return 'blocked';
+  if ([401, 403, 405, 406, 418, 429, 500, 502, 503, 504, 999].includes(r.status) || (r.status === 0 && UNCHECKABLE.test(r.error || ''))) return 'blocked';
   return 'broken';
 };
 const urls = [...links.keys()];

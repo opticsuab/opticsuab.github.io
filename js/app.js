@@ -226,12 +226,12 @@ function listPage(rows, label, { search = true, linkLabel, searchValue = '', sea
 const prosePage = html => `<div class="prose">${String(html || '').replace(/(src|href)="(img\/)/g, '$1="/$2')}</div>`;
 /* "How to reach us": the floor-plan image of Edifici C becomes an interactive 3D model (js/building3d.js). */
 const buildingWidget = () => `<figure class="bldg" data-building>
-  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D model of Edifici C. The Optics Group is in the C3B Parell wing, floors 0 and −1. Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
+  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D model of Edifici C. The Optics Group is in C3 Parell, floor 0/−1, half a level below the ground floor. Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
     <div class="bldg-labels" aria-hidden="true"></div><div class="bldg-tip" hidden></div>
     <div class="bldg-hint" aria-hidden="true">${t('Use Ctrl or ⌘ + scroll to zoom')}</div>
     <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript></div>
   <figcaption class="bldg-bar">
-    <span class="bldg-key"><i></i>${t('Optics Group')} · ${t('C3B Parell wing · floors 0 and −1')}</span>
+    <span class="bldg-key"><i></i>${t('Optics Group')} · ${t('C3 Parell · floor 0/−1')}</span>
     <span class="bldg-btns">
       <button type="button" class="bldg-btn" data-b="us">${t('Show us')}</button>
       <button type="button" class="bldg-btn" data-b="top">${t('Top view')}</button>
@@ -251,9 +251,9 @@ function mountBuilding(root) {
   const fallback = () => { el.classList.add('bldg-static'); $('.bldg-stage', el).innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
   const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
   if (!gl) return fallback();
-  const start = () => import('/js/building3d.js?v=62').then(m => {
+  const start = () => import('/js/building3d.js?v=63').then(m => {
     if (!el.isConnected) return;
-    disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3B Parell wing · floors 0 and −1'), names: { 'Central corridor': t('Central corridor') } } });
+    disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), names: { 'Central corridor': t('Central corridor'), 'C3B Parell ala': `${t('Optics Group')} · C3 Parell 0/−1` } } });
   }).catch(err => { console.error(err); fallback(); });
   const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); start(); } }, { rootMargin: '300px' });
   io.observe(el);
@@ -386,7 +386,7 @@ const ROUTES = {
         <label>${t('Topic')}${selectControl('contact-topic', t('Topic'), ['General', 'PhD / postdoc', 'Collaboration', 'Press'].map(o => [o, t(o)]), 'General', 'topic', 'ui-select-field')}</label><label>${t('Message')}<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
         <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
         <button class="btn" type="submit" style="justify-self:start">${t('Send message')} ${ARR}</button><p class="fstatus" role="status" aria-live="polite"></p></form>
-      <div class="prose"><h2 style="margin-top:0">${t('Find us')}</h2><p>${t('Physics Department, Facultat de Ciències, Edifici C (area C3 Parell)')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a class="inl" href="#/about/reach">${t('How to reach us')} ${I_RIGHT}</a></p></div></div></section>`;
+      <div class="prose"><h2 style="margin-top:0">${t('Find us')}</h2><p>${t('Physics Department, Facultat de Ciències, Edifici C (C3 Parell, floor 0/−1)')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a class="inl" href="#/about/reach">${t('How to reach us')} ${I_RIGHT}</a></p></div></div></section>`;
   },
 };
 
