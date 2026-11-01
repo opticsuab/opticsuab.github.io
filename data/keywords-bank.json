@@ -1,0 +1,435 @@
+{
+  "keywords": [
+    {
+      "name": "Adiabatic passage",
+      "papers": 6,
+      "shared": true,
+      "match": [
+        "adiabatic passage",
+        "stirap",
+        "rapid adiabatic",
+        "adiabatic transition",
+        "counterdiabatic",
+        "adiabatic"
+      ]
+    },
+    {
+      "name": "Biomedical imaging",
+      "papers": 8,
+      "shared": true,
+      "match": [
+        "biomedic",
+        "biological tissue",
+        "tissue",
+        "bioimag",
+        "biophoton",
+        "histolog"
+      ]
+    },
+    {
+      "name": "Bose–Einstein condensates",
+      "papers": 5,
+      "shared": true,
+      "match": [
+        "bose einstein",
+        "bec",
+        "condensate"
+      ]
+    },
+    {
+      "name": "Depolarization",
+      "papers": 10,
+      "shared": true,
+      "match": [
+        "depolariz",
+        "depolaris",
+        "polarimetric purity",
+        "polarization purity"
+      ]
+    },
+    {
+      "name": "Diffractive optics",
+      "papers": 5,
+      "shared": true,
+      "match": [
+        "diffract",
+        "split lens",
+        "geometric phase"
+      ]
+    },
+    {
+      "name": "Diffusion",
+      "papers": 2,
+      "shared": true,
+      "match": [
+        "diffusion"
+      ]
+    },
+    {
+      "name": "Flat bands",
+      "papers": 6,
+      "shared": true,
+      "match": [
+        "flat band",
+        "diamond chain",
+        "caging",
+        "diamond necklace"
+      ]
+    },
+    {
+      "name": "Holography",
+      "papers": 2,
+      "shared": true,
+      "match": [
+        "holograph"
+      ]
+    },
+    {
+      "name": "Lasers",
+      "papers": 1,
+      "shared": false,
+      "match": [
+        "lasing",
+        "laser"
+      ]
+    },
+    {
+      "name": "Lattice gauge theories",
+      "papers": 6,
+      "shared": true,
+      "match": [
+        "gauge theor"
+      ]
+    },
+    {
+      "name": "Liquid crystals",
+      "papers": 6,
+      "shared": true,
+      "match": [
+        "liquid crystal",
+        "lcos",
+        "nanocellulose"
+      ]
+    },
+    {
+      "name": "Machine learning",
+      "papers": 2,
+      "shared": true,
+      "match": [
+        "machine learning",
+        "machin e learning",
+        "ml assisted",
+        "neural network",
+        "deep learning",
+        "artificial intelligence"
+      ]
+    },
+    {
+      "name": "Many-body physics",
+      "papers": 8,
+      "shared": true,
+      "match": [
+        "many body",
+        "hubbard",
+        "thermalization",
+        "quantum phase transition",
+        "magnet",
+        "strongly correlated",
+        "hilbert space fragmentation",
+        "stripe states",
+        "frustrat"
+      ]
+    },
+    {
+      "name": "Mueller matrix",
+      "papers": 11,
+      "shared": true,
+      "match": [
+        "mueller"
+      ]
+    },
+    {
+      "name": "Non-Hermitian physics",
+      "papers": 1,
+      "shared": false,
+      "match": [
+        "non hermitian"
+      ]
+    },
+    {
+      "name": "Optical lattices",
+      "papers": 12,
+      "shared": true,
+      "match": [
+        "optical lattice",
+        "lattice of rings",
+        "honeycomb lattice",
+        "ladder",
+        "diamond chain",
+        "diamond necklace",
+        "hubbard"
+      ]
+    },
+    {
+      "name": "Optical metrology",
+      "papers": 7,
+      "shared": true,
+      "match": [
+        "deflectometr",
+        "interferometr",
+        "profile reconstruction",
+        "stitching",
+        "metrolog",
+        "calibration",
+        "image magnification"
+      ]
+    },
+    {
+      "name": "Optical trapping",
+      "papers": 3,
+      "shared": true,
+      "match": [
+        "optical trap",
+        "microparticle",
+        "optical tweezer",
+        "trapping of"
+      ]
+    },
+    {
+      "name": "Optics education",
+      "papers": 1,
+      "shared": false,
+      "match": [
+        "learning environment",
+        "training in",
+        "teaching",
+        "education"
+      ]
+    },
+    {
+      "name": "Orbital angular momentum",
+      "papers": 9,
+      "shared": true,
+      "match": [
+        "orbital angular momentum",
+        "lattice of rings",
+        "stacked rings",
+        "ring potential",
+        "counter rotating",
+        "oam"
+      ]
+    },
+    {
+      "name": "Photonic waveguides",
+      "papers": 6,
+      "shared": true,
+      "match": [
+        "waveguide",
+        "photonic lattice",
+        "photonic device",
+        "integrated photonic"
+      ]
+    },
+    {
+      "name": "Plant imaging",
+      "papers": 4,
+      "shared": true,
+      "match": [
+        "plant",
+        "vegetal",
+        "vitis",
+        "leaves",
+        "leaf"
+      ]
+    },
+    {
+      "name": "Polarimetry",
+      "papers": 26,
+      "shared": true,
+      "match": [
+        "polarimet",
+        "stokes",
+        "polarization camera",
+        "polarized data",
+        "polarization imaging",
+        "polarization remote sensing",
+        "micro polarized sensor",
+        "micropolarizer"
+      ]
+    },
+    {
+      "name": "Polarization optics",
+      "papers": 7,
+      "shared": true,
+      "match": [
+        "jones matri",
+        "polarization state",
+        "polarizer",
+        "circular polarization",
+        "circularly polarized",
+        "polarization converter",
+        "retarder",
+        "retardance",
+        "training in polarization"
+      ]
+    },
+    {
+      "name": "Quantum optics",
+      "papers": 5,
+      "shared": true,
+      "match": [
+        "quantum structured light",
+        "amplification without inversion",
+        "quantum jump",
+        "atomic excitation",
+        "quantum memory",
+        "four level",
+        "atomic frequency comb"
+      ]
+    },
+    {
+      "name": "Quantum simulation",
+      "papers": 7,
+      "shared": true,
+      "match": [
+        "quantum simulat",
+        "simulating",
+        "simulations of gauge",
+        "quantum and classical simulation",
+        "rydberg configurable"
+      ]
+    },
+    {
+      "name": "Quantum technologies",
+      "papers": 4,
+      "shared": true,
+      "match": [
+        "quantum technolog",
+        "quantum memory",
+        "quantum sensing",
+        "atomtronic",
+        "quantum comput"
+      ]
+    },
+    {
+      "name": "Quantum thermodynamics",
+      "papers": 0,
+      "shared": false,
+      "match": [
+        "quantum thermodynamic",
+        "quantum heat",
+        "quantum engine",
+        "quantum battery"
+      ]
+    },
+    {
+      "name": "Remote sensing",
+      "papers": 1,
+      "shared": false,
+      "match": [
+        "remote sensing",
+        "earth observation"
+      ]
+    },
+    {
+      "name": "Spatial light modulators",
+      "papers": 4,
+      "shared": true,
+      "match": [
+        "lcos",
+        "liquid crystal on silicon",
+        "spatial light modulat",
+        "slm"
+      ]
+    },
+    {
+      "name": "Spin–orbit coupling",
+      "papers": 4,
+      "shared": true,
+      "match": [
+        "spin orbit"
+      ]
+    },
+    {
+      "name": "Structured light",
+      "papers": 7,
+      "shared": true,
+      "match": [
+        "structured light",
+        "vector beam",
+        "light structures",
+        "knot",
+        "dark focus",
+        "conical refraction",
+        "geometric phase"
+      ]
+    },
+    {
+      "name": "Supersymmetry",
+      "papers": 4,
+      "shared": true,
+      "match": [
+        "supersymmetr"
+      ]
+    },
+    {
+      "name": "Synthetic gauge fields",
+      "papers": 9,
+      "shared": true,
+      "match": [
+        "gauge field",
+        "flux",
+        "synthetic dimension",
+        "artificial gauge",
+        "raman coupled",
+        "optically dressed",
+        "twistronics"
+      ]
+    },
+    {
+      "name": "Topological phases",
+      "papers": 13,
+      "shared": true,
+      "match": [
+        "topolog",
+        "su schrieffer heeger",
+        "edge states",
+        "corner states",
+        "chern"
+      ]
+    },
+    {
+      "name": "Topological photonics",
+      "papers": 3,
+      "shared": true,
+      "match": [
+        "topological photon",
+        "photonic ring",
+        "topological pumping",
+        "topological state engineering",
+        "topological insulator laser"
+      ]
+    },
+    {
+      "name": "Ultracold atoms",
+      "papers": 24,
+      "shared": true,
+      "match": [
+        "ultracold",
+        "bose einstein",
+        "bec",
+        "atomic gases",
+        "bose gases",
+        "bosons",
+        "bosonic",
+        "fermi hubbard",
+        "bose hubbard",
+        "atomtronic",
+        "rydberg",
+        "cold atoms",
+        "spin orbit coupled gases",
+        "optically dressed"
+      ]
+    }
+  ]
+}
