@@ -3,6 +3,7 @@ name: Publish site
 # Every change to main (panel saves, merged pull requests) rebuilds and publishes the site,
 # adding the automatic translations and publication keywords (tools/publish.sh).
 # The hourly run retries anything that could not be translated yet.
+# If a run fails, an issue is opened in the repository (GitHub e-mails it); the next good run closes it.
 on:
   push:
     branches: [main]
@@ -25,11 +26,11 @@ jobs:
     outputs:
       publish: ${{ steps.build.outputs.publish }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -41,10 +42,10 @@ jobs:
         run: bash tools/publish.sh
 
       - if: steps.build.outputs.publish == 'true'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - if: steps.build.outputs.publish == 'true'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ runner.temp }}/site
 
@@ -57,4 +58,28 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
+
+  notify:
+    needs: [build, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or close the "publish failed" issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          FAILED: ${{ needs.build.result == 'failure' || needs.deploy.result == 'failure' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="La publicación de la web ha fallado"
+          open=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ "$FAILED" = true ]; then
+            if [ -z "$open" ]; then
+              gh issue create --title "$title" --assignee JvRtX --body "La ejecución $RUN_URL del proceso «Publish site» ha fallado. La web sigue mostrando la última versión publicada. Abre la ejecución, mira el paso en rojo y usa «Re-run jobs». Este aviso se cierra solo cuando una ejecución posterior publique bien."
+            fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Resuelto: $RUN_URL ha publicado la web correctamente."
+          fi
