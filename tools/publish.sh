@@ -5,7 +5,7 @@
 set -euo pipefail
 SITE="$RUNNER_TEMP/site" CACHE="$RUNNER_TEMP/generated" PREV="$RUNNER_TEMP/generated-prev"
 mkdir -p "$SITE" "$CACHE" "$PREV"
-rsync -a --exclude .git --exclude .github --exclude tools --exclude README.md --exclude .pages.yml --exclude .DS_Store ./ "$SITE/"
+rsync -a --exclude .git --exclude .github --exclude tools --exclude README.md --exclude .pages.yml --exclude .DS_Store --exclude .gitignore ./ "$SITE/"
 
 if git fetch -q --depth=1 origin generated 2>/dev/null; then
   git archive FETCH_HEAD | tar -x -C "$CACHE"
@@ -13,6 +13,7 @@ if git fetch -q --depth=1 origin generated 2>/dev/null; then
 fi
 
 node tools/build-content.mjs --site "$SITE" --cache "$CACHE"
+node tools/build-pages.mjs --site "$SITE"
 
 changed=no
 if ! diff -rq "$PREV" "$CACHE" >/dev/null; then

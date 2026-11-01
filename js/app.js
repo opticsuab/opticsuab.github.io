@@ -2,12 +2,9 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 /* ---------- language: UI texts come from js/i18n.js; content edited in the panel can be written in any language and is
    translated automatically into data/i18n/<lang>/*.json (see tools/build-content.mjs) ---------- */
-const pickLang = () => {
-  const ok = l => LANGS.some(x => x[0] === l) && l;
-  let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
-  return ok(new URLSearchParams(location.search).get('lang')) || ok(saved) || 'en';
-};
-let LANG = pickLang(), MON = MONTHS[LANG];
+/* The language is part of the address: / (English), /es/…, /ca/… (LANG_PREFIX in js/routes.js). */
+const langOfPath = pathname => (pathname.match(/^\/(es|ca)(?=\/|$)/) || [])[1] || 'en';
+let LANG = langOfPath(location.pathname), MON = MONTHS[LANG];
 const t = (s, v) => {
   let r = (I18N[LANG] && I18N[LANG][s]) || s.replace(/^step:/, '');
   if (v) for (const k in v) r = r.replaceAll(`{${k}}`, v[k]);
@@ -20,20 +17,15 @@ const I_LEFT = svg('<path d="M19 12H5M11 6l-6 6 6 6"/>');
 const I_EXT = svg('<path d="M7 17 17 7M8 7h9v9"/>');
 const ARR = `<span class="arr">${I_RIGHT}</span>`;
 
-/* ?preview shows the site in maintenance mode and the editorial notes / draft pages that the public does not see. */
-const PREVIEW = new URLSearchParams(location.search).has('preview');
-/* Pages without content yet: hidden from menus (and redirected) unless ?preview. */
-const DRAFT_PAGES = ['about/funding', 'about/climate'];
-const isDraft = (sec, sub) => !PREVIEW && DRAFT_PAGES.includes(`${sec}/${sub}`);
-const NAV = [
-  { k: 'research', l: 'Research', sub: [['lines', 'Research lines'], ['publications', 'Publications'], ['patents', 'Patents'], ['theses', 'PhD theses'], ['datasets', 'Datasets & software'], ['collaborations', 'Collaborations']] },
-  { k: 'people', l: 'People', sub: [['current', 'Current team'], ['investigators', 'Principal investigators'], ['students', 'PhD students & postdocs'], ['alumni', 'Former members'], ['honorary', 'Honorary professors']] },
-  { k: 'teaching', l: 'Teaching', sub: [['courses', 'Courses'], ['master-thesis', 'Master theses'], ['seminars', 'Seminars & summer schools']] },
-  { k: 'outreach', l: 'Outreach', sub: [['activities', 'Activities & workshops'], ['talks', 'Talks'], ['interviews', 'Interviews & press'], ['gallery', 'Photo gallery']] },
-  { k: 'news', l: 'News', sub: [] },
-  { k: 'join', l: 'Join us', sub: [] },
-  { k: 'about', l: 'About', sub: [['mission', 'Mission & history'], ['funding', 'Funding & grants'], ['climate', 'Climate commitment'], ['gender', 'Gender & equality'], ['reach', 'How to reach us']] },
-].map(n => ({ ...n, sub: n.sub.filter(([k]) => !isDraft(n.k, k)) }));
+/* ?preview shows the site in maintenance mode and the editorial notes / draft pages that the public does not see.
+   It is kept while browsing (internal links carry it) and for the rest of the browser session. */
+const PREVIEW = (() => {
+  let on = new URLSearchParams(location.search).has('preview');
+  try { if (on) sessionStorage.setItem('preview', '1'); else on = sessionStorage.getItem('preview') === '1'; } catch (e) { /* storage blocked */ }
+  return on;
+})();
+const isDraft = (sec, sub) => isDraftPath(`${sec}/${sub}`, PREVIEW);
+const NAV = navFor(PREVIEW);
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
@@ -87,7 +79,7 @@ const RECORD_TERMS = {
   ],
 };
 const localizeRecord = value => (RECORD_TERMS[LANG] || []).reduce((text, [from, to]) => text.replaceAll(from, to), value);
-const getJSON = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
+const getJSON = f => fetch(`/data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
 let RAW = null;
 const OVERLAYS = {};
 const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional translation unavailable: ${f}`, err); return {}; });
@@ -162,7 +154,7 @@ const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${St
 const openCalls = () => NEWS.filter(n => n.call && (!n.deadline || n.deadline >= localToday()));
 const fmtDay = iso => { const [y, m, d] = iso.split('-').map(Number); return `${d} ${MON[m]} ${y}`; };
 const callMeta = n => [t(n.callType === 'PhD' ? 'PhD' : n.callType === 'Postdoc' ? 'Postdoc' : 'Open call'), n.deadline ? t('Deadline: {d}', { d: fmtDay(n.deadline) }) : ''].filter(Boolean).join(' · ');
-const newsId = n => `${n.y}-${n.m}-${n.src.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
+const newsId = n => newsSlug(n.y, n.m, n.src);
 
 /* ---------- pieces ---------- */
 const imageFrame = (src, alt = '') => `<div class="photo-frame"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
@@ -210,6 +202,8 @@ document.addEventListener('click', e => { const c = e.target.closest('.person[da
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
 const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}><span class="yr">${r.y}</span>
   <div class="t">${esc(localizeRecord(r.t))}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
+/* Title and description of a fixed page (PAGE_META in js/routes.js). */
+const metaOf = (key, vars) => { const m = PAGE_META[key] || ['', '']; return [m[0], m[1] ? t(m[1], vars) : '']; };
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
   <div class="wrap"><nav class="crumbs" aria-label="${t('Breadcrumb')}"><a href="#/">${t('Home')}</a>${crumbs.map(c => `<span>/</span>${c[1] ? `<a href="${c[1]}">${t(c[0])}</a>` : `<span>${t(c[0])}</span>`}`).join('')}</nav>
   <h1>${esc(t(title))}</h1>${sub ? `<p class="lead">${esc(t(sub))}</p>` : ''}${subnav(path)}</div>
@@ -228,7 +222,42 @@ function listPage(rows, label, { search = true, linkLabel, searchValue = '', sea
     ${kwFilter}${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
     <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, keyword)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
-const prosePage = html => `<div class="prose">${html}</div>`;
+/* Long pages (data/pages.json): image paths are made absolute so they work at any address. */
+const prosePage = html => `<div class="prose">${String(html || '').replace(/(src|href)="(img\/)/g, '$1="/$2')}</div>`;
+/* "How to reach us": the floor-plan image of Edifici C becomes an interactive 3D model (js/building3d.js). */
+const buildingWidget = () => `<figure class="bldg" data-building>
+  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D model of Edifici C. The Optics Group is in the C3B Parell wing, floors 0 and −1. Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
+    <div class="bldg-labels" aria-hidden="true"></div><div class="bldg-tip" hidden></div>
+    <div class="bldg-hint" aria-hidden="true">${t('Use Ctrl or ⌘ + scroll to zoom')}</div>
+    <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript></div>
+  <figcaption class="bldg-bar">
+    <span class="bldg-key"><i></i>${t('Optics Group')} · ${t('C3B Parell wing · floors 0 and −1')}</span>
+    <span class="bldg-btns">
+      <button type="button" class="bldg-btn" data-b="us">${t('Show us')}</button>
+      <button type="button" class="bldg-btn" data-b="top">${t('Top view')}</button>
+      <button type="button" class="bldg-btn" data-b="home">${t('Reset')}</button>
+      <button type="button" class="bldg-btn bldg-ico" data-b="out" aria-label="${esc(t('Zoom out'))}">−</button>
+      <button type="button" class="bldg-btn bldg-ico" data-b="in" aria-label="${esc(t('Zoom in'))}">+</button>
+      <button type="button" class="bldg-btn bldg-ico" data-b="auto" aria-pressed="false" aria-label="${esc(t('Rotate automatically'))}">⟳</button>
+    </span>
+  </figcaption>
+  <p class="bldg-help">${t('Drag to rotate · schematic model, not to scale')}</p>
+</figure>`;
+const reachPage = () => prosePage(PAGES_HTML.reach).replace(/<img[^>]*foto-mapa[^>]*>/, buildingWidget());
+let disposeBuilding = null;
+function mountBuilding(root) {
+  if (disposeBuilding) { disposeBuilding(); disposeBuilding = null; }
+  const el = $('[data-building]', root); if (!el) return;
+  const fallback = () => { el.classList.add('bldg-static'); $('.bldg-stage', el).innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
+  const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
+  if (!gl) return fallback();
+  const start = () => import('/js/building3d.js?v=62').then(m => {
+    if (!el.isConnected) return;
+    disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3B Parell wing · floors 0 and −1'), names: { 'Central corridor': t('Central corridor') } } });
+  }).catch(err => { console.error(err); fallback(); });
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); start(); } }, { rootMargin: '300px' });
+  io.observe(el);
+}
 /* Editorial notes for the team: only visible with ?preview. */
 const flagged = txt => !PREVIEW ? '' : `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
 
@@ -280,39 +309,39 @@ const ROUTES = {
       <div><a class="btn" href="#/join">${t('See opportunities')} ${ARR}</a></div></div></div></section>`;
   },
   research(p, query) {
-    const k = p[1] || 'lines', h = (ti, s) => pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]);
-    if (k === 'publications') return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', {
+    const k = p[1] || 'lines', h = key => { const [ti, s] = metaOf(`research/${key}`); return pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]); };
+    if (k === 'publications') return wrapPage(h('publications'), listPage(PUBS, 'publications', {
       linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '', keyword: query.get('kw') || '',
     }));
-    if (k === 'patents') return wrapPage(h('Patents', 'Registered inventions and technology transfer.'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
-    if (k === 'theses') return wrapPage(h('PhD theses', 'Doctoral theses defended in the group.'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
-    if (k === 'datasets') return wrapPage(h('Datasets & software', 'Open resources released by the group.'), prosePage(PAGES_HTML.datasets));
-    if (k === 'collaborations') return wrapPage(h('Recent collaborations', 'Groups and institutions we work with.'), prosePage(PAGES_HTML.collaborations));
-    return `${h('Research lines', 'Two complementary lines of investigation: classical and quantum.')}<section><div class="wrap"><div class="grid g2">
+    if (k === 'patents') return wrapPage(h('patents'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
+    if (k === 'theses') return wrapPage(h('theses'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
+    if (k === 'datasets') return wrapPage(h('datasets'), prosePage(PAGES_HTML.datasets));
+    if (k === 'collaborations') return wrapPage(h('collaborations'), prosePage(PAGES_HTML.collaborations));
+    return `${h('lines')}<section><div class="wrap"><div class="grid g2">
       ${LINES.map((l, i) => `<div class="line rv" style="--i:${i};background:var(--navy-900);color:#fff"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
       <p style="margin-top:34px"><a class="btn" href="#/research/publications">${t('See publications')} ${ARR}</a></p></div></section>`;
   },
   people(p) {
-    const k = p[1] || 'current', h = (ti, s) => pageHead(p, ti, s, [['People', '#/people/current'], [ti]]);
+    const k = p[1] || 'current', h = key => { const [ti, s] = metaOf(`people/${key}`, { n: PEOPLE.length }); return pageHead(p, ti, s, [['People', '#/people/current'], [ti]]); };
     const grp = names => names.map(g => { const l = PEOPLE.filter(x => x.group === g); return l.length ? `<div class="grp">${t(g)}</div><div class="grid g4 people">${l.map(personCard).join('')}</div>` : ''; }).join('');
-    if (k === 'investigators') return wrapPage(h('Principal investigators', 'Academic staff leading the group.'), grp(['Staff']));
-    if (k === 'students') return wrapPage(h('PhD students & postdocs', 'Early-career researchers.'), grp(['Postdoctoral researchers', 'PhD students']));
-    if (k === 'honorary') return wrapPage(h('Honorary professors', 'Emeritus and honorary members.'), grp(['Emeritus & honorary professors']));
-    if (k === 'alumni') return wrapPage(h('Former members', 'Colleagues who have been part of the group.'), `<div class="prose formerlist">${FORMER}</div>`);
-    return wrapPage(h('Current team', t('{n} people working on light-matter and quantum systems.', { n: PEOPLE.length })), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
+    if (k === 'investigators') return wrapPage(h('investigators'), grp(['Staff']));
+    if (k === 'students') return wrapPage(h('students'), grp(['Postdoctoral researchers', 'PhD students']));
+    if (k === 'honorary') return wrapPage(h('honorary'), grp(['Emeritus & honorary professors']));
+    if (k === 'alumni') return wrapPage(h('alumni'), `<div class="prose formerlist">${FORMER}</div>`);
+    return wrapPage(h('current'), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
   },
   teaching(p) {
-    const k = p[1] || 'courses', h = (ti, s) => pageHead(p, ti, s, [['Teaching', '#/teaching/courses'], [ti]]);
-    if (k === 'master-thesis') return wrapPage(h('Master theses', 'Master projects supervised by the group.'), listPage(MASTER, 'master theses', { linkLabel: 'Open' }));
-    if (k === 'seminars') return wrapPage(h('Seminars & summer schools', 'Scientific events organised by the group.'), flagged('The current website has no dedicated seminars page. Workshops and events appear in <a href="#/news">News</a>; please provide the seminar listing.') + `<div class="grid g3">${NEWS.filter(n => n.cat === 'Event').map(newsCard).join('')}</div>`);
-    return wrapPage(h('Courses', 'Bachelor and master programmes where the group teaches.'), prosePage(PAGES_HTML.courses));
+    const k = p[1] || 'courses', h = key => { const [ti, s] = metaOf(`teaching/${key}`); return pageHead(p, ti, s, [['Teaching', '#/teaching/courses'], [ti]]); };
+    if (k === 'master-thesis') return wrapPage(h('master-thesis'), listPage(MASTER, 'master theses', { linkLabel: 'Open' }));
+    if (k === 'seminars') return wrapPage(h('seminars'), flagged('The current website has no dedicated seminars page. Workshops and events appear in <a href="#/news">News</a>; please provide the seminar listing.') + `<div class="grid g3">${NEWS.filter(n => n.cat === 'Event').map(newsCard).join('')}</div>`);
+    return wrapPage(h('courses'), prosePage(PAGES_HTML.courses));
   },
   outreach(p) {
-    const k = p[1] || 'activities', h = (ti, s) => pageHead(p, ti, s, [['Outreach', '#/outreach/activities'], [ti]]);
-    if (k === 'talks') return wrapPage(h('Talks', 'Outreach talks and gender-equality actions.'), prosePage(GENDER_TALKS));
-    if (k === 'interviews') return wrapPage(h('Interviews & press', 'The group in journals, radio, podcasts and webinars.'), prosePage(INTERVIEWS));
-    if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('Photo gallery', 'Moments from the life of the group.'), `<div class="gallery">${all.map(([s, t]) => imageFrame(s, t)).join('')}</div>`); }
-    return wrapPage(h('Activities & workshops', 'Bringing optics and photonics to society.'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">${t('Recent outreach news')}</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
+    const k = p[1] || 'activities', h = key => { const [ti, s] = metaOf(`outreach/${key}`); return pageHead(p, ti, s, [['Outreach', '#/outreach/activities'], [ti]]); };
+    if (k === 'talks') return wrapPage(h('talks'), prosePage(GENDER_TALKS));
+    if (k === 'interviews') return wrapPage(h('interviews'), prosePage(INTERVIEWS));
+    if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('gallery'), `<div class="gallery">${all.map(([s, t]) => imageFrame(s, t)).join('')}</div>`); }
+    return wrapPage(h('activities'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">${t('Recent outreach news')}</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
   },
   news(p, query) {
     const id = p[1];
@@ -325,7 +354,7 @@ const ROUTES = {
     }
     const cats = [...new Set(NEWS.map(n => n.cat))], ys = years(NEWS);
     const cat = cats.includes(query.get('cat')) ? query.get('cat') : 'all';
-    return `${pageHead(p, 'News', 'Events, publications, awards and life in the group.', [['News']])}<section><div class="wrap">
+    return `${pageHead(p, ...metaOf('news'), [['News']])}<section><div class="wrap">
       ${newsBanner(bannerItems())}<div class="grp" style="margin-top:50px">${t('All news')}</div>
       <div class="tools" data-news data-cat="${esc(cat)}"><button class="fchip${cat === 'all' ? ' on' : ''}" data-c="all">${t('All')}</button>${cats.map(c => `<button class="fchip${cat === c ? ' on' : ''}" data-c="${c}">${t(c)}</button>`).join('')}<span style="flex:1"></span>
       ${selectControl('news-year', t('Year'), [['all', t('All years')], ...ys.map(y => [String(y), String(y)])], 'all', '', 'ui-select-filter')}</div>
@@ -333,7 +362,7 @@ const ROUTES = {
   },
   join(p) {
     const calls = openCalls();
-    return `${pageHead(p, 'Join us', 'Research positions, theses and visits in optics and photonics.', [['Join us']])}<section><div class="wrap">
+    return `${pageHead(p, ...metaOf('join'), [['Join us']])}<section><div class="wrap">
       <div class="head"><div><div class="eyebrow">${t('Open positions')}</div><h2 class="sec">${t('PhD & postdoc opportunities')}</h2></div></div>
       ${calls.length ? calls.map(n => `<div class="call" style="margin-bottom:24px"><canvas class="bg"></canvas><div><div class="eyebrow">${esc(callMeta(n))}</div><h2>${esc(n.title)}</h2>${n.text.map(p => `<p>${esc(p)}</p>`).join('')}</div><div>${n.link ? `<a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('Call details')} ${I_EXT}</a>` : `<a class="btn" href="#/contact">${t('Contact us')} ${ARR}</a>`}</div></div>`).join('')
         : `<div class="prose"><p class="lead">${t('There are no open calls right now. New positions are announced here and in News; you can also write to us about upcoming opportunities.')}</p><p><a class="btn btn-line" href="#/contact">${t('Contact us')} ${ARR}</a></p></div>`}
@@ -343,18 +372,16 @@ const ROUTES = {
       <p style="margin-top:40px"><a class="btn" href="#/contact">${t('Contact supervisors')} ${ARR}</a></p></div></section>`;
   },
   about(p) {
-    let k = p[1] || 'mission';
-    if (isDraft('about', k)) { k = 'mission'; p = ['about', 'mission']; }
-    const h = (ti, s) => pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]);
-    if (k === 'funding') return wrapPage(h('Funding & grants', ''), flagged('No funding information on the current website. Please provide projects, grants and logos.'));
-    if (k === 'climate') return wrapPage(h('Climate commitment', ''), flagged('The climate-actions page of the current website is empty. Please provide the content.'));
-    if (k === 'gender') return wrapPage(h('Gender & equality', 'Actions promoting equality in physics.'), prosePage(PAGES_HTML.gender));
-    if (k === 'reach') return wrapPage(h('How to reach us', ''), prosePage(PAGES_HTML.reach));
-    return wrapPage(h('Mission & history', 'Light, from fundamentals to applications.'), `<div class="prose"><p>${t('The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.')}</p></div>
+    const k = p[1] || 'mission', h = key => { const [ti, s] = metaOf(`about/${key}`); return pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]); };
+    if (k === 'funding') return wrapPage(h('funding'), flagged('No funding information on the current website. Please provide projects, grants and logos.'));
+    if (k === 'climate') return wrapPage(h('climate'), flagged('The climate-actions page of the current website is empty. Please provide the content.'));
+    if (k === 'gender') return wrapPage(h('gender'), prosePage(PAGES_HTML.gender));
+    if (k === 'reach') return wrapPage(h('reach'), reachPage());
+    return wrapPage(h('mission'), `<div class="prose"><p>${t('The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.')}</p></div>
       <div class="stats" style="margin-top:40px;border-color:var(--line)">${[[PEOPLE.length, 'Members'], [PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents']].map(([n, l]) => `<div class="stat" style="border-color:var(--line)"><b data-count="${n}">0</b><span style="color:var(--muted)">${t(l)}</span></div>`).join('')}</div>${flagged('A fuller history of the group can be added here.')}`);
   },
   contact(p) {
-    return `${pageHead(p, 'Contact', 'Write to us or find us on campus.', [['Contact']])}<section><div class="wrap two">
+    return `${pageHead(p, ...metaOf('contact'), [['Contact']])}<section><div class="wrap two">
       <form class="f" id="cform"><label>${t('Name')}<input required name="name" autocomplete="name" maxlength="120"></label><label>${t('Your email')}<input required type="email" name="email" autocomplete="email" maxlength="200"></label>
         <label>${t('Topic')}${selectControl('contact-topic', t('Topic'), ['General', 'PhD / postdoc', 'Collaboration', 'Press'].map(o => [o, t(o)]), 'General', 'topic', 'ui-select-field')}</label><label>${t('Message')}<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
         <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
@@ -368,7 +395,7 @@ const main = $('#main'), header = $('#header');
 /* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway (PREVIEW, defined above). */
 function updateChrome() {
   document.documentElement.lang = LANG;
-  $('meta[name="description"]').content = DESC[LANG] || DESC.en;
+  const meta = $('meta[name="description"]'); if (meta) meta.content = DESC[LANG] || DESC.en;
   $$('[data-i18n]').forEach(el => { el.dataset.i18nSource ||= el.textContent; el.textContent = t(el.dataset.i18nSource); });
   $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
   $('#lang-label').textContent = t('Language');
@@ -379,6 +406,7 @@ function updateChrome() {
   $('#footbrand').textContent = t('Optics Group · UAB');
   $('#footaddress').innerHTML = `${t('Physics Department, Facultat de Ciències, Edifici C')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra`;
   $('#footlegal').textContent = t('Optics Group UAB');
+  linkify(header); linkify($('.site-footer'));
 }
 function showLoadError() {
   main.innerHTML = `<section><div class="wrap"><h1>${t('Content could not be loaded')}</h1><p>${t('Please reload the page in a few seconds.')}</p></div></section>`;
@@ -394,27 +422,132 @@ function renderMaintenance() {
   $$('canvas.bg', main).forEach(c => startBackground(c, { size: 34 }));
   $$('canvas.gears', main).forEach(startGears);
 }
+/* ---------- addresses ----------
+   Pages live at real addresses (/research/publications, /es/news/…); templates write internal links as "#/path" and
+   linkify() turns them into real addresses for the current language. Old "#/…" links are redirected on load. */
+const pagePath = (path, lang = LANG) => `${LANG_PREFIX[lang]}/${path ? `${path}/` : ''}`;
+const toUrl = (route, lang = LANG) => {
+  const [path, query = ''] = String(route).replace(/^#?\/?/, '').split('?');
+  const params = new URLSearchParams(query); params.delete('preview');
+  let qs = params.toString();
+  if (PREVIEW) qs = qs ? `${qs}&preview` : 'preview';
+  return pagePath(path.replace(/\/+$/, ''), lang) + (qs ? `?${qs}` : '');
+};
+function linkify(root) {
+  $$('a[href^="#/"]', root).forEach(a => a.setAttribute('href', toUrl(a.getAttribute('href'))));
+}
+/* Current route: path segments without the language prefix, and the query. */
+function currentRoute() {
+  const path = location.pathname.replace(/^\/(es|ca)(?=\/|$)/, '').replace(/\/index\.html$/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  return { path, query: new URLSearchParams(location.search) };
+}
+/* Closest news item to an address that no longer exists (e.g. after its title was corrected). */
+function similarNews(id) {
+  const words = x => new Set(x.split('-').filter(w => w.length > 2 && !/^\d+$/.test(w)));
+  const want = words(id), prefix = id.split('-').slice(0, 2).join('-');
+  let best = null, score = 0;
+  NEWS.forEach(n => {
+    const nid = newsId(n), have = words(nid);
+    const common = [...want].filter(w => have.has(w)).length / Math.max(1, Math.min(want.size, have.size));
+    const s = common + (nid.startsWith(prefix + '-') ? 0.25 : 0);
+    if (s > score) { score = s; best = n; }
+  });
+  return score >= 0.75 ? best : null;
+}
+/* Decide what an address shows: a page, a redirect (alias, renamed news, draft) or "not found". */
+function resolve({ path, query }) {
+  const [sec = '', sub = ''] = path;
+  if (!sec) return { key: 'home', path };
+  if (path.length === 1 && SECTION_HOME[sec]) return { redirect: SECTION_HOME[sec] };
+  if (sec === 'news' && sub) {
+    if (path.length > 2) return { notFound: true };
+    if (NEWS.some(n => newsId(n) === sub)) return { key: 'news', path };
+    const near = similarNews(sub);
+    return near ? { redirect: `news/${newsId(near)}` } : { notFound: true };
+  }
+  const page = path.join('/');
+  if (!PAGE_META[page]) return { notFound: true };
+  if (isDraftPath(page, PREVIEW)) return { redirect: SECTION_HOME[sec] || '' };
+  return { key: sec, path };
+}
+function notFoundPage() {
+  return `<header class="phead"><canvas class="bg"></canvas><div class="wrap"><div class="eyebrow">404</div><h1>${t('Page not found')}</h1>
+    <p class="lead">${t('The address may have changed or the page no longer exists.')}</p></div><canvas class="dissolve" data-color="#f4f7fb"></canvas></header>
+    <section><div class="wrap"><p><a class="btn" href="#/">${t('Home')} ${ARR}</a> <a class="btn btn-line" href="#/news">${t('All news')} ${ARR}</a> <a class="btn btn-line" href="#/contact">${t('Contact us')} ${ARR}</a></p></div></section>`;
+}
+/* Head tags that change from page to page (the static copies written by tools/build-pages.mjs carry them too). */
+function setHead(title, description, canonicalRoute) {
+  document.title = title;
+  let meta = $('meta[name="description"]');
+  if (!meta) { meta = Object.assign(document.createElement('meta'), { name: 'description' }); document.head.appendChild(meta); }
+  meta.content = description;
+  $$('link[rel="canonical"], link[rel="alternate"][hreflang], meta[name="robots"]').forEach(el => el.remove());
+  if (canonicalRoute === null) { document.head.appendChild(Object.assign(document.createElement('meta'), { name: 'robots', content: 'noindex' })); return; }
+  const add = (rel, href, hreflang) => document.head.appendChild(Object.assign(document.createElement('link'), { rel, href }, hreflang ? { hreflang } : {}));
+  add('canonical', SITE_URL + pagePath(canonicalRoute));
+  LANGS.forEach(([code]) => add('alternate', SITE_URL + pagePath(canonicalRoute, code), code));
+  add('alternate', SITE_URL + pagePath(canonicalRoute, 'en'), 'x-default');
+}
 function render() {
   if (MAINT.enabled && !PREVIEW) return renderMaintenance();
   document.body.classList.remove('maint');
-  const hash = location.hash.slice(1);
-  const queryIndex = hash.indexOf('?');
-  const hashPath = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
-  const query = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
-  const path = hashPath.replace(/^\/?/, '').split('/').filter(Boolean);
-  const key = path[0] || 'home';
-  main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path, query)}</div>`;
+  const route = currentRoute(), r = resolve(route);
+  if (r.redirect !== undefined) {
+    history.replaceState(history.state, '', toUrl(`${r.redirect}?${route.query}`));
+    return render();
+  }
+  const key = r.notFound ? 'notfound' : r.key;
+  main.innerHTML = `<div class="pg">${r.notFound ? notFoundPage() : ROUTES[key](r.path || [], route.query)}</div>`;
   updateChrome();
+  linkify(main);
   $$('.nav a.top').forEach(a => a.classList.toggle('on', a.dataset.k === key));
-  document.title = `${main.querySelector('h1')?.textContent || t('Optics Group')} · ${t('Optics Group · UAB')}`;
-  scrollTo({ top: 0, behavior: 'instant' });
+  const h1 = main.querySelector('h1')?.textContent.trim();
+  const lead = main.querySelector('.phead .lead, .hero .lead')?.textContent.trim();
+  const site = t('Optics Group · UAB');
+  setHead(key === 'home' || !h1 ? site : `${h1} · ${site}`, (key !== 'home' && lead) || DESC[LANG] || DESC.en,
+    r.notFound ? null : route.path.join('/'));
+  document.documentElement.toggleAttribute('data-notfound', !!r.notFound);
+  const y = history.state && typeof history.state.y === 'number' ? history.state.y : 0;
+  scrollTo({ top: y, behavior: 'instant' });
   closeMenu(); mount(main);
 }
+/* In-site navigation without reloading the page. */
+function navigate(url, { replace = false } = {}) {
+  history.replaceState({ ...(history.state || {}), y: scrollY }, '');
+  const next = new URL(url, location.href);
+  const nextLang = langOfPath(next.pathname);
+  if (replace) history.replaceState({ y: 0 }, '', next.pathname + next.search + next.hash);
+  else history.pushState({ y: 0 }, '', next.pathname + next.search + next.hash);
+  if (nextLang !== LANG) { LANG = nextLang; MON = MONTHS[LANG]; updateChrome(); loadData().then(render).catch(err => { console.error(err); showLoadError(); }); }
+  else render();
+}
+document.addEventListener('click', e => {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const a = e.target instanceof Element ? e.target.closest('a[href]') : null;
+  if (!a || a.target || a.hasAttribute('download')) return;
+  const url = new URL(a.href, location.href);
+  if (url.origin !== location.origin || /\.[a-z0-9]{2,5}$/i.test(url.pathname)) return;
+  if (url.pathname === location.pathname && url.search === location.search && url.hash) return; /* in-page anchor (#main) */
+  e.preventDefault();
+  navigate(url.href);
+});
+addEventListener('popstate', () => {
+  const lang = langOfPath(location.pathname);
+  if (lang !== LANG) { LANG = lang; MON = MONTHS[LANG]; updateChrome(); loadData().then(render).catch(err => { console.error(err); showLoadError(); }); }
+  else render();
+});
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 function mount(root) {
   $$('canvas.bg', root).forEach(c => startBackground(c, { size: c.closest('.call') ? 26 : 34 }));
   $$('canvas.dissolve', root).forEach(dissolve);
   initPhotoReveals(root);
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+  /* reveal on scroll; once shown, the reveal classes are removed so the element's own hover effects and transitions apply */
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target; io.unobserve(el); el.classList.add('in');
+    const delay = REDUCED ? 0 : 850 + (parseFloat(getComputedStyle(el).getPropertyValue('--i')) || 0) * 70;
+    setTimeout(() => el.classList.remove('rv', 'in'), delay);
+  }), { threshold: .12 });
   $$('.rv', root).forEach(el => io.observe(el));
   const cio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; cio.unobserve(e.target); counter(e.target); }));
   $$('[data-count]', root).forEach(el => cio.observe(el));
@@ -435,10 +568,8 @@ function mount(root) {
   const lst = $('[data-list]', root);
   if (lst) {
     const input = $('.search', lst);
-    const hash = location.hash, queryIndex = hash.indexOf('?');
-    const route = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
-    const params = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
-    const syncSearch = route === '#/research/publications';
+    const params = new URLSearchParams(location.search);
+    const syncSearch = currentRoute().path.join('/') === 'research/publications';
     let y = 'all', q = (input?.value || '').trim().toLowerCase(), match = (input?.dataset.match || '').trim().toLowerCase();
     const kw = $('[data-kw-filter]', lst)?.dataset.kwFilter || '';
     const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.textContent.toLowerCase(); const queryMatch = !q || text.includes(q) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
@@ -451,8 +582,8 @@ function mount(root) {
       if (syncSearch) {
         if (value) params.set('search', value); else params.delete('search');
         params.delete('match');
-        const queryString = params.toString();
-        history.replaceState(history.state, '', `${location.pathname}${location.search}${route}${queryString ? `?${queryString}` : ''}`);
+        const queryString = params.toString().replace(/(^|&)preview=(?=&|$)/, '$1preview');
+        history.replaceState(history.state, '', `${location.pathname}${queryString ? `?${queryString}` : ''}`);
       }
       apply();
     });
@@ -467,6 +598,7 @@ function mount(root) {
     $('[data-ui-select-value]', nl)?.addEventListener('change', e => { y = e.target.value; apply(); });
   }
   $('#cform', root)?.addEventListener('submit', sendContact);
+  mountBuilding(root);
 }
 
 function banner(root) {
@@ -569,12 +701,9 @@ langMenu.addEventListener('click', async e => {
   const nextLang = option.dataset.lang;
   closeLanguageMenu(true);
   if (nextLang === LANG) return;
-  LANG = nextLang;
-  MON = MONTHS[LANG];
-  try { localStorage.setItem('lang', LANG); } catch (e) { /* selection still works for this page load */ }
-  updateChrome();
-  try { await loadData(); render(); }
-  catch (err) { console.error(err); showLoadError(); }
+  try { localStorage.setItem('lang', nextLang); } catch (e) { /* the address keeps the choice anyway */ }
+  const { path, query } = currentRoute();
+  navigate(toUrl(`${path.join('/')}?${query}`, nextLang));
 });
 langPicker.addEventListener('focusout', e => { if (!langPicker.contains(e.relatedTarget)) closeLanguageMenu(); });
 document.addEventListener('click', e => { if (!langPicker.contains(e.target)) closeLanguageMenu(); });
@@ -691,7 +820,23 @@ addEventListener('scroll', () => {
   header.classList.toggle('solid', scrollY > 40);
   $('#progress').style.transform = `scaleX(${scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight)})`;
 }, { passive: true });
-addEventListener('hashchange', render);
+/* Old addresses: "#/news/…" (before 1 Nov 2026) and "?lang=es" become real addresses; a visitor who chose a language
+   before lands on it when arriving at an English address. */
+(() => {
+  const q = new URLSearchParams(location.search);
+  let lang = LANG, route = null;
+  const ql = q.get('lang');
+  if (ql && ql in LANG_PREFIX) { lang = ql; q.delete('lang'); route = currentRoute().path.join('/'); }
+  if (location.hash.startsWith('#/')) route = location.hash.slice(2);
+  else if (route !== null) route += `?${q}`;
+  if (route === null && LANG === 'en' && location.pathname === '/' && !document.referrer.startsWith(location.origin)) {
+    let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
+    if (saved && saved !== 'en' && saved in LANG_PREFIX) { lang = saved; route = `${currentRoute().path.join('/')}?${q}`; }
+  }
+  if (route === null) return;
+  LANG = lang; MON = MONTHS[LANG];
+  history.replaceState(null, '', toUrl(route, lang));
+})();
 loadData().then(render).catch(err => {
   console.error(err);
   showLoadError();
