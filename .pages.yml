@@ -97,6 +97,25 @@ content:
             default: News
             options:
               values: [News, Event, Outreach, Award, Visit, Thesis]
+          - name: open_call
+            label: Convocatoria abierta (plaza de doctorado, posdoc…)
+            description: Márcalo si la noticia anuncia una plaza abierta. Se destaca en la portada y en «Únete» hasta la fecha de cierre.
+            type: boolean
+          - name: call_type
+            label: Tipo de plaza (solo si es convocatoria)
+            type: select
+            options:
+              values:
+                - value: PhD
+                  label: Doctorado
+                - value: Postdoc
+                  label: Posdoc
+                - value: Other
+                  label: Otra (máster, estancia…)
+          - name: deadline
+            label: Fecha de cierre (solo si es convocatoria)
+            description: Al día siguiente deja de destacarse sola. Si la dejas vacía, se destaca hasta que quites la casilla.
+            type: date
           - name: text
             label: Texto
             description: Escríbela en inglés, español o catalán; la web la traduce sola a los otros dos idiomas en 1–2 minutos. Separa los párrafos con una línea en blanco. El primer párrafo se usa como resumen en las tarjetas.
@@ -121,7 +140,7 @@ content:
               media: news
               multiple: true
           - name: link
-            label: Enlace "More information" (opcional)
+            label: Enlace "More information" (opcional; en convocatorias, el enlace a la convocatoria oficial)
             type: string
 
   # ---------------------------------------------------------------- PERSONAS

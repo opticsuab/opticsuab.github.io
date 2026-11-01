@@ -20,6 +20,11 @@ const I_LEFT = svg('<path d="M19 12H5M11 6l-6 6 6 6"/>');
 const I_EXT = svg('<path d="M7 17 17 7M8 7h9v9"/>');
 const ARR = `<span class="arr">${I_RIGHT}</span>`;
 
+/* ?preview shows the site in maintenance mode and the editorial notes / draft pages that the public does not see. */
+const PREVIEW = new URLSearchParams(location.search).has('preview');
+/* Pages without content yet: hidden from menus (and redirected) unless ?preview. */
+const DRAFT_PAGES = ['about/funding', 'about/climate'];
+const isDraft = (sec, sub) => !PREVIEW && DRAFT_PAGES.includes(`${sec}/${sub}`);
 const NAV = [
   { k: 'research', l: 'Research', sub: [['lines', 'Research lines'], ['publications', 'Publications'], ['patents', 'Patents'], ['theses', 'PhD theses'], ['datasets', 'Datasets & software'], ['collaborations', 'Collaborations']] },
   { k: 'people', l: 'People', sub: [['current', 'Current team'], ['investigators', 'Principal investigators'], ['students', 'PhD students & postdocs'], ['alumni', 'Former members'], ['honorary', 'Honorary professors']] },
@@ -28,7 +33,7 @@ const NAV = [
   { k: 'news', l: 'News', sub: [] },
   { k: 'join', l: 'Join us', sub: [] },
   { k: 'about', l: 'About', sub: [['mission', 'Mission & history'], ['funding', 'Funding & grants'], ['climate', 'Climate commitment'], ['gender', 'Gender & equality'], ['reach', 'How to reach us']] },
-];
+].map(n => ({ ...n, sub: n.sub.filter(([k]) => !isDraft(n.k, k)) }));
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
@@ -37,7 +42,24 @@ let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', research_lines
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
 const paras = t => String(t || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
 const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
-const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null, kw: asList(r.keywords).map(String) })).sort((a, b) => b.y - a.y);
+/* Same publication key as tools/build-content.mjs: doi:<doi> or title:<normalised title>. */
+const kNorm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  .replace(/[\u2010-\u2015\-_/]+/g, ' ').replace(/[^a-z0-9·' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const kTitle = text => { const m = String(text || '').match(/[«"“]\s*(.+?)\s*[»"”«]/); return (m ? m[1] : String(text || '').split('.')[0]).replace(/\s+/g, ' ').trim(); };
+const kDoi = s => { const m = String(s || '').match(/10\.\d{4,9}\/[^\s"<>?#]+/); return m ? m[0].replace(/[.,;)]+$/, '') : null; };
+const pubKey = r => { const doi = kDoi(r.link) || kDoi(r.text); return doi ? `doi:${doi.toLowerCase()}` : `title:${kNorm(kTitle(r.text))}`; };
+/* Links typed in the panel: add https:// when missing ("www.x.org", "doi.org/…"), turn a bare DOI or ORCID iD into its
+   address, keep site paths (/…, #…) and drop anything else with a scheme (javascript:, data:…). */
+const safeUrl = (u, kind) => {
+  u = String(u || '').trim();
+  if (!u) return '';
+  if (/^(https?:\/\/|mailto:)/i.test(u) || /^[/#]/.test(u)) return u;
+  if (/^10\.\d{4,9}\//.test(u)) return `https://doi.org/${u}`;
+  if (kind === 'orcid' && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(u)) return `https://orcid.org/${u}`;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u) || /\s/.test(u) || !/\.[a-z]{2,}/i.test(u)) return '';
+  return `https://${u.replace(/^\/+/, '')}`;
+};
+const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String) })).sort((a, b) => b.y - a.y);
 const RECORD_TERMS = {
   es: [
     ['PhD in Physics', 'Doctorado en Física'], ['Phd in Physics', 'Doctorado en Física'],
@@ -89,6 +111,12 @@ async function loadData() {
   if (!RAW) {
     const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
       ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(getJSON));
+    /* The publish process adds `keywords` to each publication. When it has not run (a local copy), fall back to the
+       keywords fixed by hand in data/publication-keywords.json, matched with the same key as tools/build-content.mjs. */
+    if (!(pubs.publications || []).some(r => r && r.keywords && r.keywords.length)) {
+      const fixed = await getJSON('publication-keywords').catch(() => ({}));
+      (pubs.publications || []).forEach(r => { const e = r && fixed[pubKey(r)]; if (e && !r.keywords) r.keywords = e.keywords; });
+    }
     RAW = { news, people, pubs, theses, patents, master, former, pages, site, maint: MAINT };
   }
   const [ov, en] = await Promise.all([loadOverlay(LANG), loadOverlay('en')]);
@@ -105,13 +133,15 @@ function buildData(ov, en = {}) {
   LINES = SITE.research_lines.map(l => ({ t: l.title || '', d: l.description || '', tags: l.tags }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
     const [y, m] = String(n.date || '').split('-').map(Number);
-    return { y: y || 0, m: m || 1, cat: n.category || 'News', src: n.title, en: tr(en.news, n.title), title: T('news', n.title), text: paras(T('news', n.text)), img: asList(n.images), link: n.link || '' };
+    return { y: y || 0, m: m || 1, cat: n.category || 'News', src: n.title, en: tr(en.news, n.title), title: T('news', n.title), text: paras(T('news', n.text)), img: asList(n.images), link: safeUrl(n.link),
+      call: n.open_call === true, callType: n.call_type || '', deadline: /^\d{4}-\d{2}-\d{2}/.test(n.deadline || '') ? n.deadline.slice(0, 10) : '' };
   }).sort((a, b) => (b.y - a.y) || (b.m - a.m));
   PEOPLE = (people.people || []).filter(p => p && p.name).map(p => {
     const about = paras(T('people', p.about));
     return { name: p.name, group: p.group, pos: term(p.position), office: p.office, mail: p.email, photo: p.photo, bio: T('people', p.summary),
       about: about.length ? about : null, status: term(p.status),
-      scholar: p.scholar, orcid: p.orcid, scopus: p.scopus, wos: p.wos, rid: p.researcherid, linkedin: p.linkedin, web: p.web };
+      scholar: safeUrl(p.scholar), orcid: safeUrl(p.orcid, 'orcid'), scopus: safeUrl(p.scopus), wos: safeUrl(p.wos), rid: safeUrl(p.researcherid),
+      linkedin: safeUrl(p.linkedin), web: safeUrl(p.web) };
   });
   PUBS = byYear(pubs.publications || []); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
   /* keywords: one entry per keyword used in the publications, most used first */
@@ -127,6 +157,11 @@ function buildData(ov, en = {}) {
 const kwLabel = k => tr(KW_MEM, k);
 const kwHref = k => `#/research/publications?${new URLSearchParams({ kw: k })}`;
 const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slice(0, 2).join('');
+/* Open calls (PhD, postdoc…): news marked "Convocatoria abierta" in the panel, until the day after their deadline. */
+const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const openCalls = () => NEWS.filter(n => n.call && (!n.deadline || n.deadline >= localToday()));
+const fmtDay = iso => { const [y, m, d] = iso.split('-').map(Number); return `${d} ${MON[m]} ${y}`; };
+const callMeta = n => [t(n.callType === 'PhD' ? 'PhD' : n.callType === 'Postdoc' ? 'Postdoc' : 'Open call'), n.deadline ? t('Deadline: {d}', { d: fmtDay(n.deadline) }) : ''].filter(Boolean).join(' · ');
 const newsId = n => `${n.y}-${n.m}-${n.src.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
 
 /* ---------- pieces ---------- */
@@ -194,7 +229,8 @@ function listPage(rows, label, { search = true, linkLabel, searchValue = '', sea
     <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, keyword)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
 const prosePage = html => `<div class="prose">${html}</div>`;
-const flagged = txt => `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
+/* Editorial notes for the team: only visible with ?preview. */
+const flagged = txt => !PREVIEW ? '' : `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
 
 
 function newsBanner(items) {
@@ -212,7 +248,7 @@ const bannerItems = () => NEWS.filter(n => n.img.length).slice(0, 5);
 /* ---------- pages ---------- */
 const ROUTES = {
   home() {
-    const phd = NEWS.find(n => /Open PhD/i.test(n.en));
+    const call = openCalls()[0];
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
     /* keyword ribbon: keywords shared by at least two publications, in random order on every visit */
@@ -223,7 +259,7 @@ const ROUTES = {
       <div class="wrap"><div class="eyebrow">${esc(SITE.hero_eyebrow)}</div>
       <h1 class="display">${esc(SITE.hero_title)}</h1>
       <p class="lead">${esc(SITE.hero_subtitle)}</p>
-      <div class="hero-actions"><a class="btn" href="#/research/publications">${t('Explore our research')} ${ARR}</a><a class="btn btn-ghost" href="#/join">${t('Join us')} ${ARR}</a></div></div>
+      <div class="hero-actions"><a class="btn" href="#/research/lines">${t('Explore our research')} ${ARR}</a><a class="btn btn-ghost" href="#/join">${t('Join us')} ${ARR}</a></div></div>
       <canvas class="dissolve" data-color="#040f20"></canvas></section>
     <nav class="marquee" aria-label="${esc(t('Publication topics'))}"><div class="track" style="--dur:${Math.max(38, ribbon.length * 3.5)}s">${topicLinks}${topicCopies}</div></nav>
     <section class="dark" style="padding-block:60px"><div class="wrap"><div class="stats">
@@ -234,13 +270,13 @@ const ROUTES = {
     <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">${t('Research')}</div><h2 class="sec">${t('Two research lines, one shared language')}</h2>
       <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div></div></section>
     <section><div class="wrap"><div class="two" style="grid-template-columns:1fr 1.3fr">
-      <div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t("What's happening")}</h2><p class="lead">${t('Workshops, conferences and visits hosted or attended by the group.')}</p><p style="margin-top:22px"><a class="btn btn-line" href="#/news">${t('See the calendar')} ${ARR}</a></p></div>
+      <div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t('Recent events')}</h2><p class="lead">${t('Workshops, conferences and visits hosted or attended by the group.')}</p><p style="margin-top:22px"><a class="btn btn-line" href="#/news?cat=Event">${t('All events')} ${ARR}</a></p></div>
       <div>${events.map((n, i) => `<a class="row rv" style="--i:${i};text-decoration:none" href="#/news/${newsId(n)}"><span class="yr">${MON[n.m]} ${n.y}</span><div class="t"><b>${esc(n.title)}</b></div><span class="go">${t('Details')}</span></a>`).join('')}</div></div></div></section>
     <section style="padding-top:0"><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Recent')}</div><h2 class="sec">${t('New publications')}</h2></div><a class="btn btn-line" href="#/research/publications">${t('All publications')} ${ARR}</a></div>
       ${PUBS.slice(0, 4).map((r, i) => pubRow(r, i, 'Paper')).join('')}</div></section>
     <section class="dark"><div class="wrap"><div class="head"><div><div class="eyebrow">${t('People')}</div><h2 class="sec">${t('Meet the team')}</h2></div><a class="btn btn-ghost" href="#/people/current">${t('Full team')} ${ARR}</a></div>
       <div class="grid g4 people">${pis.map(personCard).join('')}</div></div></section>
-    <section><div class="wrap"><div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('Join us')}</div><h2>${phd ? esc(phd.title) : t('Open positions')}</h2><p>${phd ? esc(phd.text[0]) : t('Check our current opportunities.')}</p></div>
+    <section><div class="wrap"><div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('Join us')}${call ? ` · ${esc(callMeta(call))}` : ''}</div><h2>${call ? esc(call.title) : t('Work with us')}</h2><p>${call ? esc(call.text[0]) : t('Interested in a PhD, a master thesis or a research stay? Get in touch.')}</p></div>
       <div><a class="btn" href="#/join">${t('See opportunities')} ${ARR}</a></div></div></div></section>`;
   },
   research(p, query) {
@@ -278,7 +314,7 @@ const ROUTES = {
     if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('Photo gallery', 'Moments from the life of the group.'), `<div class="gallery">${all.map(([s, t]) => imageFrame(s, t)).join('')}</div>`); }
     return wrapPage(h('Activities & workshops', 'Bringing optics and photonics to society.'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">${t('Recent outreach news')}</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
   },
-  news(p) {
+  news(p, query) {
     const id = p[1];
     if (id) {
       const n = NEWS.find(x => newsId(x) === id);
@@ -288,25 +324,28 @@ const ROUTES = {
         <p class="prose"><a class="inl" href="#/news">${I_LEFT} ${t('All news')}</a></p></div></section>`;
     }
     const cats = [...new Set(NEWS.map(n => n.cat))], ys = years(NEWS);
+    const cat = cats.includes(query.get('cat')) ? query.get('cat') : 'all';
     return `${pageHead(p, 'News', 'Events, publications, awards and life in the group.', [['News']])}<section><div class="wrap">
       ${newsBanner(bannerItems())}<div class="grp" style="margin-top:50px">${t('All news')}</div>
-      <div class="tools" data-news><button class="fchip on" data-c="all">${t('All')}</button>${cats.map(c => `<button class="fchip" data-c="${c}">${t(c)}</button>`).join('')}<span style="flex:1"></span>
+      <div class="tools" data-news data-cat="${esc(cat)}"><button class="fchip${cat === 'all' ? ' on' : ''}" data-c="all">${t('All')}</button>${cats.map(c => `<button class="fchip${cat === c ? ' on' : ''}" data-c="${c}">${t(c)}</button>`).join('')}<span style="flex:1"></span>
       ${selectControl('news-year', t('Year'), [['all', t('All years')], ...ys.map(y => [String(y), String(y)])], 'all', '', 'ui-select-filter')}</div>
       <div class="grid g3" id="newsgrid">${NEWS.map((n, i) => newsCard(n, i % 3).replace('class="card', `data-c="${n.cat}" data-y="${n.y}" class="card`)).join('')}</div><div class="empty" id="none" hidden>${t('No news match.')}</div></div></section>`;
   },
   join(p) {
-    const phd = NEWS.find(n => /Open PhD/i.test(n.en));
+    const calls = openCalls();
     return `${pageHead(p, 'Join us', 'Research positions, theses and visits in optics and photonics.', [['Join us']])}<section><div class="wrap">
       <div class="head"><div><div class="eyebrow">${t('Open positions')}</div><h2 class="sec">${t('PhD & postdoc opportunities')}</h2></div></div>
-      ${phd ? `<div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('PhD')} · ${MON[phd.m]} ${phd.y}</div><h2>${esc(phd.title)}</h2>${phd.text.map(t => `<p>${esc(t)}</p>`).join('')}</div><div>${phd.link ? `<a class="btn" href="${esc(phd.link)}" target="_blank" rel="noopener">${t('PHYNEST call')} ${I_EXT}</a>` : ''}</div></div>` : ''}
-      ${flagged('Postdoc positions are not listed on the current website; this block is ready for them.')}
+      ${calls.length ? calls.map(n => `<div class="call" style="margin-bottom:24px"><canvas class="bg"></canvas><div><div class="eyebrow">${esc(callMeta(n))}</div><h2>${esc(n.title)}</h2>${n.text.map(p => `<p>${esc(p)}</p>`).join('')}</div><div>${n.link ? `<a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('Call details')} ${I_EXT}</a>` : `<a class="btn" href="#/contact">${t('Contact us')} ${ARR}</a>`}</div></div>`).join('')
+        : `<div class="prose"><p class="lead">${t('There are no open calls right now. New positions are announced here and in News; you can also write to us about upcoming opportunities.')}</p><p><a class="btn btn-line" href="#/contact">${t('Contact us')} ${ARR}</a></p></div>`}
       <div class="grp" style="margin-top:60px">${t('How to apply')}</div>
       <div class="steps">${[['Explore', 'Read our research lines and publications.'], ['Contact', 'Write to a supervisor with your CV and interests.'], ['Apply', 'Submit the official call documentation.'], ['Join', 'Start your project in the group.']].map(([ti, d], i) => `<div class="step rv" style="--i:${i}"><h3>${t('step:' + ti)}</h3><p>${t(d)}</p></div>`).join('')}</div>
-      <div class="grp" style="margin-top:60px">${t('FAQ')}</div><div style="max-width:800px">${[['Which programmes can I apply through?', 'The group offers projects within the PHYNEST (Horizon Europe MSCA COFUND) doctoral programme, coordinated by UAB.'], ['Who do I contact?', 'Principal investigators are listed in People; write to them directly about available projects.'], ['Can I do a Master or Bachelor thesis?', 'Yes. See the Teaching section for past master theses and programmes.']].map(([q, a]) => `<details><summary>${t(q)}</summary><p>${t(a)}</p></details>`).join('')}</div>
+      <div class="grp" style="margin-top:60px">${t('FAQ')}</div><div style="max-width:800px">${[['Which programmes can I apply through?', 'Each open call above links to its official programme. In recent years the group has offered projects within PHYNEST, a Horizon Europe MSCA COFUND doctoral programme coordinated by UAB.'], ['Who do I contact?', 'Principal investigators are listed in People; write to them directly about available projects.'], ['Can I do a Master or Bachelor thesis?', 'Yes. See the Teaching section for past master theses and programmes.']].map(([q, a]) => `<details><summary>${t(q)}</summary><p>${t(a)}</p></details>`).join('')}</div>
       <p style="margin-top:40px"><a class="btn" href="#/contact">${t('Contact supervisors')} ${ARR}</a></p></div></section>`;
   },
   about(p) {
-    const k = p[1] || 'mission', h = (ti, s) => pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]);
+    let k = p[1] || 'mission';
+    if (isDraft('about', k)) { k = 'mission'; p = ['about', 'mission']; }
+    const h = (ti, s) => pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]);
     if (k === 'funding') return wrapPage(h('Funding & grants', ''), flagged('No funding information on the current website. Please provide projects, grants and logos.'));
     if (k === 'climate') return wrapPage(h('Climate commitment', ''), flagged('The climate-actions page of the current website is empty. Please provide the content.'));
     if (k === 'gender') return wrapPage(h('Gender & equality', 'Actions promoting equality in physics.'), prosePage(PAGES_HTML.gender));
@@ -326,8 +365,7 @@ const ROUTES = {
 
 /* ---------- router ---------- */
 const main = $('#main'), header = $('#header');
-/* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway. */
-const PREVIEW = new URLSearchParams(location.search).has('preview');
+/* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway (PREVIEW, defined above). */
 function updateChrome() {
   document.documentElement.lang = LANG;
   $('meta[name="description"]').content = DESC[LANG] || DESC.en;
@@ -422,8 +460,9 @@ function mount(root) {
   }
   const nl = $('[data-news]', root);
   if (nl) {
-    let c = 'all', y = 'all';
+    let c = nl.dataset.cat || 'all', y = 'all';
     const apply = () => { let n = 0; $$('#newsgrid .card').forEach(el => { const ok = (c === 'all' || el.dataset.c === c) && (y === 'all' || el.dataset.y === y); el.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    if (c !== 'all') apply();
     nl.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', nl).forEach(x => x.classList.toggle('on', x === b)); c = b.dataset.c; apply(); });
     $('[data-ui-select-value]', nl)?.addEventListener('change', e => { y = e.target.value; apply(); });
   }

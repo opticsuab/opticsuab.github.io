@@ -11,7 +11,8 @@
  *    language it was written in. Translations are stored in data/i18n/<lang>/<collection>.json as
  *    { "source text": "translation" }: an entry is reused while its source text is unchanged, a text that
  *    changes is translated again, and texts that no longer exist are dropped. Translations committed to
- *    the repository (e.g. corrected by hand) take precedence over generated ones.
+ *    the repository (e.g. corrected by hand) take precedence over generated ones. Terms listed in
+ *    data/glossary.json (institutions, programmes…) are kept exactly as written in every language.
  *
  * Options:  --site <dir>   write the results into the copy of the site that is about to be deployed
  *           --cache <dir>  keep generated content in this folder (the "generated" branch) instead of the
@@ -100,6 +101,23 @@ function detectLang(text) {
   return score[best] >= 2 && score[best] > 1.5 * others ? best : 'auto';
 }
 
+/* ---------- glossary: terms never translated (data/glossary.json → { "terms": [...] }) ----------
+   Each term is swapped for a token before translating and put back afterwards; if the service mangles a
+   token, the paragraph is translated again without protection (as before the glossary existed). */
+const GLOSSARY = (() => { const g = readJSON('data/glossary.json', { terms: [] }); return [...new Set((g.terms || []).map(String).map(x => x.trim()).filter(Boolean))].sort((a, b) => b.length - a.length); })();
+const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const GLOSS_RE = GLOSSARY.length ? new RegExp(`(?<![\\p{L}\\p{N}])(?:${GLOSSARY.map(reEsc).join('|')})(?![\\p{L}\\p{N}])`, 'gu') : null;
+function protect(text) {
+  const found = [];
+  const out = GLOSS_RE ? text.replace(GLOSS_RE, m => `ZZG${found.push(m) - 1}ZZ`) : text;
+  return { out, found };
+}
+function restore(text, found) {
+  let n = 0;
+  const out = text.replace(/Z\s*Z\s*G\s*(\d+)\s*Z\s*Z/gi, (m, i) => { n++; return found[+i] ?? m; });
+  return n === found.length && !/ZZG\d/i.test(out) ? out : null;
+}
+
 /* ---------- web services ---------- */
 let failures = 0;
 async function getJSON(url, init) {
@@ -133,9 +151,12 @@ async function translate(text, from, to) {
     let done = null;
     for (let attempt = 0; attempt < 3 && done === null; attempt++) {
       try {
-        const r = await translateChunk(part, from, to); failures = 0;
+        const { out: safe, found } = protect(part);
+        let r = await translateChunk(safe, from, to); failures = 0;
+        let text = found.length ? restore(r.text, found) : r.text;
+        if (text === null) { r = await translateChunk(part, from, to); text = r.text; }
         // a paragraph already written in the target language stays exactly as written
-        done = String(r.detected || '').toLowerCase().startsWith(to) ? part : r.text;
+        done = String(r.detected || '').toLowerCase().startsWith(to) ? part : text;
       }
       catch (e) { if (attempt === 2) { failures++; warn(`translation ${from}→${to} failed: ${e.message}`); } else await sleep(1500 * (attempt + 1)); }
     }
