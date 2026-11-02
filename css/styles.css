@@ -116,7 +116,7 @@ section{padding:clamp(64px,9vw,120px) 0;position:relative}
 .dark{background:var(--navy-900);color:#fff}
 .dark.grad{background:var(--grad);overflow:hidden}
 .dark.grad>canvas.bg{position:absolute;inset:0;width:100%;height:100%}
-.head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:44px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:44px;position:relative;z-index:1}
 .grid{display:grid;gap:22px}
 .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px dashed rgba(255,255,255,.3)}
