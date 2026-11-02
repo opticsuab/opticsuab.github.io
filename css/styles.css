@@ -163,7 +163,7 @@ section{padding:clamp(64px,9vw,120px) 0;position:relative}
 .person{background:#fff;border:1px solid var(--line);transition:transform .35s var(--ease),box-shadow .35s}
 .person:hover{transform:translateY(-5px);box-shadow:0 20px 36px -22px rgba(6,24,51,.5)}
 .person .photo-frame{aspect-ratio:4/5}
-.person .noph{aspect-ratio:4/5;background:var(--grad);display:grid;place-items:center;color:#fff;font:700 2.6rem var(--font);letter-spacing:-.04em}
+.person .noph{aspect-ratio:4/5;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font:700 2.6rem var(--font);letter-spacing:-.04em}
 .person .body{padding:16px 18px 20px}
 .person h3{font-size:1.02rem;line-height:1.25}
 .person .meta{margin-top:6px;text-transform:none;letter-spacing:.02em;font-size:.72rem}
@@ -324,7 +324,7 @@ form.f .ui-select-trigger:focus-visible{outline:0;border-color:var(--green);box-
 #pm[open]{animation:pmin .25s var(--ease)}@keyframes pmin{from{opacity:0;transform:translateY(12px)}}
 .pm-head{display:flex;gap:24px;align-items:flex-end;padding:40px 32px 28px;background:var(--grad);color:#fff;position:relative}
 .pm-photo img,.pm-photo .noph{width:132px;height:132px;object-fit:cover;display:grid;flex:none;aspect-ratio:1;border:3px solid #fff}
-.pm-photo .noph{background:var(--navy-800);place-items:center;font:700 2.2rem var(--font);color:#fff}
+.pm-photo .noph{background:var(--navy-800);display:flex;align-items:center;justify-content:center;font:700 2.2rem var(--font);color:#fff}
 .pm-id{min-width:0}.pm-id .eyebrow{color:var(--green-l)}.pm-id h2{font-size:1.8rem;line-height:1.15;margin:8px 0 6px;color:#fff}
 .pm-id .meta{color:rgba(255,255,255,.85);font-size:.8rem;margin-bottom:10px}
 .pm-body{padding:28px max(32px,calc((100% - 68ch)/2)) 32px;overflow:auto;flex:1;min-height:0}.pm-body p{font-size:.98rem;line-height:1.65}.pm-body p+p{margin-top:14px}
