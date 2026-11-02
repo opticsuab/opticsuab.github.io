@@ -676,6 +676,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeGalleryLightbox();
 });
 document.addEventListener('click', e => {
+  // Only handle clicks on gallery images, not other elements
+  if (e.target.tagName === 'A' || e.target.closest('a')) return;
   const img = e.target.closest('.gallery .photo-frame[data-gallery-img]');
   if (!img) return;
   if (!galleryImages.length) {
