@@ -676,14 +676,14 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeGalleryLightbox();
 });
 document.addEventListener('click', e => {
-  // Only handle clicks on gallery images, not other elements
-  if (e.target.tagName === 'A' || e.target.closest('a')) return;
-  const img = e.target.closest('.gallery .photo-frame[data-gallery-img]');
-  if (!img) return;
+  // Only handle clicks on gallery photo-frames, specifically
+  const photoFrame = e.target.closest('.gallery .photo-frame[data-gallery-img]');
+  if (!photoFrame) return;
+  
   if (!galleryImages.length) {
     galleryImages = $$('.gallery .photo-frame[data-gallery-img]').map(el => el.dataset.galleryImg);
   }
-  const index = galleryImages.indexOf(img.dataset.galleryImg);
+  const index = galleryImages.indexOf(photoFrame.dataset.galleryImg);
   openGalleryLightbox(index);
 });
 
