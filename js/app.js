@@ -406,7 +406,7 @@ function mount(root) {
     const route = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
     const params = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
     const syncSearch = route === '#/research/publications';
-    let y = 'all', q = (input?.value || '').trim().toLowerCase(), match = (input?.dataset.match || '').trim().toLowerCase();
+    let y = 'all', q = (params.get('search') || input?.value || '').trim().toLowerCase(), match = (params.get('match') || input?.dataset.match || '').trim().toLowerCase();
     const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.textContent.toLowerCase(); const queryMatch = !q || text.includes(q) || (!!match && text.includes(match)); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
     lst.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
     input?.addEventListener('input', e => {
