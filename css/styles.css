@@ -219,7 +219,7 @@ details summary::after{content:"+";font:400 1.4rem var(--mono);transition:transf
 details[open] summary::after{transform:rotate(45deg)}
 details p{color:var(--muted);margin-top:10px;max-width:70ch}
 .gallery{columns:3 260px;column-gap:16px}
-.gallery .photo-frame{aspect-ratio:16/10;margin-bottom:16px;break-inside:avoid;min-height:180px}
+.gallery .photo-frame{aspect-ratio:auto;margin-bottom:16px;break-inside:avoid;min-height:160px}
 .gallery .photo-frame img{width:100%;height:100%;object-fit:cover}
 form.f{display:grid;gap:16px;max-width:620px}
 form.f label{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;display:grid;gap:6px}
@@ -302,6 +302,19 @@ form.f .ui-select-trigger:focus-visible{outline:0;border-color:var(--green);box-
 
 .person[data-p]{cursor:pointer}.person[data-p]:focus-visible{outline:2px solid var(--green-d);outline-offset:3px}
 .person .more{padding-top:12px}
+
+/* gallery lightbox */
+.gallery .photo-frame{cursor:pointer}
+#gl{position:fixed;inset:0;background:rgba(4,15,32,.92);display:none;place-items:center;z-index:100}
+#gl.open{display:grid}
+#gl-img{max-width:90vw;max-height:90vh;object-fit:contain;animation:glin .3s var(--ease)}
+@keyframes glin{from{opacity:0;transform:scale(.9)}}
+#gl-nav{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+#gl-prev,#gl-next{pointer-events:auto;width:60px;height:60px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:1.8rem;line-height:1;cursor:pointer;transition:background .2s,border-color .2s;display:grid;place-items:center}
+#gl-prev:hover,#gl-next:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.6)}
+#gl-close{position:absolute;top:20px;right:20px;width:50px;height:50px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;transition:background .2s,border-color .2s;display:grid;place-items:center;pointer-events:auto}
+#gl-close:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.6)}
+
 #pm{border:0;padding:0;max-width:760px;width:calc(100% - 32px);max-height:calc(100vh - 48px);background:#fff;color:var(--ink);overflow:auto;position:fixed;inset:0;margin:auto}
 #pm::backdrop{background:rgba(4,15,32,.72)}
 #pm[open]{animation:pmin .25s var(--ease)}@keyframes pmin{from{opacity:0;transform:translateY(12px)}}

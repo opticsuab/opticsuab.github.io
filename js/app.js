@@ -121,7 +121,7 @@ const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slic
 const newsId = n => `${n.y}-${n.m}-${n.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
 
 /* ---------- pieces ---------- */
-const imageFrame = (src, alt = '') => `<div class="photo-frame"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
+const imageFrame = (src, alt = '') => `<div class="photo-frame" data-gallery-img="${esc(src)}"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
 const selectControl = (id, label, options, selected, name = '', variant = '') => {
   const choice = options.find(([value]) => String(value) === String(selected)) || options[0];
   const value = String(choice[0]);
@@ -644,6 +644,47 @@ addEventListener('scroll', () => {
   header.classList.toggle('solid', scrollY > 40);
   $('#progress').style.transform = `scaleX(${scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight)})`;
 }, { passive: true });
+
+// gallery lightbox
+let galleryImages = [];
+let currentImageIndex = 0;
+const gl = $('#gl'), glImg = $('#gl-img'), glPrev = $('#gl-prev'), glNext = $('#gl-next'), glClose = $('#gl-close');
+const openGalleryLightbox = (index) => {
+  currentImageIndex = index;
+  glImg.src = galleryImages[index];
+  gl.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+const closeGalleryLightbox = () => {
+  gl.classList.remove('open');
+  document.body.style.overflow = '';
+};
+glPrev.addEventListener('click', () => {
+  currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+  glImg.src = galleryImages[currentImageIndex];
+});
+glNext.addEventListener('click', () => {
+  currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+  glImg.src = galleryImages[currentImageIndex];
+});
+glClose.addEventListener('click', closeGalleryLightbox);
+gl.addEventListener('click', e => { if (e.target === gl) closeGalleryLightbox(); });
+document.addEventListener('keydown', e => {
+  if (!gl.classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') glPrev.click();
+  if (e.key === 'ArrowRight') glNext.click();
+  if (e.key === 'Escape') closeGalleryLightbox();
+});
+document.addEventListener('click', e => {
+  const img = e.target.closest('.gallery .photo-frame[data-gallery-img]');
+  if (!img) return;
+  if (!galleryImages.length) {
+    galleryImages = $$('.gallery .photo-frame[data-gallery-img]').map(el => el.dataset.galleryImg);
+  }
+  const index = galleryImages.indexOf(img.dataset.galleryImg);
+  openGalleryLightbox(index);
+});
+
 addEventListener('hashchange', render);
 loadData().then(render).catch(err => {
   console.error(err);
