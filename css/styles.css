@@ -284,7 +284,7 @@ form.f .ui-select-trigger:focus-visible{outline:0;border-color:var(--green);box-
 @media (max-width:760px){.bslide{grid-template-columns:1fr;min-height:0}.bimg{aspect-ratio:16/9}.btxt{padding-bottom:84px}}
 @media (max-width:620px){
   .g2,.g3,.g4,.steps{grid-template-columns:1fr}.g4.people{grid-template-columns:repeat(2,1fr)}
-  .row{grid-template-columns:1fr;gap:6px}.search{margin-left:0;width:100%}.ui-select-filter{margin-left:0;width:100%}
+  .row{grid-template-columns:1fr;gap:6px}.search{margin-left:0;width:100%;flex-basis:100%}.ui-select-filter{margin-left:0;width:100%}
   .hero{padding-bottom:110px}.stat{padding-right:8px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}.rv{opacity:1;transform:none}html{scroll-behavior:auto}}
