@@ -310,10 +310,10 @@ form.f .ui-select-trigger:focus-visible{outline:0;border-color:var(--green);box-
 #gl-img{max-width:90vw;max-height:90vh;object-fit:contain;animation:glin .3s var(--ease)}
 @keyframes glin{from{opacity:0;transform:scale(.9)}}
 #gl-nav{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
-#gl-prev,#gl-next{pointer-events:auto;width:60px;height:60px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:1.8rem;line-height:1;cursor:pointer;transition:background .2s,border-color .2s;display:grid;place-items:center}
-#gl-prev:hover,#gl-next:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.6)}
-#gl-close{position:absolute;top:20px;right:20px;width:50px;height:50px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;transition:background .2s,border-color .2s;display:grid;place-items:center;pointer-events:auto}
-#gl-close:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.6)}
+#gl-prev,#gl-next{pointer-events:auto;width:50px;height:50px;background:transparent;border:2px solid rgba(255,255,255,.8);border-radius:6px;color:#fff;font-size:1.4rem;line-height:1;cursor:pointer;transition:all .2s;display:grid;place-items:center}
+#gl-prev:hover,#gl-next:hover{background:rgba(255,255,255,.1);border-color:#fff}
+#gl-close{position:absolute;top:20px;right:20px;width:40px;height:40px;background:transparent;border:2px solid rgba(255,255,255,.8);border-radius:6px;color:#fff;font-size:1.4rem;line-height:1;cursor:pointer;transition:all .2s;display:grid;place-items:center;pointer-events:auto}
+#gl-close:hover{background:rgba(255,255,255,.1);border-color:#fff}
 
 #pm{border:0;padding:0;max-width:760px;width:calc(100% - 32px);max-height:calc(100vh - 48px);background:#fff;color:var(--ink);overflow:auto;position:fixed;inset:0;margin:auto}
 #pm::backdrop{background:rgba(4,15,32,.72)}
