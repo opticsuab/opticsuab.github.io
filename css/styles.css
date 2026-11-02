@@ -49,7 +49,7 @@ h2.sec{font-weight:700;text-transform:uppercase;letter-spacing:-.03em;line-heigh
 .lang-chevron{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
 .lang-picker.open .lang-chevron{transform:translateY(1px) rotate(225deg)}
 .lang-picker .drop{left:auto;right:0}
-.lang-picker.open .drop{opacity:1;visibility:visible;transform:none}
+.lang-picker.open .drop{opacity:1;visibility:visible;transform:none;pointer-events:auto}
 .lang-option[aria-checked=true]{color:#fff;background:rgba(255,255,255,.07)}
 .ui-select{position:relative;width:100%;min-width:0}
 .ui-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--white);color:var(--ink);font:400 1rem/1.35 var(--font);text-align:left;cursor:pointer;transition:border-color .2s,box-shadow .2s}
