@@ -13,6 +13,15 @@ const t = (s, v) => {
   return r;
 };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const allowLinks = s => {
+  // Escape everything first, then selectively unescape safe links
+  let escaped = esc(s);
+  // Allow <a> tags that were already HTML (from safe sources like citations)
+  // Match: &lt;a href="URL" target="_blank" rel="noopener"&gt;...&lt;/a&gt;
+  escaped = escaped.replace(/&lt;a href=&quot;([^"]+)&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;([^<]+)&lt;\/a&gt;/g, 
+    (m, url, text) => `<a href="${url}" target="_blank" rel="noopener">${text}</a>`);
+  return escaped;
+};
 const svg = d => `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
 const I_RIGHT = svg('<path d="M5 12h14M13 6l6 6-6 6"/>');
 const I_LEFT = svg('<path d="M19 12H5M11 6l-6 6 6 6"/>');
@@ -276,7 +285,7 @@ const ROUTES = {
     if (id) {
       const n = NEWS.find(x => newsId(x) === id);
       if (n) return `${pageHead(p, n.title, `${MON[n.m]} ${n.y} · ${t(n.cat)}`, [['News', '#/news'], [n.cat]])}<section><div class="wrap">
-        <div class="prose art">${n.text.map((t, k) => `<p${k ? '' : ' class="lead"'}>${esc(t)}</p>`).join('')}${n.link ? `<p><a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('More information')} ${I_EXT}</a></p>` : ''}</div>
+        <div class="prose art">${n.text.map((t, k) => `<p${k ? '' : ' class="lead"'}>${allowLinks(t)}</p>`).join('')}${n.link ? `<p><a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('More information')} ${I_EXT}</a></p>` : ''}</div>
         ${n.img.length ? `<div class="figs" data-n="${n.img.length}">${n.img.map(i => `<figure><img src="${i}" alt="${esc(n.title)}"></figure>`).join('')}</div>` : ''}
         <p class="prose"><a class="inl" href="#/news">${I_LEFT} ${t('All news')}</a></p></div></section>`;
     }
