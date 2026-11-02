@@ -310,9 +310,9 @@ form.f .ui-select-trigger:focus-visible{outline:0;border-color:var(--green);box-
 #gl-img{max-width:90vw;max-height:90vh;object-fit:contain;animation:glin .3s var(--ease)}
 @keyframes glin{from{opacity:0;transform:scale(.9)}}
 #gl-nav{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
-#gl-prev,#gl-next{pointer-events:auto;width:60px;height:60px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.6);border-radius:50%;color:#fff;font-size:0;line-height:1;cursor:pointer;transition:background .2s,border-color .2s;display:grid;place-items:center}
+#gl-prev,#gl-next{pointer-events:auto;width:60px;height:60px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.6);border-radius:50%;color:transparent;font-size:0;line-height:0;cursor:pointer;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center}
 #gl-prev:hover,#gl-next:hover{background:rgba(255,255,255,.2);border-color:#fff}
-#gl-prev::before,#gl-next::before{content:'';width:24px;height:24px;background-size:contain;background-repeat:no-repeat;background-position:center}
+#gl-prev::before,#gl-next::before{content:'';width:24px;height:24px;background-size:24px 24px;background-repeat:no-repeat;background-position:center;display:block;flex-shrink:0}
 #gl-prev::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E")}
 #gl-next::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E")}
 #gl-close{position:absolute;top:20px;right:20px;width:50px;height:50px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.6);border-radius:50%;color:#fff;font-size:0;line-height:1;cursor:pointer;transition:background .2s,border-color .2s;display:grid;place-items:center;pointer-events:auto}
