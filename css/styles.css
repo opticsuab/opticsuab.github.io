@@ -362,7 +362,7 @@ body.maint .site-header,body.maint .site-footer,body.maint .progress,body.maint 
 /* 3D model of Edifici C (How to reach us) */
 .bldg{margin:18px 0 34px}
 .bldg-stage{position:relative;background:radial-gradient(120% 90% at 50% 18%,#0e3a68 0%,#071d3c 55%,#040f20 100%);overflow:hidden;border:1px solid var(--navy-800)}
-.bldg-stage canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:pan-y;outline-offset:-4px}
+.bldg-stage canvas{display:block;width:100%;height:auto}
 .bldg.grabbing canvas{cursor:grabbing}
 .bldg-stage canvas:focus-visible{outline:2px solid var(--green-l)}
 .bldg-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -402,7 +402,15 @@ body.maint .site-header,body.maint .site-footer,body.maint .progress,body.maint 
 .bldg-route[aria-pressed=true]{background:var(--green-d);border-color:var(--green-d);color:#fff}
 .bldg-route-serra[aria-pressed=true]{background:#0b6aa8;border-color:#0b6aa8}
 .prose .bldg-help a{color:inherit}
-@media (max-width:640px){.bldg-card{padding:6px 10px;bottom:34px}.bldg-card b{font-size:.82rem}.bldg-us::before{height:34px}.bldg-road{font-size:.56rem;padding:2px 7px}.bldg-pin{font-size:.58rem;padding:3px 6px}.bldg-mod{display:none}}
+.bldg-pin-cafe{background:#ffd28a;color:#3a2400;font-size:.6rem;box-shadow:0 0 0 4px rgba(255,210,138,.2),0 10px 24px -12px rgba(0,0,0,.7)}
+.prose a.bldg-gmap,.bldg-gmap{position:absolute;left:12px;top:12px;z-index:2;display:block;width:168px;border:1px solid rgba(127,196,255,.55);border-radius:6px;overflow:hidden;background:#fff;color:var(--navy-900);text-decoration:none;box-shadow:0 14px 30px -14px rgba(0,0,0,.8);transition:transform .2s var(--ease),box-shadow .2s}
+.prose a.bldg-gmap:hover,.bldg-gmap:hover{background:#fff;color:var(--navy-900);transform:translateY(-2px);box-shadow:0 18px 34px -14px rgba(0,0,0,.9)}
+.prose .bldg-gmap img,.bldg-gmap img{display:block;width:100%;height:96px;margin:0;border:0;max-height:none;object-fit:cover;object-position:39% 50%}
+.bldg-gmap span{display:flex;align-items:center;gap:6px;padding:6px 9px;font:600 .62rem var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.bldg-gmap .ico{width:12px;height:12px}
+.bldg-gmap:focus-visible{outline:2px solid var(--green-l);outline-offset:2px}
+.bldg-static .bldg-stage{position:relative}
+@media (max-width:640px){.prose a.bldg-gmap,.bldg-gmap{width:112px;left:8px;top:8px}.prose .bldg-gmap img,.bldg-gmap img{height:62px}.bldg-gmap span{font-size:.5rem;padding:4px 6px;letter-spacing:.03em}.bldg-card{padding:6px 10px;bottom:34px}.bldg-card b{font-size:.82rem}.bldg-us::before{height:34px}.bldg-road{font-size:.56rem;padding:2px 7px}.bldg-pin{font-size:.58rem;padding:3px 6px}.bldg-mod{display:none}}
 
 /* plain-HTML copy of each page written by tools/build-pages.mjs: for crawlers and if scripts fail */
 .static-page{padding:calc(var(--hh) + 40px) 0 60px}.static-page h1{font-size:2rem;margin-bottom:12px}.static-page ul{padding-left:1.2em}.static-page img{max-width:320px;margin:12px 0}
