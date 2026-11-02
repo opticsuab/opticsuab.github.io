@@ -346,6 +346,7 @@ function updateChrome() {
 }
 function showLoadError() {
   main.innerHTML = `<section><div class="wrap"><h1>${t('Content could not be loaded')}</h1><p>${t('Please reload the page in a few seconds.')}</p></div></section>`;
+  main.classList.add('ready');
 }
 function renderMaintenance() {
   document.body.classList.add('maint');
@@ -355,6 +356,7 @@ function renderMaintenance() {
     <div class="eyebrow">${t('Optics Group · Universitat Autònoma de Barcelona')}</div>
     <h1>${esc(MAINT.title || t('Under maintenance'))}</h1>
     ${paras(MAINT.message || 'We are improving the website. Please come back soon.').map(t => `<p class="lead">${esc(t)}</p>`).join('')}</div></section>`;
+  main.classList.add('ready');
   $$('canvas.bg', main).forEach(c => startBackground(c, { size: 34 }));
   $$('canvas.gears', main).forEach(startGears);
 }
@@ -368,6 +370,7 @@ function render() {
   const path = hashPath.replace(/^\/?/, '').split('/').filter(Boolean);
   const key = path[0] || 'home';
   main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path, query)}</div>`;
+  main.classList.add('ready');
   updateChrome();
   $$('.nav a.top').forEach(a => a.classList.toggle('on', a.dataset.k === key));
   document.title = `${main.querySelector('h1')?.textContent || t('Optics Group')} · ${t('Optics Group · UAB')}`;
