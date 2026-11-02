@@ -199,7 +199,7 @@ section{padding:clamp(64px,9vw,120px) 0;position:relative}
 .prose a{color:var(--navy-700);text-decoration-color:var(--green);text-underline-offset:3px}.prose a:hover{background:var(--green);color:#fff}
 .prose img{margin:14px 0;border:1px solid var(--line);max-height:420px;object-fit:cover}
 .prose hr{border:0;border-top:1px dashed var(--line);margin:30px 0}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,70px);align-items:start}
+.two{display:grid;grid-template-columns:1fr 1.3fr;gap:clamp(24px,5vw,70px);align-items:start}
 .formerlist h3.yr{display:inline-block;font:400 .82rem var(--mono);text-transform:capitalize;letter-spacing:0;color:var(--ink);border:1px solid var(--line);background:#fff;padding:5px 12px;margin:0 8px 8px 0}
 
 /* callout */
