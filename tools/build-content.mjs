@@ -166,10 +166,13 @@ async function translate(text, from, to) {
   }
   return out.join('');
 }
+/* arXiv papers: "arxiv.org/abs/2401.01234" or "arXiv:2401.01234" (their DOI is 10.48550/arXiv.<id>) */
+const arxivOf = s => { const m = String(s || '').match(/arxiv(?:\.org\/(?:abs|pdf)\/|:\s*)([a-z-]+\/\d{7}|\d{4}\.\d{4,5})/i); return m ? m[1] : null; };
 async function openAlex(pub) {
   if (OFFLINE) return null;
   const pick = 'select=title,keywords,topics,abstract_inverted_index';
-  const doi = doiOf(pub.link) || doiOf(pub.text);
+  const arxiv = arxivOf(pub.link) || arxivOf(pub.text);
+  const doi = doiOf(pub.link) || doiOf(pub.text) || (arxiv ? `10.48550/arXiv.${arxiv}` : null);
   try {
     if (doi) return await getJSON(`https://api.openalex.org/works/doi:${encodeURIComponent(doi)}?${pick}`);
     const title = titleOf(pub.text);
@@ -177,6 +180,23 @@ async function openAlex(pub) {
     const j = await getJSON(`https://api.openalex.org/works?per-page=3&${pick}&search=${encodeURIComponent(title)}`);
     return (j.results || []).find(w => norm(w.title) === norm(title)) || null;
   } catch (e) { warn(`OpenAlex lookup failed for "${titleOf(pub.text)}": ${e.message}`); return null; }
+}
+/* When OpenAlex has no abstract: the journal's abstract registered in Crossref, or the arXiv abstract. */
+async function otherAbstract(pub) {
+  if (OFFLINE) return '';
+  const doi = doiOf(pub.link) || doiOf(pub.text), arxiv = arxivOf(pub.link) || arxivOf(pub.text);
+  try {
+    if (doi && !/^10\.48550\//i.test(doi)) {
+      const j = await getJSON(`https://api.crossref.org/works/${encodeURIComponent(doi)}`);
+      const a = j?.message?.abstract; if (a) return a.replace(/<[^>]+>/g, ' ');
+    }
+    if (arxiv) {
+      const r = await fetch(`https://export.arxiv.org/api/query?id_list=${encodeURIComponent(arxiv)}`, { signal: AbortSignal.timeout(20000) });
+      const m = r.ok && (await r.text()).match(/<entry>[\s\S]*?<summary>([\s\S]*?)<\/summary>/);
+      if (m) return m[1];
+    }
+  } catch (e) { warn(`abstract lookup failed for "${titleOf(pub.text)}": ${e.message}`); }
+  return '';
 }
 const abstractOf = w => {
   const idx = w && w.abstract_inverted_index; if (!idx) return '';
@@ -205,7 +225,7 @@ const cleanList = list => [...new Map((Array.isArray(list) ? list : list ? [list
 async function suggestKeywords(pub) {
   const title = norm(titleOf(pub.text));
   const work = await openAlex(pub);
-  const abstract = norm(abstractOf(work));
+  const abstract = norm(abstractOf(work) || await otherAbstract(pub));
   const indexed = norm([...(work?.keywords || []).map(k => k.display_name), ...(work?.topics || []).slice(0, 3).map(t => t.display_name)].join(' · '));
   const scored = vocab.map(k => {
     const terms = [k.name, ...(k.match || [])];

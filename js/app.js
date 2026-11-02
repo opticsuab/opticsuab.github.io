@@ -1,68 +1,71 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-/* ---------- language: English is the source; es/ca come from js/i18n.js (UI) and data/i18n/<lang>/*.json (content) ---------- */
-const pickLang = () => {
-  const ok = l => LANGS.some(x => x[0] === l) && l;
-  let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
-  const pathLang = location.pathname.split('/').filter(Boolean)[0];
-  return ok(new URLSearchParams(location.search).get('lang')) || ok(pathLang) || ok(saved) || 'en';
-};
-let LANG = pickLang(), MON = MONTHS[LANG];
+/* ---------- language: UI texts come from js/i18n.js; content edited in the panel can be written in any language and is
+   translated automatically into data/i18n/<lang>/*.json (see tools/build-content.mjs) ---------- */
+/* The language is part of the address: / (English), /es/…, /ca/… (LANG_PREFIX in js/routes.js). */
+const langOfPath = pathname => (pathname.match(/^\/(es|ca)(?=\/|$)/) || [])[1] || 'en';
+let LANG = langOfPath(location.pathname), MON = MONTHS[LANG];
 const t = (s, v) => {
   let r = (I18N[LANG] && I18N[LANG][s]) || s.replace(/^step:/, '');
   if (v) for (const k in v) r = r.replaceAll(`{${k}}`, v[k]);
   return r;
 };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const allowLinks = s => {
-  // Escape everything first, then selectively unescape safe links
-  let escaped = esc(s);
-  // Allow <a> tags that were already HTML (from safe sources like citations)
-  // Match: &lt;a href="URL" target="_blank" rel="noopener"&gt;...&lt;/a&gt;
-  escaped = escaped.replace(/&lt;a href=&quot;([^"]+)&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;([^<]+)&lt;\/a&gt;/g, 
-    (m, url, text) => `<a href="${url}" target="_blank" rel="noopener">${text}</a>`);
-  return escaped;
-};
 const svg = d => `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
 const I_RIGHT = svg('<path d="M5 12h14M13 6l6 6-6 6"/>');
 const I_LEFT = svg('<path d="M19 12H5M11 6l-6 6 6 6"/>');
 const I_EXT = svg('<path d="M7 17 17 7M8 7h9v9"/>');
 const ARR = `<span class="arr">${I_RIGHT}</span>`;
 
-const NAV = [
-  { k: 'research', l: 'Research', sub: [['lines', 'Research lines'], ['publications', 'Publications'], ['patents', 'Patents'], ['theses', 'PhD theses'], ['datasets', 'Datasets & software'], ['collaborations', 'Collaborations']] },
-  { k: 'people', l: 'People', sub: [['current', 'Current team'], ['investigators', 'Principal investigators'], ['students', 'PhD students & postdocs'], ['alumni', 'Former members'], ['honorary', 'Honorary professors']] },
-  { k: 'teaching', l: 'Teaching', sub: [['courses', 'Courses'], ['master-thesis', 'Master theses'], ['seminars', 'Seminars & summer schools']] },
-  { k: 'outreach', l: 'Outreach', sub: [['activities', 'Activities & workshops'], ['talks', 'Talks'], ['interviews', 'Interviews & press'], ['gallery', 'Photo gallery']] },
-  { k: 'news', l: 'News', sub: [] },
-  { k: 'join', l: 'Join us', sub: [] },
-  { k: 'about', l: 'About', sub: [['mission', 'Mission & history'], ['funding', 'Funding & grants'], ['climate', 'Climate commitment'], ['gender', 'Gender & equality'], ['reach', 'How to reach us']] },
-];
+/* ?preview shows the site in maintenance mode and the editorial notes / draft pages that the public does not see.
+   It is kept while browsing (internal links carry it) and for the rest of the browser session. */
+const PREVIEW = (() => {
+  let on = new URLSearchParams(location.search).has('preview');
+  try { if (on) sessionStorage.setItem('preview', '1'); else on = sessionStorage.getItem('preview') === '1'; } catch (e) { /* storage blocked */ }
+  return on;
+})();
+const isDraft = (sec, sub) => isDraftPath(`${sec}/${sub}`, PREVIEW);
+const NAV = navFor(PREVIEW);
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
-let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], SOURCE_TOPICS = [], KEYWORD_LABELS = {}, LINES = [];
+let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', research_lines: [] }, LINES = [], KEYWORDS = [], KW_MEM = {};
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
+let MEMBERS = [];
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
 const paras = t => String(t || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
 const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
-const byYear = rows => rows.map(r => ({ ...r, y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
-const keywordNorm = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
-const publicationNorm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-  .replace(/[‐-―\-_/]+/g, ' ').replace(/[^a-z0-9·' ]+/g, ' ').replace(/\s+/g, ' ').trim();
-const publicationTitle = text => {
-  const m = String(text || '').match(/[«"“]\s*(.+?)\s*[»"”«]/);
-  return (m ? m[1] : String(text || '').split('.')[0]).replace(/\s+/g, ' ').trim();
+/* Search: lower case, without accents, so "valles" finds "Vallés". */
+const fold = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/\s+/g, ' ').trim();
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/* Group members (current and former) as they appear in references: "Adam Vallés" is cited as "A. Vallés", so a
+   reference that cites him can be found by "Adam", "Vallés" or "Adam Vallés". */
+const memberOf = full => {
+  const [last, given] = full.includes(',') ? full.split(',', 2) : [null, full]; /* former members are written "Surname, Name" */
+  const words = fold(`${given} ${last || ''}`.replace(/^\s*(dr|prof)\.?\s+/i, '')).split(' ').filter(Boolean);
+  const first = words[0], surname = words.slice(1).find(w => !/^[a-z]\.?$/.test(w));
+  if (!first || !surname) return null;
+  return { name: words.join(' '), re: new RegExp(`(^|[^a-z])${reEsc(first[0])}\\.(\\s*-?[a-z]\\.)*\\s*${reEsc(surname)}(?![a-z])`) };
 };
-const publicationDoi = value => {
-  const m = String(value || '').match(/10\.\d{4,9}\/[^\s"<>?#]+/i);
-  return m ? m[0].replace(/[.,;)]+$/, '').toLowerCase() : '';
+const membersIn = text => { const f = fold(text); return MEMBERS.filter(m => m.re.test(f)).map(m => m.name); };
+/* Same publication key as tools/build-content.mjs: doi:<doi> or title:<normalised title>. */
+const kNorm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  .replace(/[\u2010-\u2015\-_/]+/g, ' ').replace(/[^a-z0-9·' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const kTitle = text => { const m = String(text || '').match(/[«"“]\s*(.+?)\s*[»"”«]/); return (m ? m[1] : String(text || '').split('.')[0]).replace(/\s+/g, ' ').trim(); };
+const kDoi = s => { const m = String(s || '').match(/10\.\d{4,9}\/[^\s"<>?#]+/); return m ? m[0].replace(/[.,;)]+$/, '') : null; };
+const pubKey = r => { const doi = kDoi(r.link) || kDoi(r.text); return doi ? `doi:${doi.toLowerCase()}` : `title:${kNorm(kTitle(r.text))}`; };
+/* Links typed in the panel: add https:// when missing ("www.x.org", "doi.org/…"), turn a bare DOI or ORCID iD into its
+   address, keep site paths (/…, #…) and drop anything else with a scheme (javascript:, data:…). */
+const safeUrl = (u, kind) => {
+  u = String(u || '').trim();
+  if (!u) return '';
+  if (/^(https?:\/\/|mailto:)/i.test(u) || /^[/#]/.test(u)) return u;
+  if (/^10\.\d{4,9}\//.test(u)) return `https://doi.org/${u}`;
+  if (kind === 'orcid' && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(u)) return `https://orcid.org/${u}`;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u) || /\s/.test(u) || !/\.[a-z]{2,}/i.test(u)) return '';
+  return `https://${u.replace(/^\/+/, '')}`;
 };
-const publicationKey = pub => {
-  const doi = publicationDoi(pub.link) || publicationDoi(pub.text);
-  return doi ? `doi:${doi}` : `title:${publicationNorm(publicationTitle(pub.text))}`;
-};
-const keywordLabel = keyword => KEYWORD_LABELS[keyword] || keyword;
+const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String) })).sort((a, b) => b.y - a.y);
 const RECORD_TERMS = {
   es: [
     ['PhD in Physics', 'Doctorado en Física'], ['Phd in Physics', 'Doctorado en Física'],
@@ -93,69 +96,80 @@ const localizeRecord = value => (RECORD_TERMS[LANG] || []).reduce((text, [from, 
 const getJSON = f => fetch(`/data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
 let RAW = null;
 const OVERLAYS = {};
-const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional JSON unavailable: ${f}`, err); return {}; });
-/* Translation overlays are optional: anything missing falls back to the English source. */
+const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional translation unavailable: ${f}`, err); return {}; });
+/* Translations are { "source text": "translation" } per language; a text without one is shown as written. */
+const tr = (mem, s) => (s && mem && typeof mem[s] === 'string' && mem[s]) || s;
 async function loadOverlay(lang) {
-  if (lang === 'en') return {};
   if (!OVERLAYS[lang]) {
-    const [news, people, pages, site, keywords] = await Promise.all(['news', 'people', 'pages', 'site', 'keywords'].map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
-    OVERLAYS[lang] = { news, people, pages, site, keywords };
+    const files = ['news', 'people', 'site', 'keywords', ...(lang === 'en' ? [] : ['pages'])];
+    const loaded = await Promise.all(files.map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
+    OVERLAYS[lang] = Object.fromEntries(files.map((f, i) => [f, loaded[i]]));
   }
   return OVERLAYS[lang];
 }
 async function loadData() {
   MAINT = await getJSON('maintenance').catch(() => ({ enabled: false }));
   if (MAINT.enabled && !PREVIEW) {
-    if (LANG !== 'en') {
-      const overlay = await getOptionalJSON(`i18n/${LANG}/site`);
-      MAINT = Object.assign({}, MAINT, overlay.maintenance || {});
-    }
+    const site = (await loadOverlay(LANG)).site;
+    MAINT = Object.assign({}, MAINT, { title: tr(site, MAINT.title), message: tr(site, MAINT.message) });
     return;
   }
   if (!RAW) {
     const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
       ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(getJSON));
-    const publicationKeywords = (pubs.publications || []).some(pub => !Array.isArray(pub?.keywords))
-      ? await getOptionalJSON('publication-keywords')
-      : {};
-    RAW = { news, people, pubs, theses, patents, master, former, pages, site, publicationKeywords, maint: MAINT };
+    /* The publish process adds `keywords` to each publication. When it has not run (a local copy), fall back to the
+       keywords fixed by hand in data/publication-keywords.json, matched with the same key as tools/build-content.mjs. */
+    if (!(pubs.publications || []).some(r => r && r.keywords && r.keywords.length)) {
+      const fixed = await getJSON('publication-keywords').catch(() => ({}));
+      (pubs.publications || []).forEach(r => { const e = r && fixed[pubKey(r)]; if (e && !r.keywords) r.keywords = e.keywords; });
+    }
+    RAW = { news, people, pubs, theses, patents, master, former, pages, site, maint: MAINT };
   }
-  buildData(await loadOverlay(LANG));
+  const [ov, en] = await Promise.all([loadOverlay(LANG), loadOverlay('en')]);
+  buildData(ov, en);
 }
-function buildData(ov) {
-  const { news, people, pubs, theses, patents, master, former } = RAW, os = ov.site || {};
+function buildData(ov, en = {}) {
+  const { news, people, pubs, theses, patents, master, former } = RAW, T = (col, s) => tr(ov[col], s);
+  /* fixed UI terms (positions, statuses) keep the hand-made wording from js/i18n.js when it has one */
+  const term = s => (s && I18N[LANG] && I18N[LANG][s]) ? s : T('people', s);
   const pages = Object.assign({}, RAW.pages, ov.pages || {});
-  SITE = Object.assign({ hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, RAW.site, os.site || {});
-  SOURCE_TOPICS = asList(RAW.site.topics);
-  KEYWORD_LABELS = ov.keywords || {};
-  const siteTopics = asList(SITE.topics);
-  TOPICS = SOURCE_TOPICS.map((topic, i) => KEYWORD_LABELS[topic] || siteTopics[i] || topic);
-  LINES = asList(SITE.research_lines).map(l => ({ t: l.title || '', d: l.description || '', tags: asList(l.tags) }));
+  const site = RAW.site || {};
+  SITE = { hero_eyebrow: T('site', site.hero_eyebrow || ''), hero_title: T('site', site.hero_title || ''), hero_subtitle: T('site', site.hero_subtitle || ''),
+    research_lines: asList(site.research_lines).map(l => ({ title: T('site', l.title), description: T('site', l.description), tags: asList(l.tags).map(x => T('site', x)) })) };
+  LINES = SITE.research_lines.map(l => ({ t: l.title || '', d: l.description || '', tags: l.tags }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
-    const [y, m] = String(n.date || '').split('-').map(Number), o = (ov.news || {})[`${n.date}|${n.title}`] || (ov.news || {})[n.title] || {};
-    return { y: y || 0, m: m || 1, cat: n.category || 'News', en: n.title, title: o.title || n.title, text: paras(o.text || n.text), img: asList(n.images), link: n.link || '' };
+    const [y, m] = String(n.date || '').split('-').map(Number);
+    return { y: y || 0, m: m || 1, cat: n.category || 'News', src: n.title, en: tr(en.news, n.title), title: T('news', n.title), text: paras(T('news', n.text)), img: asList(n.images), link: safeUrl(n.link),
+      call: n.open_call === true, callType: n.call_type || '', deadline: /^\d{4}-\d{2}-\d{2}/.test(n.deadline || '') ? n.deadline.slice(0, 10) : '' };
   }).sort((a, b) => (b.y - a.y) || (b.m - a.m));
   PEOPLE = (people.people || []).filter(p => p && p.name).map(p => {
-    const o = (ov.people || {})[p.name] || {}, about = paras(o.about || p.about);
-    return { name: p.name, group: p.group, pos: p.position, office: p.office, mail: p.email, photo: p.photo, bio: o.summary || p.summary,
-      about: about.length ? about : null, status: o.status || p.status,
-      scholar: p.scholar, orcid: p.orcid, scopus: p.scopus, wos: p.wos, rid: p.researcherid, linkedin: p.linkedin, web: p.web };
+    const about = paras(T('people', p.about));
+    return { name: p.name, group: p.group, pos: term(p.position), office: p.office, mail: p.email, photo: p.photo, bio: T('people', p.summary),
+      about: about.length ? about : null, status: term(p.status),
+      scholar: safeUrl(p.scholar), orcid: safeUrl(p.orcid, 'orcid'), scopus: safeUrl(p.scopus), wos: safeUrl(p.wos), rid: safeUrl(p.researcherid),
+      linkedin: safeUrl(p.linkedin), web: safeUrl(p.web) };
   });
-  const publicationKeywords = RAW.publicationKeywords || {};
-  PUBS = byYear((pubs.publications || []).map(pub => {
-    const assigned = asList(pub.keywords);
-    const fallback = asList(publicationKeywords[publicationKey(pub)]?.keywords);
-    return { ...pub, keywords: [...new Set((assigned.length ? assigned : fallback).map(k => String(k).trim()).filter(Boolean))] };
-  }));
-  THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
-  const fg = os.former || {};
-  FORMER = (former.groups || []).map(g => `<h2>${esc(fg[g.title] || g.title)}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
+  PUBS = byYear(pubs.publications || []); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
+  /* keywords: one entry per keyword used in the publications, most used first */
+  KW_MEM = ov.keywords || {};
+  const counts = new Map();
+  PUBS.forEach(r => new Set(r.kw).forEach(k => counts.set(k, (counts.get(k) || 0) + 1)));
+  KEYWORDS = [...counts].map(([k, n]) => ({ k, n, label: kwLabel(k) })).sort((a, b) => (b.n - a.n) || a.label.localeCompare(b.label, LANG));
+  MEMBERS = [...new Set([...(people.people || []).map(p => p && p.name), ...(former.groups || []).flatMap(g => asList(g.names))].filter(Boolean))].map(memberOf).filter(Boolean);
+  FORMER = (former.groups || []).map(g => `<h2>${esc(T('site', g.title))}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
   INTERVIEWS = pages.interviews || ''; GENDER_TALKS = pages.talks || '';
   PAGES_HTML = { outreach: pages.outreach, reach: pages.how_to_reach_us, gender: pages.gender, collaborations: pages.collaborations, links: pages.links, societies: pages.societies, courses: pages.courses, datasets: pages.datasets };
-  MAINT = Object.assign({}, RAW.maint, os.maintenance || {});
+  MAINT = Object.assign({}, RAW.maint, { title: T('site', RAW.maint.title), message: T('site', RAW.maint.message) });
 }
+const kwLabel = k => tr(KW_MEM, k);
+const kwHref = k => `#/research/publications?${new URLSearchParams({ kw: k })}`;
 const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slice(0, 2).join('');
-const newsId = n => `${n.y}-${n.m}-${n.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
+/* Open calls (PhD, postdoc…): news marked "Convocatoria abierta" in the panel, until the day after their deadline. */
+const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const openCalls = () => NEWS.filter(n => n.call && (!n.deadline || n.deadline >= localToday()));
+const fmtDay = iso => { const [y, m, d] = iso.split('-').map(Number); return `${d} ${MON[m]} ${y}`; };
+const callMeta = n => [t(n.callType === 'PhD' ? 'PhD' : n.callType === 'Postdoc' ? 'Postdoc' : 'Open call'), n.deadline ? t('Deadline: {d}', { d: fmtDay(n.deadline) }) : ''].filter(Boolean).join(' · ');
+const newsId = n => newsSlug(n.y, n.m, n.src);
 
 /* ---------- pieces ---------- */
 const imageFrame = (src, alt = '') => `<div class="photo-frame" data-gallery-img="${esc(src)}"><img src="${src}" alt="${esc(alt)}" loading="lazy"></div>`;
@@ -201,17 +215,11 @@ const openProfile = el => {
 };
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
-const pubRow = (r, i = 0, label, { showKeywords = false, highlightKeyword = '' } = {}) => {
-  const selected = keywordNorm(highlightKeyword);
-  const keywords = showKeywords ? [...new Set(asList(r.keywords))] : [];
-  const keywordTags = keywords.length ? `<ul class="pub-keywords" aria-label="${esc(t('Publication topics'))}">${keywords.map(keyword => {
-    const matched = selected && keywordNorm(keyword) === selected;
-    const tag = `<${matched ? 'mark' : 'span'} class="pub-keyword${matched ? ' is-match' : ''}" data-keyword="${esc(keyword)}">${esc(keywordLabel(keyword))}</${matched ? 'mark' : 'span'}>`;
-    return `<li>${tag}</li>`;
-  }).join('')}</ul>` : '';
-  return `<div class="row rv" style="--i:${i % 6}"><span class="yr">${r.y}</span>
-  <div class="t">${esc(localizeRecord(r.t))}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}${keywordTags}</div>`;
-};
+const rowSearch = r => fold([localizeRecord(r.t), ...r.kw.map(kwLabel), ...membersIn(r.t)].join(' '));
+const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}" data-q="${esc(rowSearch(r))}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}><span class="yr">${r.y}</span>
+  <div class="t">${esc(localizeRecord(r.t))}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
+/* Title and description of a fixed page (PAGE_META in js/routes.js). */
+const metaOf = (key, vars) => { const m = PAGE_META[key] || ['', '']; return [m[0], m[1] ? t(m[1], vars) : '']; };
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
   <div class="wrap"><nav class="crumbs" aria-label="${t('Breadcrumb')}"><a href="#/">${t('Home')}</a>${crumbs.map(c => `<span>/</span>${c[1] ? `<a href="${c[1]}">${t(c[0])}</a>` : `<span>${t(c[0])}</span>`}`).join('')}</nav>
   <h1>${esc(t(title))}</h1>${sub ? `<p class="lead">${esc(t(sub))}</p>` : ''}${subnav(path)}</div>
@@ -223,14 +231,51 @@ function subnav(path) {
 }
 const wrapPage = (head, body) => `${head}<section><div class="wrap">${body}</div></section>`;
 const years = rows => [...new Set(rows.map(r => r.y))].sort((a, b) => b - a);
-function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchKeyword = '', showKeywords = false } = {}) {
+function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '', keyword = '' } = {}) {
   const ys = years(rows);
+  const kwFilter = keyword ? `<a class="fchip on kwfilter" href="#/research/publications" data-kw-filter="${esc(keyword)}" aria-label="${esc(t('Remove keyword filter: {x}', { x: kwLabel(keyword) }))}">${esc(kwLabel(keyword))}<span aria-hidden="true">×</span></a>` : '';
   return `<div class="tools" data-list><button class="fchip on" data-y="all">${t('All')}</button>${ys.map(y => `<button class="fchip" data-y="${y}">${y}</button>`).join('')}
-    ${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchKeyword ? ` data-keyword="${esc(searchKeyword)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
-    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, { showKeywords, highlightKeyword: searchKeyword })).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
+    ${kwFilter}${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
+    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, keyword)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
-const prosePage = html => `<div class="prose">${html}</div>`;
-const flagged = txt => `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
+/* Long pages (data/pages.json): image paths are made absolute so they work at any address. */
+const prosePage = html => `<div class="prose">${String(html || '').replace(/(src|href)="(img\/)/g, '$1="/$2')}</div>`;
+/* "How to reach us": the floor-plan image of Edifici C becomes an interactive 3D model (js/building3d.js). */
+const buildingWidget = () => `<figure class="bldg" data-building>
+  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D model of Edifici C. The Optics Group is in C3 Parell, floor 0/−1, half a level below the ground floor. Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
+    <div class="bldg-labels" aria-hidden="true"></div><div class="bldg-tip" hidden></div>
+    <div class="bldg-hint" aria-hidden="true">${t('Use Ctrl or ⌘ + scroll to zoom')}</div>
+    <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript></div>
+  <figcaption class="bldg-bar">
+    <span class="bldg-key"><i></i>${t('Optics Group')} · ${t('C3 Parell · floor 0/−1')}</span>
+    <span class="bldg-btns">
+      <button type="button" class="bldg-btn" data-b="us">${t('Show us')}</button>
+      <button type="button" class="bldg-btn" data-b="top">${t('Top view')}</button>
+      <button type="button" class="bldg-btn" data-b="home">${t('Reset')}</button>
+      <button type="button" class="bldg-btn bldg-ico" data-b="out" aria-label="${esc(t('Zoom out'))}">−</button>
+      <button type="button" class="bldg-btn bldg-ico" data-b="in" aria-label="${esc(t('Zoom in'))}">+</button>
+      <button type="button" class="bldg-btn bldg-ico" data-b="auto" aria-pressed="false" aria-label="${esc(t('Rotate automatically'))}">⟳</button>
+    </span>
+  </figcaption>
+  <p class="bldg-help">${t('Drag to rotate · schematic model, not to scale')}</p>
+</figure>`;
+const reachPage = () => prosePage(PAGES_HTML.reach).replace(/<img[^>]*foto-mapa[^>]*>/, buildingWidget());
+let disposeBuilding = null;
+function mountBuilding(root) {
+  if (disposeBuilding) { disposeBuilding(); disposeBuilding = null; }
+  const el = $('[data-building]', root); if (!el) return;
+  const fallback = () => { el.classList.add('bldg-static'); $('.bldg-stage', el).innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
+  const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
+  if (!gl) return fallback();
+  const start = () => import('/js/building3d.js?v=63').then(m => {
+    if (!el.isConnected) return;
+    disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), names: { 'Central corridor': t('Central corridor'), 'C3B Parell ala': `${t('Optics Group')} · C3 Parell 0/−1` } } });
+  }).catch(err => { console.error(err); fallback(); });
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); start(); } }, { rootMargin: '300px' });
+  io.observe(el);
+}
+/* Editorial notes for the team: only visible with ?preview. */
+const flagged = txt => !PREVIEW ? '' : `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
 
 
 function newsBanner(items) {
@@ -248,21 +293,24 @@ const bannerItems = () => NEWS.filter(n => n.img.length).slice(0, 5);
 /* ---------- pages ---------- */
 const ROUTES = {
   home() {
-    const phd = NEWS.find(n => /Open PhD/i.test(n.en));
+    const call = openCalls()[0];
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
-    const topicLinks = TOPICS.map((topic, i) => {
-      const params = new URLSearchParams({ keyword: SOURCE_TOPICS[i] || topic });
-      return `<a class="pill" href="#/research/publications?${esc(params.toString())}">${esc(topic)}</a>`;
-    }).join('');
-    const topicCopies = TOPICS.map(topic => `<span class="pill" aria-hidden="true">${esc(topic)}</span>`).join('');
+    /* keyword ribbon: keywords shared by at least two publications, in random order on every visit */
+    const ribbon = KEYWORDS.filter(x => x.n >= 2).map(x => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    /* the track holds the list twice (links, then a copy for the seamless loop); a short list is repeated so the
+       ribbon is always wider than the screen */
+    const reps = Math.ceil(12 / Math.max(1, ribbon.length));
+    const topicLinks = ribbon.map(x => `<a class="pill" href="${esc(kwHref(x.k))}">${esc(x.label)}</a>`).join('')
+      + Array(reps - 1).fill(ribbon.map(x => `<span class="pill" aria-hidden="true">${esc(x.label)}</span>`).join('')).join('');
+    const topicCopies = Array(reps).fill(ribbon.map(x => `<span class="pill" aria-hidden="true">${esc(x.label)}</span>`).join('')).join('');
     return `<section class="hero"><canvas class="bg"></canvas>
       <div class="wrap"><div class="eyebrow">${esc(SITE.hero_eyebrow)}</div>
       <h1 class="display">${esc(SITE.hero_title)}</h1>
       <p class="lead">${esc(SITE.hero_subtitle)}</p>
-      <div class="hero-actions"><a class="btn" href="#/research/publications">${t('Explore our research')} ${ARR}</a><a class="btn btn-ghost" href="#/join">${t('Join us')} ${ARR}</a></div></div>
+      <div class="hero-actions"><a class="btn" href="#/research/lines">${t('Explore our research')} ${ARR}</a><a class="btn btn-ghost" href="#/join">${t('Join us')} ${ARR}</a></div></div>
       <canvas class="dissolve" data-color="#040f20"></canvas></section>
-    <nav class="marquee" aria-label="${esc(t('Publication topics'))}"><div class="track">${topicLinks}${topicCopies}</div></nav>
+    ${ribbon.length ? `<nav class="marquee" aria-label="${esc(t('Publication topics'))}"><div class="track" style="--dur:${Math.max(40, ribbon.length * reps * 3.75)}s">${topicLinks}${topicCopies}</div></nav>` : ''}
     <section class="dark" style="padding-block:60px"><div class="wrap"><div class="stats">
       ${[[PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents & registrations'], [PEOPLE.length, 'Current members']].map(([n, l]) => `<div class="stat rv"><b data-count="${n}">0</b><span>${t(l)}</span></div>`).join('')}
     </div></div></section>
@@ -270,111 +318,104 @@ const ROUTES = {
       ${newsBanner(bannerItems())}</div></section>
     <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">${t('Research')}</div><h2 class="sec">${t('Two research lines, one shared language')}</h2>
       <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div></div></section>
-    <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t("What's happening")}</h2></div><a class="btn btn-line" href="#/news">${t('See the calendar')} ${ARR}</a></div>
+    <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t('Recent events')}</h2></div><a class="btn btn-line" href="#/news?cat=Event">${t('All events')} ${ARR}</a></div>
       <p class="lead">${t('Workshops, conferences and visits hosted or attended by the group.')}</p>
       <div>${events.map((n, i) => `<a class="row rv" style="--i:${i};text-decoration:none" href="#/news/${newsId(n)}"><span class="yr">${MON[n.m]} ${n.y}</span><div class="t"><b>${esc(n.title)}</b></div><span class="go">${t('Details')}</span></a>`).join('')}</div></div></section>
     <section style="padding-top:0"><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Recent')}</div><h2 class="sec">${t('New publications')}</h2></div><a class="btn btn-line" href="#/research/publications">${t('All publications')} ${ARR}</a></div>
       ${PUBS.slice(0, 4).map((r, i) => pubRow(r, i, 'Paper')).join('')}</div></section>
     <section class="dark"><div class="wrap"><div class="head"><div><div class="eyebrow">${t('People')}</div><h2 class="sec">${t('Meet the team')}</h2></div><a class="btn btn-ghost" href="#/people/current">${t('Full team')} ${ARR}</a></div>
       <div class="grid g4 people">${pis.map(personCard).join('')}</div></div></section>
-    <section><div class="wrap"><div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('Join us')}</div><h2>${phd ? esc(phd.title) : t('Open positions')}</h2><p>${phd ? esc(phd.text[0]) : t('Check our current opportunities.')}</p></div>
+    <section><div class="wrap"><div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('Join us')}${call ? ` · ${esc(callMeta(call))}` : ''}</div><h2>${call ? esc(call.title) : t('Work with us')}</h2><p>${call ? esc(call.text[0]) : t('Interested in a PhD, a master thesis or a research stay? Get in touch.')}</p></div>
       <div><a class="btn" href="#/join">${t('See opportunities')} ${ARR}</a></div></div></div></section>`;
   },
   research(p, query) {
-    const k = p[1] || 'lines', h = (ti, s) => pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]);
-    if (k === 'publications') {
-      const keyword = query.get('keyword') || query.get('match') || '';
-      return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', {
-        linkLabel: 'Paper', searchValue: query.get('search') || (keyword ? keywordLabel(keyword) : ''),
-        searchKeyword: keyword, showKeywords: true,
-      }));
-    }
-    if (k === 'patents') return wrapPage(h('Patents', 'Registered inventions and technology transfer.'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
-    if (k === 'theses') return wrapPage(h('PhD theses', 'Doctoral theses defended in the group.'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
-    if (k === 'datasets') return wrapPage(h('Datasets & software', 'Open resources released by the group.'), prosePage(PAGES_HTML.datasets));
-    if (k === 'collaborations') return wrapPage(h('Recent collaborations', 'Groups and institutions we work with.'), prosePage(PAGES_HTML.collaborations));
-    return `${h('Research lines', 'Two complementary lines of investigation: classical and quantum.')}<section><div class="wrap"><div class="grid g2">
+    const k = p[1] || 'lines', h = key => { const [ti, s] = metaOf(`research/${key}`); return pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]); };
+    if (k === 'publications') return wrapPage(h('publications'), listPage(PUBS, 'publications', {
+      linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '', keyword: query.get('kw') || '',
+    }));
+    if (k === 'patents') return wrapPage(h('patents'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
+    if (k === 'theses') return wrapPage(h('theses'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
+    if (k === 'datasets') return wrapPage(h('datasets'), prosePage(PAGES_HTML.datasets));
+    if (k === 'collaborations') return wrapPage(h('collaborations'), prosePage(PAGES_HTML.collaborations));
+    return `${h('lines')}<section><div class="wrap"><div class="grid g2">
       ${LINES.map((l, i) => `<div class="line rv" style="--i:${i};background:var(--navy-900);color:#fff"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
       <p style="margin-top:34px"><a class="btn" href="#/research/publications">${t('See publications')} ${ARR}</a></p></div></section>`;
   },
   people(p) {
-    const k = p[1] || 'current', h = (ti, s) => pageHead(p, ti, s, [['People', '#/people/current'], [ti]]);
+    const k = p[1] || 'current', h = key => { const [ti, s] = metaOf(`people/${key}`, { n: PEOPLE.length }); return pageHead(p, ti, s, [['People', '#/people/current'], [ti]]); };
     const grp = names => names.map(g => { const l = PEOPLE.filter(x => x.group === g); return l.length ? `<div class="grp">${t(g)}</div><div class="grid g4 people">${l.map(personCard).join('')}</div>` : ''; }).join('');
-    if (k === 'investigators') return wrapPage(h('Principal investigators', 'Academic staff leading the group.'), grp(['Staff']));
-    if (k === 'students') return wrapPage(h('PhD students & postdocs', 'Early-career researchers.'), grp(['Postdoctoral researchers', 'PhD students']));
-    if (k === 'honorary') return wrapPage(h('Honorary professors', 'Emeritus and honorary members.'), grp(['Emeritus & honorary professors']));
-    if (k === 'alumni') return wrapPage(h('Former members', 'Colleagues who have been part of the group.'), `<div class="prose formerlist">${FORMER}</div>`);
-    return wrapPage(h('Current team', t('{n} people working on light-matter and quantum systems.', { n: PEOPLE.length })), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
+    if (k === 'investigators') return wrapPage(h('investigators'), grp(['Staff']));
+    if (k === 'students') return wrapPage(h('students'), grp(['Postdoctoral researchers', 'PhD students']));
+    if (k === 'honorary') return wrapPage(h('honorary'), grp(['Emeritus & honorary professors']));
+    if (k === 'alumni') return wrapPage(h('alumni'), `<div class="prose formerlist">${FORMER}</div>`);
+    return wrapPage(h('current'), grp(['Staff', 'Emeritus & honorary professors', 'Postdoctoral researchers', 'PhD students', 'Associated professors']));
   },
   teaching(p) {
-    const k = p[1] || 'courses', h = (ti, s) => pageHead(p, ti, s, [['Teaching', '#/teaching/courses'], [ti]]);
-    if (k === 'master-thesis') return wrapPage(h('Master theses', 'Master projects supervised by the group.'), listPage(MASTER, 'master theses', { linkLabel: 'Open' }));
-    if (k === 'seminars') return wrapPage(h('Seminars & summer schools', 'Scientific events organised by the group.'), flagged('The current website has no dedicated seminars page. Workshops and events appear in <a href="#/news">News</a>; please provide the seminar listing.') + `<div class="grid g3">${NEWS.filter(n => n.cat === 'Event').map(newsCard).join('')}</div>`);
-    return wrapPage(h('Courses', 'Bachelor and master programmes where the group teaches.'), prosePage(PAGES_HTML.courses));
+    const k = p[1] || 'courses', h = key => { const [ti, s] = metaOf(`teaching/${key}`); return pageHead(p, ti, s, [['Teaching', '#/teaching/courses'], [ti]]); };
+    if (k === 'master-thesis') return wrapPage(h('master-thesis'), listPage(MASTER, 'master theses', { linkLabel: 'Open' }));
+    if (k === 'seminars') return wrapPage(h('seminars'), flagged('The current website has no dedicated seminars page. Workshops and events appear in <a href="#/news">News</a>; please provide the seminar listing.') + `<div class="grid g3">${NEWS.filter(n => n.cat === 'Event').map(newsCard).join('')}</div>`);
+    return wrapPage(h('courses'), prosePage(PAGES_HTML.courses));
   },
   outreach(p) {
-    const k = p[1] || 'activities', h = (ti, s) => pageHead(p, ti, s, [['Outreach', '#/outreach/activities'], [ti]]);
-    if (k === 'talks') return wrapPage(h('Talks', 'Outreach talks and gender-equality actions.'), prosePage(GENDER_TALKS));
-    if (k === 'interviews') return wrapPage(h('Interviews & press', 'The group in journals, radio, podcasts and webinars.'), prosePage(INTERVIEWS));
-    if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('Photo gallery', 'Moments from the life of the group.'), `<div class="gallery">${all.map(([s, t]) => imageFrame(s, t)).join('')}</div>`); }
-    return wrapPage(h('Activities & workshops', 'Bringing optics and photonics to society.'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">${t('Recent outreach news')}</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
+    const k = p[1] || 'activities', h = key => { const [ti, s] = metaOf(`outreach/${key}`); return pageHead(p, ti, s, [['Outreach', '#/outreach/activities'], [ti]]); };
+    if (k === 'talks') return wrapPage(h('talks'), prosePage(GENDER_TALKS));
+    if (k === 'interviews') return wrapPage(h('interviews'), prosePage(INTERVIEWS));
+    if (k === 'gallery') { const all = NEWS.flatMap(n => n.img.map(i => [i, n.title])); return wrapPage(h('gallery'), `<div class="gallery">${all.map(([src, title]) => imageFrame(src, title).replace('<div class="photo-frame"', `<div class="photo-frame" tabindex="0" role="button" aria-label="${esc(t('Enlarge photo'))}"`)).join('')}</div>`); }
+    return wrapPage(h('activities'), prosePage(PAGES_HTML.outreach) + `<div class="grp" style="margin-top:50px">${t('Recent outreach news')}</div><div class="grid g3">${NEWS.filter(n => n.cat === 'Outreach' || n.cat === 'Event').slice(0, 6).map(newsCard).join('')}</div>`);
   },
-  news(p) {
+  news(p, query) {
     const id = p[1];
     if (id) {
       const n = NEWS.find(x => newsId(x) === id);
       if (n) return `${pageHead(p, n.title, `${MON[n.m]} ${n.y} · ${t(n.cat)}`, [['News', '#/news'], [n.cat]])}<section><div class="wrap">
-        <div class="prose art">${n.text.map((t, k) => `<p${k ? '' : ' class="lead"'}>${allowLinks(t)}</p>`).join('')}${n.link ? `<p><a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('More information')} ${I_EXT}</a></p>` : ''}</div>
+        <div class="prose art">${n.text.map((t, k) => `<p${k ? '' : ' class="lead"'}>${esc(t)}</p>`).join('')}${n.link ? `<p><a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('More information')} ${I_EXT}</a></p>` : ''}</div>
         ${n.img.length ? `<div class="figs" data-n="${n.img.length}">${n.img.map(i => `<figure><img src="${i}" alt="${esc(n.title)}"></figure>`).join('')}</div>` : ''}
         <p class="prose"><a class="inl" href="#/news">${I_LEFT} ${t('All news')}</a></p></div></section>`;
     }
     const cats = [...new Set(NEWS.map(n => n.cat))], ys = years(NEWS);
-    return `${pageHead(p, 'News', 'Events, publications, awards and life in the group.', [['News']])}<section><div class="wrap">
+    const cat = cats.includes(query.get('cat')) ? query.get('cat') : 'all';
+    return `${pageHead(p, ...metaOf('news'), [['News']])}<section><div class="wrap">
       ${newsBanner(bannerItems())}<div class="grp" style="margin-top:50px">${t('All news')}</div>
-      <div class="tools" data-news><button class="fchip on" data-c="all">${t('All')}</button>${cats.map(c => `<button class="fchip" data-c="${c}">${t(c)}</button>`).join('')}<span style="flex:1"></span>
+      <div class="tools" data-news data-cat="${esc(cat)}"><button class="fchip${cat === 'all' ? ' on' : ''}" data-c="all">${t('All')}</button>${cats.map(c => `<button class="fchip${cat === c ? ' on' : ''}" data-c="${c}">${t(c)}</button>`).join('')}<span style="flex:1"></span>
       ${selectControl('news-year', t('Year'), [['all', t('All years')], ...ys.map(y => [String(y), String(y)])], 'all', '', 'ui-select-filter')}</div>
       <div class="grid g3" id="newsgrid">${NEWS.map((n, i) => newsCard(n, i % 3).replace('class="card', `data-c="${n.cat}" data-y="${n.y}" class="card`)).join('')}</div><div class="empty" id="none" hidden>${t('No news match.')}</div></div></section>`;
   },
   join(p) {
-    const phd = NEWS.find(n => /Open PhD/i.test(n.en));
-    return `${pageHead(p, 'Join us', 'Research positions, theses and visits in optics and photonics.', [['Join us']])}<section><div class="wrap">
+    const calls = openCalls();
+    return `${pageHead(p, ...metaOf('join'), [['Join us']])}<section><div class="wrap">
       <div class="head"><div><div class="eyebrow">${t('Open positions')}</div><h2 class="sec">${t('PhD & postdoc opportunities')}</h2></div></div>
-      ${phd ? `<div class="call"><canvas class="bg"></canvas><div><div class="eyebrow">${t('PhD')} · ${MON[phd.m]} ${phd.y}</div><h2>${esc(phd.title)}</h2>${phd.text.map(t => `<p>${esc(t)}</p>`).join('')}</div><div>${phd.link ? `<a class="btn" href="${esc(phd.link)}" target="_blank" rel="noopener">${t('PHYNEST call')} ${I_EXT}</a>` : ''}</div></div>` : ''}
-      ${flagged('Postdoc positions are not listed on the current website; this block is ready for them.')}
+      ${calls.length ? calls.map(n => `<div class="call" style="margin-bottom:24px"><canvas class="bg"></canvas><div><div class="eyebrow">${esc(callMeta(n))}</div><h2>${esc(n.title)}</h2>${n.text.map(p => `<p>${esc(p)}</p>`).join('')}</div><div>${n.link ? `<a class="btn" href="${esc(n.link)}" target="_blank" rel="noopener">${t('Call details')} ${I_EXT}</a>` : `<a class="btn" href="#/contact">${t('Contact us')} ${ARR}</a>`}</div></div>`).join('')
+        : `<div class="prose"><p class="lead">${t('There are no open calls right now. New positions are announced here and in News; you can also write to us about upcoming opportunities.')}</p><p><a class="btn btn-line" href="#/contact">${t('Contact us')} ${ARR}</a></p></div>`}
       <div class="grp" style="margin-top:60px">${t('How to apply')}</div>
       <div class="steps">${[['Explore', 'Read our research lines and publications.'], ['Contact', 'Write to a supervisor with your CV and interests.'], ['Apply', 'Submit the official call documentation.'], ['Join', 'Start your project in the group.']].map(([ti, d], i) => `<div class="step rv" style="--i:${i}"><h3>${t('step:' + ti)}</h3><p>${t(d)}</p></div>`).join('')}</div>
-      <div class="grp" style="margin-top:60px">${t('FAQ')}</div><div style="max-width:800px">${[['Which programmes can I apply through?', 'The group offers projects within the PHYNEST (Horizon Europe MSCA COFUND) doctoral programme, coordinated by UAB.'], ['Who do I contact?', 'Principal investigators are listed in People; write to them directly about available projects.'], ['Can I do a Master or Bachelor thesis?', 'Yes. See the Teaching section for past master theses and programmes.']].map(([q, a]) => `<details><summary>${t(q)}</summary><p>${t(a)}</p></details>`).join('')}</div>
+      <div class="grp" style="margin-top:60px">${t('FAQ')}</div><div style="max-width:800px">${[['Which programmes can I apply through?', 'Each open call above links to its official programme. In recent years the group has offered projects within PHYNEST, a Horizon Europe MSCA COFUND doctoral programme coordinated by UAB.'], ['Who do I contact?', 'Principal investigators are listed in People; write to them directly about available projects.'], ['Can I do a Master or Bachelor thesis?', 'Yes. See the Teaching section for past master theses and programmes.']].map(([q, a]) => `<details><summary>${t(q)}</summary><p>${t(a)}</p></details>`).join('')}</div>
       <p style="margin-top:40px"><a class="btn" href="#/contact">${t('Contact supervisors')} ${ARR}</a></p></div></section>`;
   },
   about(p) {
-    const k = p[1] || 'mission', h = (ti, s) => pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]);
-    if (k === 'funding') return wrapPage(h('Funding & grants', ''), flagged('No funding information on the current website. Please provide projects, grants and logos.'));
-    if (k === 'climate') return wrapPage(h('Climate commitment', ''), flagged('The climate-actions page of the current website is empty. Please provide the content.'));
-    if (k === 'gender') return wrapPage(h('Gender & equality', 'Actions promoting equality in physics.'), prosePage(PAGES_HTML.gender));
-    if (k === 'reach') return wrapPage(h('How to reach us', ''), prosePage(PAGES_HTML.reach));
-    return wrapPage(h('Mission & history', 'Light, from fundamentals to applications.'), `<div class="prose"><p>${t('The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.')}</p></div>
+    const k = p[1] || 'mission', h = key => { const [ti, s] = metaOf(`about/${key}`); return pageHead(p, ti, s, [['About', '#/about/mission'], [ti]]); };
+    if (k === 'funding') return wrapPage(h('funding'), flagged('No funding information on the current website. Please provide projects, grants and logos.'));
+    if (k === 'climate') return wrapPage(h('climate'), flagged('The climate-actions page of the current website is empty. Please provide the content.'));
+    if (k === 'gender') return wrapPage(h('gender'), prosePage(PAGES_HTML.gender));
+    if (k === 'reach') return wrapPage(h('reach'), reachPage());
+    return wrapPage(h('mission'), `<div class="prose"><p>${t('The Optics Group is a team of researchers at the Physics Department of the Universitat Autònoma de Barcelona who specialise in the study of light and its applications, spanning classical and quantum optics.')}</p></div>
       <div class="stats" style="margin-top:40px;border-color:var(--line)">${[[PEOPLE.length, 'Members'], [PUBS.length, 'Publications listed'], [THESES.length, 'PhD theses'], [PATENTS.length, 'Patents']].map(([n, l]) => `<div class="stat" style="border-color:var(--line)"><b data-count="${n}">0</b><span style="color:var(--muted)">${t(l)}</span></div>`).join('')}</div>${flagged('A fuller history of the group can be added here.')}`);
   },
   contact(p) {
-    return `${pageHead(p, 'Contact', 'Write to us or find us on campus.', [['Contact']])}<section><div class="wrap two">
+    return `${pageHead(p, ...metaOf('contact'), [['Contact']])}<section><div class="wrap two">
       <form class="f" id="cform"><label>${t('Name')}<input required name="name" autocomplete="name" maxlength="120"></label><label>${t('Your email')}<input required type="email" name="email" autocomplete="email" maxlength="200"></label>
         <label>${t('Topic')}${selectControl('contact-topic', t('Topic'), ['General', 'PhD / postdoc', 'Collaboration', 'Press'].map(o => [o, t(o)]), 'General', 'topic', 'ui-select-field')}</label><label>${t('Message')}<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
         <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
         <button class="btn" type="submit" style="justify-self:start">${t('Send message')} ${ARR}</button><p class="fstatus" role="status" aria-live="polite"></p></form>
-      <div class="prose"><h2 style="margin-top:0">${t('Find us')}</h2><p>${t('Physics Department, Facultat de Ciències, Edifici C (area C3 Parell)')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a class="inl" href="#/about/reach">${t('How to reach us')} ${I_RIGHT}</a></p></div></div></section>`;
+      <div class="prose"><h2 style="margin-top:0">${t('Find us')}</h2><p>${t('Physics Department, Facultat de Ciències, Edifici C (C3 Parell, floor 0/−1)')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra (Cerdanyola del Vallès)</p><p><a class="inl" href="#/about/reach">${t('How to reach us')} ${I_RIGHT}</a></p></div></div></section>`;
   },
 };
 
 /* ---------- router ---------- */
 const main = $('#main'), header = $('#header');
-const PRE_RENDERED_DOCUMENT = Boolean($('.static-page', main));
-const PRE_RENDERED_LANG = document.documentElement.lang;
-const preservePreRenderedMetadata = () => PRE_RENDERED_DOCUMENT && !location.hash.startsWith('#/') && LANG === PRE_RENDERED_LANG;
-/* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway. */
-const PREVIEW = new URLSearchParams(location.search).has('preview');
+/* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway (PREVIEW, defined above). */
 function updateChrome() {
   document.documentElement.lang = LANG;
-  if (!preservePreRenderedMetadata()) $('meta[name="description"]').content = DESC[LANG] || DESC.en;
+  const meta = $('meta[name="description"]'); if (meta) meta.content = DESC[LANG] || DESC.en;
   $$('[data-i18n]').forEach(el => { el.dataset.i18nSource ||= el.textContent; el.textContent = t(el.dataset.i18nSource); });
   $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
   $('#lang-label').textContent = t('Language');
@@ -385,10 +426,10 @@ function updateChrome() {
   $('#footbrand').textContent = t('Optics Group · UAB');
   $('#footaddress').innerHTML = `${t('Physics Department, Facultat de Ciències, Edifici C')}<br>Universitat Autònoma de Barcelona<br>E-08193 Bellaterra`;
   $('#footlegal').textContent = t('Optics Group UAB');
+  linkify(header); linkify($('.site-footer'));
 }
 function showLoadError() {
   main.innerHTML = `<section><div class="wrap"><h1>${t('Content could not be loaded')}</h1><p>${t('Please reload the page in a few seconds.')}</p></div></section>`;
-  main.classList.add('ready');
 }
 function renderMaintenance() {
   document.body.classList.add('maint');
@@ -398,41 +439,135 @@ function renderMaintenance() {
     <div class="eyebrow">${t('Optics Group · Universitat Autònoma de Barcelona')}</div>
     <h1>${esc(MAINT.title || t('Under maintenance'))}</h1>
     ${paras(MAINT.message || 'We are improving the website. Please come back soon.').map(t => `<p class="lead">${esc(t)}</p>`).join('')}</div></section>`;
-  main.classList.add('ready');
   $$('canvas.bg', main).forEach(c => startBackground(c, { size: 34 }));
   $$('canvas.gears', main).forEach(startGears);
+}
+/* ---------- addresses ----------
+   Pages live at real addresses (/research/publications, /es/news/…); templates write internal links as "#/path" and
+   linkify() turns them into real addresses for the current language. Old "#/…" links are redirected on load. */
+const pagePath = (path, lang = LANG) => `${LANG_PREFIX[lang]}/${path ? `${path}/` : ''}`;
+const toUrl = (route, lang = LANG) => {
+  const [path, query = ''] = String(route).replace(/^#?\/?/, '').split('?');
+  const params = new URLSearchParams(query); params.delete('preview');
+  let qs = params.toString();
+  if (PREVIEW) qs = qs ? `${qs}&preview` : 'preview';
+  return pagePath(path.replace(/\/+$/, ''), lang) + (qs ? `?${qs}` : '');
+};
+function linkify(root) {
+  $$('a[href^="#/"]', root).forEach(a => a.setAttribute('href', toUrl(a.getAttribute('href'))));
+}
+/* Current route: path segments without the language prefix, and the query. */
+function currentRoute() {
+  const path = location.pathname.replace(/^\/(es|ca)(?=\/|$)/, '').replace(/\/index\.html$/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  return { path, query: new URLSearchParams(location.search) };
+}
+/* Closest news item to an address that no longer exists (e.g. after its title was corrected). */
+function similarNews(id) {
+  const words = x => new Set(x.split('-').filter(w => w.length > 2 && !/^\d+$/.test(w)));
+  const want = words(id), prefix = id.split('-').slice(0, 2).join('-');
+  let best = null, score = 0;
+  NEWS.forEach(n => {
+    const nid = newsId(n), have = words(nid);
+    const common = [...want].filter(w => have.has(w)).length / Math.max(1, Math.min(want.size, have.size));
+    const s = common + (nid.startsWith(prefix + '-') ? 0.25 : 0);
+    if (s > score) { score = s; best = n; }
+  });
+  return score >= 0.75 ? best : null;
+}
+/* Decide what an address shows: a page, a redirect (alias, renamed news, draft) or "not found". */
+function resolve({ path, query }) {
+  const [sec = '', sub = ''] = path;
+  if (!sec) return { key: 'home', path };
+  if (path.length === 1 && SECTION_HOME[sec]) return { redirect: SECTION_HOME[sec] };
+  if (sec === 'news' && sub) {
+    if (path.length > 2) return { notFound: true };
+    if (NEWS.some(n => newsId(n) === sub)) return { key: 'news', path };
+    const near = similarNews(sub);
+    return near ? { redirect: `news/${newsId(near)}` } : { notFound: true };
+  }
+  const page = path.join('/');
+  if (!PAGE_META[page]) return { notFound: true };
+  if (isDraftPath(page, PREVIEW)) return { redirect: SECTION_HOME[sec] || '' };
+  return { key: sec, path };
+}
+function notFoundPage() {
+  return `<header class="phead"><canvas class="bg"></canvas><div class="wrap"><div class="eyebrow">404</div><h1>${t('Page not found')}</h1>
+    <p class="lead">${t('The address may have changed or the page no longer exists.')}</p></div><canvas class="dissolve" data-color="#f4f7fb"></canvas></header>
+    <section><div class="wrap"><p><a class="btn" href="#/">${t('Home')} ${ARR}</a> <a class="btn btn-line" href="#/news">${t('All news')} ${ARR}</a> <a class="btn btn-line" href="#/contact">${t('Contact us')} ${ARR}</a></p></div></section>`;
+}
+/* Head tags that change from page to page (the static copies written by tools/build-pages.mjs carry them too). */
+function setHead(title, description, canonicalRoute) {
+  document.title = title;
+  let meta = $('meta[name="description"]');
+  if (!meta) { meta = Object.assign(document.createElement('meta'), { name: 'description' }); document.head.appendChild(meta); }
+  meta.content = description;
+  $$('link[rel="canonical"], link[rel="alternate"][hreflang], meta[name="robots"]').forEach(el => el.remove());
+  if (canonicalRoute === null) { document.head.appendChild(Object.assign(document.createElement('meta'), { name: 'robots', content: 'noindex' })); return; }
+  const add = (rel, href, hreflang) => document.head.appendChild(Object.assign(document.createElement('link'), { rel, href }, hreflang ? { hreflang } : {}));
+  add('canonical', SITE_URL + pagePath(canonicalRoute));
+  LANGS.forEach(([code]) => add('alternate', SITE_URL + pagePath(canonicalRoute, code), code));
+  add('alternate', SITE_URL + pagePath(canonicalRoute, 'en'), 'x-default');
 }
 function render() {
   if (MAINT.enabled && !PREVIEW) return renderMaintenance();
   document.body.classList.remove('maint');
-  const hash = location.hash.startsWith('#/') ? location.hash.slice(1) : '';
-  const hasHashRoute = Boolean(hash);
-  const routeSource = hasHashRoute ? hash : location.pathname;
-  const queryIndex = routeSource.indexOf('?');
-  const hashPath = queryIndex < 0 ? routeSource : routeSource.slice(0, queryIndex);
-  const queryString = hasHashRoute ? (queryIndex < 0 ? '' : routeSource.slice(queryIndex + 1)) : location.search.slice(1);
-  const query = new URLSearchParams(queryString);
-  const path = hashPath.replace(/^\/?/, '').split('/').filter(Boolean);
-  if (!hasHashRoute && ['es', 'ca'].includes(path[0])) path.shift();
-  if (!hasHashRoute && path[path.length - 1] === 'index.html') path.pop();
-  const key = path[0] || 'home';
-  if (!hasHashRoute && path.length && !ROUTES[key] && PRE_RENDERED_DOCUMENT) {
-    main.classList.add('ready');
-    return;
+  const route = currentRoute(), r = resolve(route);
+  if (r.redirect !== undefined) {
+    history.replaceState(history.state, '', toUrl(`${r.redirect}?${route.query}`));
+    return render();
   }
-  main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path, query)}</div>`;
-  main.classList.add('ready');
+  const key = r.notFound ? 'notfound' : r.key;
+  main.innerHTML = `<div class="pg">${r.notFound ? notFoundPage() : ROUTES[key](r.path || [], route.query)}</div>`;
   updateChrome();
+  linkify(main);
   $$('.nav a.top').forEach(a => a.classList.toggle('on', a.dataset.k === key));
-  if (!preservePreRenderedMetadata()) document.title = `${main.querySelector('h1')?.textContent || t('Optics Group')} · ${t('Optics Group · UAB')}`;
-  if (hasHashRoute) scrollTo({ top: 0, behavior: 'instant' });
+  const h1 = main.querySelector('h1')?.textContent.trim();
+  const lead = main.querySelector('.phead .lead, .hero .lead')?.textContent.trim();
+  const site = t('Optics Group · UAB');
+  setHead(key === 'home' || !h1 ? site : `${h1} · ${site}`, (key !== 'home' && lead) || DESC[LANG] || DESC.en,
+    r.notFound ? null : route.path.join('/'));
+  document.documentElement.toggleAttribute('data-notfound', !!r.notFound);
+  const y = history.state && typeof history.state.y === 'number' ? history.state.y : 0;
+  scrollTo({ top: y, behavior: 'instant' });
   closeMenu(); mount(main);
 }
+/* In-site navigation without reloading the page. */
+function navigate(url, { replace = false } = {}) {
+  history.replaceState({ ...(history.state || {}), y: scrollY }, '');
+  const next = new URL(url, location.href);
+  const nextLang = langOfPath(next.pathname);
+  if (replace) history.replaceState({ y: 0 }, '', next.pathname + next.search + next.hash);
+  else history.pushState({ y: 0 }, '', next.pathname + next.search + next.hash);
+  if (nextLang !== LANG) { LANG = nextLang; MON = MONTHS[LANG]; updateChrome(); loadData().then(render).catch(err => { console.error(err); showLoadError(); }); }
+  else render();
+}
+document.addEventListener('click', e => {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const a = e.target instanceof Element ? e.target.closest('a[href]') : null;
+  if (!a || a.target || a.hasAttribute('download')) return;
+  const url = new URL(a.href, location.href);
+  if (url.origin !== location.origin || /\.[a-z0-9]{2,5}$/i.test(url.pathname)) return;
+  if (url.pathname === location.pathname && url.search === location.search && url.hash) return; /* in-page anchor (#main) */
+  e.preventDefault();
+  navigate(url.href);
+});
+addEventListener('popstate', () => {
+  const lang = langOfPath(location.pathname);
+  if (lang !== LANG) { LANG = lang; MON = MONTHS[LANG]; updateChrome(); loadData().then(render).catch(err => { console.error(err); showLoadError(); }); }
+  else render();
+});
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 function mount(root) {
   $$('canvas.bg', root).forEach(c => startBackground(c, { size: c.closest('.call') ? 26 : 34 }));
   $$('canvas.dissolve', root).forEach(dissolve);
   initPhotoReveals(root);
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+  /* reveal on scroll; once shown, the reveal classes are removed so the element's own hover effects and transitions apply */
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target; io.unobserve(el); el.classList.add('in');
+    const delay = REDUCED ? 0 : 850 + (parseFloat(getComputedStyle(el).getPropertyValue('--i')) || 0) * 70;
+    setTimeout(() => el.classList.remove('rv', 'in'), delay);
+  }), { threshold: .12 });
   $$('.rv', root).forEach(el => io.observe(el));
   const cio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; cio.unobserve(e.target); counter(e.target); }));
   $$('[data-count]', root).forEach(el => cio.observe(el));
@@ -453,37 +588,22 @@ function mount(root) {
   const lst = $('[data-list]', root);
   if (lst) {
     const input = $('.search', lst);
-    const hashRoute = location.hash.startsWith('#/') ? location.hash : '';
-    const queryIndex = hashRoute.indexOf('?');
-    const route = queryIndex < 0 ? hashRoute : hashRoute.slice(0, queryIndex);
-    const params = new URLSearchParams(hashRoute ? (queryIndex < 0 ? '' : hashRoute.slice(queryIndex + 1)) : location.search.slice(1));
-    const syncSearch = route === '#/research/publications';
-    let y = 'all', q = (params.get('search') || input?.value || '').trim().toLowerCase();
-    let keyword = (params.get('keyword') || params.get('match') || input?.dataset.keyword || '').trim();
-    const apply = () => {
-      let n = 0;
-      $$('#rows .row').forEach(r => {
-        const text = r.textContent.toLowerCase();
-        const queryMatch = keyword
-          ? $$('.pub-keyword', r).some(tag => keywordNorm(tag.dataset.keyword) === keywordNorm(keyword))
-          : (!q || text.includes(q));
-        const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch;
-        r.hidden = !ok; n += ok;
-      });
-      $('#none').hidden = n > 0;
-    };
-    lst.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
+    const params = new URLSearchParams(location.search);
+    const syncSearch = currentRoute().path.join('/') === 'research/publications';
+    let y = 'all', q = fold(input?.value), match = fold(input?.dataset.match);
+    const kw = $('[data-kw-filter]', lst)?.dataset.kwFilter || '';
+    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.dataset.q || fold(r.textContent); const queryMatch = !q || q.split(' ').every(w => text.includes(w)) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    lst.addEventListener('click', e => { const b = e.target.closest('.fchip[data-y]'); if (!b) return; $$('.fchip[data-y]', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
     input?.addEventListener('input', e => {
       const value = e.target.value.trim();
-      q = value.toLowerCase();
-      keyword = '';
-      e.target.removeAttribute('data-keyword');
+      q = fold(value);
+      match = '';
+      e.target.removeAttribute('data-match');
       if (syncSearch) {
         if (value) params.set('search', value); else params.delete('search');
-        params.delete('keyword');
         params.delete('match');
-        const queryString = params.toString();
-        history.replaceState(history.state, '', `${location.pathname}${location.search}${route}${queryString ? `?${queryString}` : ''}`);
+        const queryString = params.toString().replace(/(^|&)preview=(?=&|$)/, '$1preview');
+        history.replaceState(history.state, '', `${location.pathname}${queryString ? `?${queryString}` : ''}`);
       }
       apply();
     });
@@ -491,12 +611,14 @@ function mount(root) {
   }
   const nl = $('[data-news]', root);
   if (nl) {
-    let c = 'all', y = 'all';
+    let c = nl.dataset.cat || 'all', y = 'all';
     const apply = () => { let n = 0; $$('#newsgrid .card').forEach(el => { const ok = (c === 'all' || el.dataset.c === c) && (y === 'all' || el.dataset.y === y); el.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    if (c !== 'all') apply();
     nl.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', nl).forEach(x => x.classList.toggle('on', x === b)); c = b.dataset.c; apply(); });
     $('[data-ui-select-value]', nl)?.addEventListener('change', e => { y = e.target.value; apply(); });
   }
   $('#cform', root)?.addEventListener('submit', sendContact);
+  mountBuilding(root);
 }
 
 function banner(root) {
@@ -599,12 +721,9 @@ langMenu.addEventListener('click', async e => {
   const nextLang = option.dataset.lang;
   closeLanguageMenu(true);
   if (nextLang === LANG) return;
-  LANG = nextLang;
-  MON = MONTHS[LANG];
-  try { localStorage.setItem('lang', LANG); } catch (e) { /* selection still works for this page load */ }
-  updateChrome();
-  try { await loadData(); render(); }
-  catch (err) { console.error(err); showLoadError(); }
+  try { localStorage.setItem('lang', nextLang); } catch (e) { /* the address keeps the choice anyway */ }
+  const { path, query } = currentRoute();
+  navigate(toUrl(`${path.join('/')}?${query}`, nextLang));
 });
 langPicker.addEventListener('focusout', e => { if (!langPicker.contains(e.relatedTarget)) closeLanguageMenu(); });
 document.addEventListener('click', e => { if (!langPicker.contains(e.target)) closeLanguageMenu(); });
@@ -721,56 +840,52 @@ addEventListener('scroll', () => {
   header.classList.toggle('solid', scrollY > 40);
   $('#progress').style.transform = `scaleX(${scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight)})`;
 }, { passive: true });
-
-// gallery lightbox
-let galleryImages = [];
-let currentImageIndex = 0;
-const gl = $('#gl'), glImg = $('#gl-img'), glPrev = $('#gl-prev'), glNext = $('#gl-next'), glClose = $('#gl-close');
-const openGalleryLightbox = (index) => {
-  currentImageIndex = index;
-  glImg.src = galleryImages[index];
-  gl.classList.add('open');
-  document.body.style.overflow = 'hidden';
+/* Photo gallery: clicking a photo opens it full screen; arrows / ← → move, Esc or a click outside closes. */
+const gl = $('#gl'), glImg = $('#gl-img');
+let glList = [], glAt = 0, glLast = null;
+const glShow = k => { glAt = (k + glList.length) % glList.length; glImg.src = glList[glAt][0]; glImg.alt = glList[glAt][1]; };
+const glOpen = frame => {
+  const frames = $$('.gallery .photo-frame[data-gallery-img]');
+  glList = frames.map(f => [f.dataset.galleryImg, $('img', f)?.alt || '']);
+  glLast = frame; glShow(frames.indexOf(frame)); gl.classList.add('open'); gl.removeAttribute('aria-hidden');
+  document.body.style.overflow = 'hidden'; $('#gl-close').focus();
 };
-const closeGalleryLightbox = () => {
-  gl.classList.remove('open');
-  document.body.style.overflow = '';
-};
-glPrev.addEventListener('click', () => {
-  currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
-  glImg.src = galleryImages[currentImageIndex];
-});
-glNext.addEventListener('click', () => {
-  currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
-  glImg.src = galleryImages[currentImageIndex];
-});
-glClose.addEventListener('click', closeGalleryLightbox);
-gl.addEventListener('click', e => { if (e.target === gl) closeGalleryLightbox(); });
+const glClose = () => { if (!gl.classList.contains('open')) return; gl.classList.remove('open'); gl.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; glLast?.focus?.(); };
+$('#gl-prev').addEventListener('click', () => glShow(glAt - 1));
+$('#gl-next').addEventListener('click', () => glShow(glAt + 1));
+$('#gl-close').addEventListener('click', glClose);
+gl.addEventListener('click', e => { if (e.target === gl || e.target.id === 'gl-nav') glClose(); });
 document.addEventListener('keydown', e => {
-  if (!gl.classList.contains('open')) return;
-  if (e.key === 'ArrowLeft') glPrev.click();
-  if (e.key === 'ArrowRight') glNext.click();
-  if (e.key === 'Escape') closeGalleryLightbox();
+  if (gl.classList.contains('open')) {
+    if (e.key === 'ArrowLeft') glShow(glAt - 1); else if (e.key === 'ArrowRight') glShow(glAt + 1); else if (e.key === 'Escape') glClose();
+    return;
+  }
+  const f = e.target.closest?.('.gallery .photo-frame[data-gallery-img]');
+  if (f && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); glOpen(f); }
 });
 document.addEventListener('click', e => {
-  // Don't intercept clicks on interactive elements (links, buttons, inputs)
-  const interactive = e.target.closest('a, button, input, [role="button"]');
-  if (interactive) return;
-  
-  // Only handle clicks on gallery photo-frames
-  const photoFrame = e.target.closest('.gallery .photo-frame[data-gallery-img]');
-  if (!photoFrame) return;
-  
-  if (!galleryImages.length) {
-    galleryImages = $$('.gallery .photo-frame[data-gallery-img]').map(el => el.dataset.galleryImg);
+  if (e.target.closest('a, button, input, [role="button"]:not(.photo-frame)')) return;
+  const f = e.target.closest('.gallery .photo-frame[data-gallery-img]');
+  if (f) glOpen(f);
+});
+addEventListener('popstate', glClose);
+/* Old addresses: "#/news/…" (before 1 Nov 2026) and "?lang=es" become real addresses; a visitor who chose a language
+   before lands on it when arriving at an English address. */
+(() => {
+  const q = new URLSearchParams(location.search);
+  let lang = LANG, route = null;
+  const ql = q.get('lang');
+  if (ql && ql in LANG_PREFIX) { lang = ql; q.delete('lang'); route = currentRoute().path.join('/'); }
+  if (location.hash.startsWith('#/')) route = location.hash.slice(2);
+  else if (route !== null) route += `?${q}`;
+  if (route === null && LANG === 'en' && location.pathname === '/' && !document.referrer.startsWith(location.origin)) {
+    let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
+    if (saved && saved !== 'en' && saved in LANG_PREFIX) { lang = saved; route = `${currentRoute().path.join('/')}?${q}`; }
   }
-  const index = galleryImages.indexOf(photoFrame.dataset.galleryImg);
-  openGalleryLightbox(index);
-});
-
-addEventListener('hashchange', () => {
-  if (!location.hash || location.hash.startsWith('#/')) render();
-});
+  if (route === null) return;
+  LANG = lang; MON = MONTHS[LANG];
+  history.replaceState(null, '', toUrl(route, lang));
+})();
 loadData().then(render).catch(err => {
   console.error(err);
   showLoadError();
