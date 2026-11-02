@@ -56,6 +56,7 @@ const news = data.news.filter(n => n && n.title).map(n => {
 const byYear = rows => [...rows].sort((a, b) => (+b.year || 0) - (+a.year || 0));
 const refList = (rows, lang) => `<ul>${byYear(rows).map(r => `<li>${esc(r.year)} · ${esc(r.text)}${r.link && /^https?:/.test(r.link) ? ` <a href="${esc(r.link)}" rel="noopener">${esc(t(lang, 'Open'))}</a>` : ''}</li>`).join('')}</ul>`;
 const stripHtml = html => String(html || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/(src|href)="img\//g, '$1="/img/');
+const rootAssetPaths = html => html.replace(/\b(src|href)="(css|js|img)\//g, '$1="/$2/');
 
 /* ---------- content of each page (plain HTML, read by crawlers and shown if scripts fail) ---------- */
 function body(path, lang) {
@@ -138,10 +139,11 @@ function pageFor(path, lang) {
     if (lead) description = t(lang, lead, { n: data.people.length });
   }
   const content = data.maint.enabled ? `<h1>${esc(tr(lang, 'site', data.maint.title) || t(lang, 'Under maintenance'))}</h1>` : body(path, lang);
-  return template
+  const html = template
     .replace(/<html lang="[^"]*">/, () => `<html lang="${lang}">`)
     .replace(/<!-- page-meta[\s\S]*?<!-- \/page-meta -->/, () => `<!-- page-meta -->\n${headTags(path, lang, { title, description, image, type, jsonld })}\n<!-- /page-meta -->`)
     .replace(/<!-- page-content -->[\s\S]*?<!-- \/page-content -->/, () => `<!-- page-content --><div class="static-page wrap">${content}</div><!-- /page-content -->`);
+  return rootAssetPaths(html);
 }
 
 /* ---------- write everything ---------- */
@@ -159,9 +161,9 @@ for (const lang of LANG_CODES) {
 for (const path of paths) urls.push(path);
 
 /* 404: the page shell (the browser shows the "not found" page, or the right page for an address it knows) */
-writeFileSync(join(SITE, '404.html'), template
+writeFileSync(join(SITE, '404.html'), rootAssetPaths(template
   .replace(/<!-- page-meta[\s\S]*?<!-- \/page-meta -->/, () => `<title>${esc(t('en', 'Page not found'))} · Optics Group · UAB</title>\n<meta name="description" content="${esc(DESC.en)}">\n<meta name="robots" content="noindex">`)
-  .replace(/<!-- page-content -->[\s\S]*?<!-- \/page-content -->/, () => `<!-- page-content --><div class="static-page wrap"><h1>${esc(t('en', 'Page not found'))}</h1><p><a href="/">Optics Group · UAB</a></p></div><!-- /page-content -->`));
+  .replace(/<!-- page-content -->[\s\S]*?<!-- \/page-content -->/, () => `<!-- page-content --><div class="static-page wrap"><h1>${esc(t('en', 'Page not found'))}</h1><p><a href="/">Optics Group · UAB</a></p></div><!-- /page-content -->`)));
 
 const today = new Date().toISOString().slice(0, 10);
 const newsDate = new Map(news.map(n => [`news/${n.id}`, /^\d{4}-\d{2}-\d{2}/.test(n.date || '') ? n.date.slice(0, 10) : null]));
