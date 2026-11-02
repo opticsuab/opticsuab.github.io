@@ -23,5 +23,43 @@
         "Quantum technologies"
       ]
     }
+  ],
+  "topics": [
+    "Polarimetry",
+    "Mueller matrix",
+    "Depolarization",
+    "Polarization optics",
+    "Biomedical imaging",
+    "Plant imaging",
+    "Machine learning",
+    "Liquid crystals",
+    "Spatial light modulators",
+    "Structured light",
+    "Diffractive optics",
+    "Holography",
+    "Optical metrology",
+    "Optical trapping",
+    "Remote sensing",
+    "Optics education",
+    "Lasers",
+    "Ultracold atoms",
+    "Bose–Einstein condensates",
+    "Orbital angular momentum",
+    "Topological phases",
+    "Topological photonics",
+    "Lattice gauge theories",
+    "Synthetic gauge fields",
+    "Quantum simulation",
+    "Spin–orbit coupling",
+    "Flat bands",
+    "Optical lattices",
+    "Photonic waveguides",
+    "Supersymmetry",
+    "Adiabatic passage",
+    "Many-body physics",
+    "Quantum optics",
+    "Quantum technologies",
+    "Non-Hermitian physics",
+    "Diffusion"
   ]
 }

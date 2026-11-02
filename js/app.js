@@ -4,7 +4,8 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const pickLang = () => {
   const ok = l => LANGS.some(x => x[0] === l) && l;
   let saved = null; try { saved = localStorage.getItem('lang'); } catch (e) { /* storage blocked */ }
-  return ok(new URLSearchParams(location.search).get('lang')) || ok(saved) || 'en';
+  const pathLang = location.pathname.split('/').filter(Boolean)[0];
+  return ok(new URLSearchParams(location.search).get('lang')) || ok(pathLang) || ok(saved) || 'en';
 };
 let LANG = pickLang(), MON = MONTHS[LANG];
 const t = (s, v) => {
@@ -40,12 +41,28 @@ const NAV = [
 /* Contact form: messages are delivered by Web3Forms to the group mailbox (address not shown on the site). */
 const CONTACT_FORM_KEY = '46d4bbb9-39ba-4003-bb12-f1387a4519db';
 let MAINT = { enabled: false };
-let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], SOURCE_TOPICS = [], LINES = [];
+let SITE = { hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, TOPICS = [], SOURCE_TOPICS = [], KEYWORD_LABELS = {}, LINES = [];
 /* ---------- data (edited from the Pages CMS panel, stored in /data/*.json) ---------- */
 let NEWS = [], PEOPLE = [], PUBS = [], THESES = [], PATENTS = [], MASTER = [], FORMER = '', INTERVIEWS = '', GENDER_TALKS = '', PAGES_HTML = {};
 const paras = t => String(t || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
 const asList = v => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
-const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
+const byYear = rows => rows.map(r => ({ ...r, y: +r.year || 0, t: r.text || '', u: r.link || null })).sort((a, b) => b.y - a.y);
+const keywordNorm = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+const publicationNorm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  .replace(/[‐-―\-_/]+/g, ' ').replace(/[^a-z0-9·' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const publicationTitle = text => {
+  const m = String(text || '').match(/[«"“]\s*(.+?)\s*[»"”«]/);
+  return (m ? m[1] : String(text || '').split('.')[0]).replace(/\s+/g, ' ').trim();
+};
+const publicationDoi = value => {
+  const m = String(value || '').match(/10\.\d{4,9}\/[^\s"<>?#]+/i);
+  return m ? m[0].replace(/[.,;)]+$/, '').toLowerCase() : '';
+};
+const publicationKey = pub => {
+  const doi = publicationDoi(pub.link) || publicationDoi(pub.text);
+  return doi ? `doi:${doi}` : `title:${publicationNorm(publicationTitle(pub.text))}`;
+};
+const keywordLabel = keyword => KEYWORD_LABELS[keyword] || keyword;
 const RECORD_TERMS = {
   es: [
     ['PhD in Physics', 'Doctorado en Física'], ['Phd in Physics', 'Doctorado en Física'],
@@ -73,16 +90,16 @@ const RECORD_TERMS = {
   ],
 };
 const localizeRecord = value => (RECORD_TERMS[LANG] || []).reduce((text, [from, to]) => text.replaceAll(from, to), value);
-const getJSON = f => fetch(`data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
+const getJSON = f => fetch(`/data/${f}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(f + ': ' + r.status); return r.json(); });
 let RAW = null;
 const OVERLAYS = {};
-const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional translation unavailable: ${f}`, err); return {}; });
+const getOptionalJSON = f => getJSON(f).catch(err => { console.warn(`Optional JSON unavailable: ${f}`, err); return {}; });
 /* Translation overlays are optional: anything missing falls back to the English source. */
 async function loadOverlay(lang) {
   if (lang === 'en') return {};
   if (!OVERLAYS[lang]) {
-    const [news, people, pages, site] = await Promise.all(['news', 'people', 'pages', 'site'].map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
-    OVERLAYS[lang] = { news, people, pages, site };
+    const [news, people, pages, site, keywords] = await Promise.all(['news', 'people', 'pages', 'site', 'keywords'].map(f => getOptionalJSON(`i18n/${lang}/${f}`)));
+    OVERLAYS[lang] = { news, people, pages, site, keywords };
   }
   return OVERLAYS[lang];
 }
@@ -98,7 +115,10 @@ async function loadData() {
   if (!RAW) {
     const [news, people, pubs, theses, patents, master, former, pages, site] = await Promise.all(
       ['news', 'people', 'publications', 'theses', 'patents', 'master-theses', 'former-members', 'pages', 'site'].map(getJSON));
-    RAW = { news, people, pubs, theses, patents, master, former, pages, site, maint: MAINT };
+    const publicationKeywords = (pubs.publications || []).some(pub => !Array.isArray(pub?.keywords))
+      ? await getOptionalJSON('publication-keywords')
+      : {};
+    RAW = { news, people, pubs, theses, patents, master, former, pages, site, publicationKeywords, maint: MAINT };
   }
   buildData(await loadOverlay(LANG));
 }
@@ -106,8 +126,10 @@ function buildData(ov) {
   const { news, people, pubs, theses, patents, master, former } = RAW, os = ov.site || {};
   const pages = Object.assign({}, RAW.pages, ov.pages || {});
   SITE = Object.assign({ hero_eyebrow: '', hero_title: '', hero_subtitle: '', topics: [], research_lines: [] }, RAW.site, os.site || {});
-  TOPICS = asList(SITE.topics);
   SOURCE_TOPICS = asList(RAW.site.topics);
+  KEYWORD_LABELS = ov.keywords || {};
+  const siteTopics = asList(SITE.topics);
+  TOPICS = SOURCE_TOPICS.map((topic, i) => KEYWORD_LABELS[topic] || siteTopics[i] || topic);
   LINES = asList(SITE.research_lines).map(l => ({ t: l.title || '', d: l.description || '', tags: asList(l.tags) }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
     const [y, m] = String(n.date || '').split('-').map(Number), o = (ov.news || {})[`${n.date}|${n.title}`] || (ov.news || {})[n.title] || {};
@@ -119,7 +141,13 @@ function buildData(ov) {
       about: about.length ? about : null, status: o.status || p.status,
       scholar: p.scholar, orcid: p.orcid, scopus: p.scopus, wos: p.wos, rid: p.researcherid, linkedin: p.linkedin, web: p.web };
   });
-  PUBS = byYear(pubs.publications || []); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
+  const publicationKeywords = RAW.publicationKeywords || {};
+  PUBS = byYear((pubs.publications || []).map(pub => {
+    const assigned = asList(pub.keywords);
+    const fallback = asList(publicationKeywords[publicationKey(pub)]?.keywords);
+    return { ...pub, keywords: [...new Set((assigned.length ? assigned : fallback).map(k => String(k).trim()).filter(Boolean))] };
+  }));
+  THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
   const fg = os.former || {};
   FORMER = (former.groups || []).map(g => `<h2>${esc(fg[g.title] || g.title)}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
   INTERVIEWS = pages.interviews || ''; GENDER_TALKS = pages.talks || '';
@@ -173,8 +201,17 @@ const openProfile = el => {
 };
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
-const pubRow = (r, i = 0, label) => `<div class="row rv" style="--i:${i % 6}"><span class="yr">${r.y}</span>
-  <div class="t">${esc(localizeRecord(r.t))}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
+const pubRow = (r, i = 0, label, { showKeywords = false, highlightKeyword = '' } = {}) => {
+  const selected = keywordNorm(highlightKeyword);
+  const keywords = showKeywords ? [...new Set(asList(r.keywords))] : [];
+  const keywordTags = keywords.length ? `<ul class="pub-keywords" aria-label="${esc(t('Publication topics'))}">${keywords.map(keyword => {
+    const matched = selected && keywordNorm(keyword) === selected;
+    const tag = `<${matched ? 'mark' : 'span'} class="pub-keyword${matched ? ' is-match' : ''}" data-keyword="${esc(keyword)}">${esc(keywordLabel(keyword))}</${matched ? 'mark' : 'span'}>`;
+    return `<li>${tag}</li>`;
+  }).join('')}</ul>` : '';
+  return `<div class="row rv" style="--i:${i % 6}"><span class="yr">${r.y}</span>
+  <div class="t">${esc(localizeRecord(r.t))}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}${keywordTags}</div>`;
+};
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
   <div class="wrap"><nav class="crumbs" aria-label="${t('Breadcrumb')}"><a href="#/">${t('Home')}</a>${crumbs.map(c => `<span>/</span>${c[1] ? `<a href="${c[1]}">${t(c[0])}</a>` : `<span>${t(c[0])}</span>`}`).join('')}</nav>
   <h1>${esc(t(title))}</h1>${sub ? `<p class="lead">${esc(t(sub))}</p>` : ''}${subnav(path)}</div>
@@ -186,11 +223,11 @@ function subnav(path) {
 }
 const wrapPage = (head, body) => `${head}<section><div class="wrap">${body}</div></section>`;
 const years = rows => [...new Set(rows.map(r => r.y))].sort((a, b) => b - a);
-function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '' } = {}) {
+function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchKeyword = '', showKeywords = false } = {}) {
   const ys = years(rows);
   return `<div class="tools" data-list><button class="fchip on" data-y="all">${t('All')}</button>${ys.map(y => `<button class="fchip" data-y="${y}">${y}</button>`).join('')}
-    ${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
-    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
+    ${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchKeyword ? ` data-keyword="${esc(searchKeyword)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
+    <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, { showKeywords, highlightKeyword: searchKeyword })).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
 const prosePage = html => `<div class="prose">${html}</div>`;
 const flagged = txt => `<div class="note"><b class="mono">${t('Content to confirm · ')}</b>${t(txt)}</div>`;
@@ -215,9 +252,7 @@ const ROUTES = {
     const events = NEWS.filter(n => n.cat === 'Event').slice(0, 3);
     const pis = PEOPLE.filter(p => p.group === 'Staff').slice(0, 4);
     const topicLinks = TOPICS.map((topic, i) => {
-      const params = new URLSearchParams({ search: topic });
-      const sourceTopic = SOURCE_TOPICS[i];
-      if (sourceTopic && sourceTopic !== topic) params.set('match', sourceTopic);
+      const params = new URLSearchParams({ keyword: SOURCE_TOPICS[i] || topic });
       return `<a class="pill" href="#/research/publications?${esc(params.toString())}">${esc(topic)}</a>`;
     }).join('');
     const topicCopies = TOPICS.map(topic => `<span class="pill" aria-hidden="true">${esc(topic)}</span>`).join('');
@@ -247,9 +282,13 @@ const ROUTES = {
   },
   research(p, query) {
     const k = p[1] || 'lines', h = (ti, s) => pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]);
-    if (k === 'publications') return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', {
-      linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '',
-    }));
+    if (k === 'publications') {
+      const keyword = query.get('keyword') || query.get('match') || '';
+      return wrapPage(h('Publications', 'Peer-reviewed articles by the group, by year.'), listPage(PUBS, 'publications', {
+        linkLabel: 'Paper', searchValue: query.get('search') || (keyword ? keywordLabel(keyword) : ''),
+        searchKeyword: keyword, showKeywords: true,
+      }));
+    }
     if (k === 'patents') return wrapPage(h('Patents', 'Registered inventions and technology transfer.'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
     if (k === 'theses') return wrapPage(h('PhD theses', 'Doctoral theses defended in the group.'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
     if (k === 'datasets') return wrapPage(h('Datasets & software', 'Open resources released by the group.'), prosePage(PAGES_HTML.datasets));
@@ -328,11 +367,14 @@ const ROUTES = {
 
 /* ---------- router ---------- */
 const main = $('#main'), header = $('#header');
+const PRE_RENDERED_DOCUMENT = Boolean($('.static-page', main));
+const PRE_RENDERED_LANG = document.documentElement.lang;
+const preservePreRenderedMetadata = () => PRE_RENDERED_DOCUMENT && !location.hash.startsWith('#/') && LANG === PRE_RENDERED_LANG;
 /* Maintenance switch (panel → "Modo mantenimiento"). Add ?preview to the URL to see the site anyway. */
 const PREVIEW = new URLSearchParams(location.search).has('preview');
 function updateChrome() {
   document.documentElement.lang = LANG;
-  $('meta[name="description"]').content = DESC[LANG] || DESC.en;
+  if (!preservePreRenderedMetadata()) $('meta[name="description"]').content = DESC[LANG] || DESC.en;
   $$('[data-i18n]').forEach(el => { el.dataset.i18nSource ||= el.textContent; el.textContent = t(el.dataset.i18nSource); });
   $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
   $('#lang-label').textContent = t('Language');
@@ -363,18 +405,27 @@ function renderMaintenance() {
 function render() {
   if (MAINT.enabled && !PREVIEW) return renderMaintenance();
   document.body.classList.remove('maint');
-  const hash = location.hash.slice(1);
-  const queryIndex = hash.indexOf('?');
-  const hashPath = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
-  const query = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
+  const hash = location.hash.startsWith('#/') ? location.hash.slice(1) : '';
+  const hasHashRoute = Boolean(hash);
+  const routeSource = hasHashRoute ? hash : location.pathname;
+  const queryIndex = routeSource.indexOf('?');
+  const hashPath = queryIndex < 0 ? routeSource : routeSource.slice(0, queryIndex);
+  const queryString = hasHashRoute ? (queryIndex < 0 ? '' : routeSource.slice(queryIndex + 1)) : location.search.slice(1);
+  const query = new URLSearchParams(queryString);
   const path = hashPath.replace(/^\/?/, '').split('/').filter(Boolean);
+  if (!hasHashRoute && ['es', 'ca'].includes(path[0])) path.shift();
+  if (!hasHashRoute && path[path.length - 1] === 'index.html') path.pop();
   const key = path[0] || 'home';
+  if (!hasHashRoute && path.length && !ROUTES[key] && PRE_RENDERED_DOCUMENT) {
+    main.classList.add('ready');
+    return;
+  }
   main.innerHTML = `<div class="pg">${(ROUTES[key] || ROUTES.home)(path, query)}</div>`;
   main.classList.add('ready');
   updateChrome();
   $$('.nav a.top').forEach(a => a.classList.toggle('on', a.dataset.k === key));
-  document.title = `${main.querySelector('h1')?.textContent || t('Optics Group')} · ${t('Optics Group · UAB')}`;
-  scrollTo({ top: 0, behavior: 'instant' });
+  if (!preservePreRenderedMetadata()) document.title = `${main.querySelector('h1')?.textContent || t('Optics Group')} · ${t('Optics Group · UAB')}`;
+  if (hasHashRoute) scrollTo({ top: 0, behavior: 'instant' });
   closeMenu(); mount(main);
 }
 function mount(root) {
@@ -402,20 +453,34 @@ function mount(root) {
   const lst = $('[data-list]', root);
   if (lst) {
     const input = $('.search', lst);
-    const hash = location.hash, queryIndex = hash.indexOf('?');
-    const route = queryIndex < 0 ? hash : hash.slice(0, queryIndex);
-    const params = new URLSearchParams(queryIndex < 0 ? '' : hash.slice(queryIndex + 1));
+    const hashRoute = location.hash.startsWith('#/') ? location.hash : '';
+    const queryIndex = hashRoute.indexOf('?');
+    const route = queryIndex < 0 ? hashRoute : hashRoute.slice(0, queryIndex);
+    const params = new URLSearchParams(hashRoute ? (queryIndex < 0 ? '' : hashRoute.slice(queryIndex + 1)) : location.search.slice(1));
     const syncSearch = route === '#/research/publications';
-    let y = 'all', q = (input?.value || '').trim().toLowerCase(), match = (input?.dataset.match || '').trim().toLowerCase();
-    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.textContent.toLowerCase(); const queryMatch = !q || text.includes(q) || (!!match && text.includes(match)); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    let y = 'all', q = (params.get('search') || input?.value || '').trim().toLowerCase();
+    let keyword = (params.get('keyword') || params.get('match') || input?.dataset.keyword || '').trim();
+    const apply = () => {
+      let n = 0;
+      $$('#rows .row').forEach(r => {
+        const text = r.textContent.toLowerCase();
+        const queryMatch = keyword
+          ? $$('.pub-keyword', r).some(tag => keywordNorm(tag.dataset.keyword) === keywordNorm(keyword))
+          : (!q || text.includes(q));
+        const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch;
+        r.hidden = !ok; n += ok;
+      });
+      $('#none').hidden = n > 0;
+    };
     lst.addEventListener('click', e => { const b = e.target.closest('.fchip'); if (!b) return; $$('.fchip', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
     input?.addEventListener('input', e => {
       const value = e.target.value.trim();
       q = value.toLowerCase();
-      match = '';
-      e.target.removeAttribute('data-match');
+      keyword = '';
+      e.target.removeAttribute('data-keyword');
       if (syncSearch) {
         if (value) params.set('search', value); else params.delete('search');
+        params.delete('keyword');
         params.delete('match');
         const queryString = params.toString();
         history.replaceState(history.state, '', `${location.pathname}${location.search}${route}${queryString ? `?${queryString}` : ''}`);
@@ -703,7 +768,9 @@ document.addEventListener('click', e => {
   openGalleryLightbox(index);
 });
 
-addEventListener('hashchange', render);
+addEventListener('hashchange', () => {
+  if (!location.hash || location.hash.startsWith('#/')) render();
+});
 loadData().then(render).catch(err => {
   console.error(err);
   showLoadError();
