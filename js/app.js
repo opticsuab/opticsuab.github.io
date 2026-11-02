@@ -676,7 +676,11 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeGalleryLightbox();
 });
 document.addEventListener('click', e => {
-  // Only handle clicks on gallery photo-frames, specifically
+  // Don't intercept clicks on interactive elements (links, buttons, inputs)
+  const interactive = e.target.closest('a, button, input, [role="button"]');
+  if (interactive) return;
+  
+  // Only handle clicks on gallery photo-frames
   const photoFrame = e.target.closest('.gallery .photo-frame[data-gallery-img]');
   if (!photoFrame) return;
   
