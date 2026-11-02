@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "description": "Build tools for js/building3d.js (run: bash tools/build-3d.sh). Not needed to publish the site.",
+  "devDependencies": {
+    "esbuild": "0.25.10",
+    "three": "0.187.0"
+  }
+}

@@ -1,0 +1,41 @@
+name: Check links
+
+# Checks every external link of the site's content once a month (and on demand: Actions → Check links → Run workflow).
+# Broken links are listed in an issue «Enlaces rotos en la web» (GitHub e-mails it); the issue is closed when none are left.
+on:
+  schedule:
+    - cron: '17 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Check links
+        id: links
+        run: node tools/check-links.mjs --report "$RUNNER_TEMP/links.md" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Open, update or close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BROKEN: ${{ steps.links.outputs.broken }}
+        run: |
+          title="Enlaces rotos en la web"
+          open=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ "${BROKEN:-0}" != "0" ]; then
+            if [ -z "$open" ]; then gh issue create --title "$title" --assignee JvRtX --body-file "$RUNNER_TEMP/links.md"
+            else gh issue edit "$open" --body-file "$RUNNER_TEMP/links.md"; fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Resuelto: la última comprobación no encontró enlaces rotos."
+          fi

@@ -1,0 +1,666 @@
+{
+  "title:progress in quantum structured light": {
+    "title": "Progress in quantum structured light",
+    "keywords": [
+      "Structured light",
+      "Quantum optics"
+    ]
+  },
+  "doi:10.3390/app151810205": {
+    "title": "IPP and PRT Depolarizing Spaces for the Study of Depolarizing Samples: A Review",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Depolarization"
+    ]
+  },
+  "doi:10.1103/k9p6-c649": {
+    "title": "Efficient finite-resource formulation of non-Abelian lattice gauge theories beyond one dimension",
+    "keywords": [
+      "Lattice gauge theories",
+      "Quantum simulation"
+    ]
+  },
+  "doi:10.1007/s13320-025-0767-z": {
+    "title": "Generalized Eigenvalue Calibration Method for Mueller Imaging Polarimeters Based on Micro-Polarized Sensors With Optimal Set of Calibration Samples",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Optical metrology"
+    ]
+  },
+  "doi:10.1016/j.optlastec.2025.112956": {
+    "title": "Revealing hidden bioimaging information by isotropic depolarization filtering",
+    "keywords": [
+      "Polarimetry",
+      "Depolarization",
+      "Biomedical imaging"
+    ]
+  },
+  "doi:10.1002/adom.202500212": {
+    "title": "Enhanced Circularly Polarized Lasing in Nanocellulose-Silica Composites",
+    "keywords": [
+      "Polarization optics",
+      "Liquid crystals",
+      "Lasers"
+    ]
+  },
+  "doi:10.1117/1.apn.4.1.016009": {
+    "title": "Enhanced Characterization of Depolarizing Samples Using Indices of Polarization Purity and Polarizance-Reflection-Transformation Spaces",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Depolarization"
+    ]
+  },
+  "doi:10.1038/s42005-024-01886-1": {
+    "title": "Impurity flat band states in the diamond chain",
+    "keywords": [
+      "Flat bands",
+      "Optical lattices"
+    ]
+  },
+  "doi:10.1038/s41535-024-00697-5": {
+    "title": "Exploring ground states of Fermi-Hubbard model on honeycomb lattices with counterdiabaticity",
+    "keywords": [
+      "Ultracold atoms",
+      "Quantum simulation",
+      "Optical lattices",
+      "Adiabatic passage",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1063/5.0232163": {
+    "title": "Flux-mediated effective Su–Schrieffer–Heeger model in an impurity decorated diamond chain",
+    "keywords": [
+      "Topological phases",
+      "Synthetic gauge fields",
+      "Flat bands",
+      "Optical lattices"
+    ]
+  },
+  "doi:10.3390/app142311059": {
+    "title": "Classification of real-world objects using supervised ML-assisted polarimetry: cost/benefit analysis",
+    "keywords": [
+      "Polarimetry",
+      "Machine learning"
+    ]
+  },
+  "doi:10.1016/j.rinp.2024.107867": {
+    "title": "Combination of Fourier transform Jones matrix and beam coherence polarization matrix: Application to a double polarizer rectangular aperture",
+    "keywords": [
+      "Polarization optics",
+      "Diffractive optics"
+    ]
+  },
+  "doi:10.1038/s42005-024-01636-3": {
+    "title": "Synthetic dimensions for topological and quantum phases",
+    "keywords": [
+      "Ultracold atoms",
+      "Topological phases",
+      "Synthetic gauge fields",
+      "Quantum simulation"
+    ]
+  },
+  "doi:10.3390/app14125118": {
+    "title": "Analysis of the Image Magnification Produced by Inline Holographic Systems Based on the Double-Sideband Filter",
+    "keywords": [
+      "Diffractive optics",
+      "Holography"
+    ]
+  },
+  "doi:10.1109/jsen.2024.3377183": {
+    "title": "Polarizance-Reflection-Transformation representation space for sensing and distinguishing pure systems",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix"
+    ]
+  },
+  "doi:10.1364/ol.503181": {
+    "title": "Optimized configuration for liquid crystal Stokes polarimeters in the presence of fast-axis orientation errors",
+    "keywords": [
+      "Polarimetry",
+      "Liquid crystals"
+    ]
+  },
+  "doi:10.1209/0295-5075/ad2432": {
+    "title": "Ultracold atoms carrying orbital angular momentum: Engineering topological phases in lattices",
+    "keywords": [
+      "Ultracold atoms",
+      "Orbital angular momentum",
+      "Topological phases",
+      "Optical lattices"
+    ]
+  },
+  "doi:10.1051/jeos/2024003": {
+    "title": "Mueller matrix imaging polarimeter with polarization camera self-calibration applied to structured light components",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Structured light",
+      "Optical metrology"
+    ]
+  },
+  "doi:10.1016/j.optlaseng.2023.107830": {
+    "title": "Connecting the microscopic depolarizing origin of samples with macroscopic measures of the Indices of Polarimetric Purity",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Depolarization"
+    ]
+  },
+  "doi:10.1515/nanoph-2023-0590": {
+    "title": "Topological n-root Su-Schrieffer- Heeger model in a non- Hermitian photonic ring system",
+    "keywords": [
+      "Topological phases",
+      "Topological photonics",
+      "Non-Hermitian physics"
+    ]
+  },
+  "doi:10.1103/physreva.108.053320": {
+    "title": "Trapping of Bose-Einstein condensates in a three-dimensional dark focus generated by conical refraction",
+    "keywords": [
+      "Structured light",
+      "Optical trapping",
+      "Ultracold atoms",
+      "Bose–Einstein condensates"
+    ]
+  },
+  "doi:10.1142/s1793545823300045": {
+    "title": "Depolarizing metrics in the biomedical field: Vision enhancement and classification of biological tissues",
+    "keywords": [
+      "Polarimetry",
+      "Depolarization",
+      "Biomedical imaging"
+    ]
+  },
+  "doi:10.1103/physrevresearch.5.l042008": {
+    "title": "Frustrated magnets without geometrical frustration in bosonic flux ladders",
+    "keywords": [
+      "Ultracold atoms",
+      "Synthetic gauge fields",
+      "Optical lattices",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1103/physreva.108.023317": {
+    "title": "Bosonic orbital Su-Schrieffer-Heeger model in a lattice of rings",
+    "keywords": [
+      "Ultracold atoms",
+      "Orbital angular momentum",
+      "Topological phases",
+      "Optical lattices"
+    ]
+  },
+  "title:polarimetric images of biological tissues based on the arrow decomposition of mueller matrices": {
+    "title": "Polarimetric Images of Biological Tissues Based on the Arrow Decomposition of Mueller Matrices",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Biomedical imaging"
+    ]
+  },
+  "doi:10.1103/physrevresearch.5.023128": {
+    "title": "Topological gauge fields and the composite particle duality",
+    "keywords": [
+      "Topological phases",
+      "Synthetic gauge fields"
+    ]
+  },
+  "doi:10.1103/physrevb.107.094312": {
+    "title": "Local Hilbert space fragmentation and weak thermalization in Bose-Hubbard diamond necklaces",
+    "keywords": [
+      "Ultracold atoms",
+      "Flat bands",
+      "Optical lattices",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1103/physreva.107.023506": {
+    "title": "Mode pumping in photonic lattices using a single tailored auxiliary waveguide",
+    "keywords": [
+      "Photonic waveguides"
+    ]
+  },
+  "title:calculation and restoration of lost spatial information in division of focal plane polarization remote sensing using polarization super resolution technology": {
+    "title": "Calculation and restoration of lost spatial information in division-of-focal-plane polarization remote sensing using polarization super-resolution technology",
+    "keywords": [
+      "Polarimetry",
+      "Remote sensing"
+    ]
+  },
+  "doi:10.1103/physreva.107.023305": {
+    "title": "Many-body Aharonov-Bohm caging in a lattice of rings",
+    "keywords": [
+      "Ultracold atoms",
+      "Orbital angular momentum",
+      "Flat bands",
+      "Optical lattices",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1103/physreva.107.013707": {
+    "title": "Quantum-jump analysis of frequency up-conversion amplification without inversion in a four-level scheme",
+    "keywords": [
+      "Quantum optics"
+    ]
+  },
+  "doi:10.1016/j.tsf.2022.139594": {
+    "title": "Characterization of vine, Vitis vinifera, leaves by Mueller polarimetric microscopy",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Plant imaging"
+    ]
+  },
+  "doi:10.1103/physrevresearch.4.043088": {
+    "title": "Encoding a one-dimensional topological gauge theory in a Raman-coupled Bose-Einstein condensate",
+    "keywords": [
+      "Ultracold atoms",
+      "Bose–Einstein condensates",
+      "Topological phases",
+      "Lattice gauge theories",
+      "Synthetic gauge fields"
+    ]
+  },
+  "title:spatially strongly confined atomic excitation via a two dimensional stimulated raman adiabatic passage": {
+    "title": "Spatially strongly confined atomic excitation via a two dimensional stimulated Raman adiabatic passage",
+    "keywords": [
+      "Adiabatic passage",
+      "Quantum optics"
+    ]
+  },
+  "title:high efficiency topological pumping with discrete supersymmetry transformations": {
+    "title": "High-efficiency topological pumping with discrete supersymmetry transformations",
+    "keywords": [
+      "Topological phases",
+      "Topological photonics",
+      "Photonic waveguides",
+      "Supersymmetry"
+    ]
+  },
+  "title:realizing a 1d topological gauge theory in an optically dressed bec": {
+    "title": "Realizing a 1D topological gauge theory in an optically dressed BEC",
+    "keywords": [
+      "Ultracold atoms",
+      "Bose–Einstein condensates",
+      "Topological phases",
+      "Lattice gauge theories",
+      "Synthetic gauge fields"
+    ]
+  },
+  "title:automatic pseudo coloring approaches to improve visual perception and contrast in polarimetric images of biological tissues": {
+    "title": "Automatic pseudo-coloring approaches to improve visual perception and contrast in polarimetric images of biological tissues",
+    "keywords": [
+      "Polarimetry",
+      "Biomedical imaging"
+    ]
+  },
+  "title:polarimetric observables for the enhanced visualization of plant diseases": {
+    "title": "Polarimetric observables for the enhanced visualization of plant diseases",
+    "keywords": [
+      "Polarimetry",
+      "Plant imaging"
+    ]
+  },
+  "doi:10.1002/jbio.202200308": {
+    "title": "Optimizing the classification of biological tissues using machin e learning models based on polarized data",
+    "keywords": [
+      "Polarimetry",
+      "Biomedical imaging",
+      "Machine learning"
+    ]
+  },
+  "title:supersymmetry enhanced stark chirped rapid adiabatic passage in multimode optical waveguides": {
+    "title": "Supersymmetry-enhanced stark-chirped rapid-adiabatic-passage in multimode optical waveguides",
+    "keywords": [
+      "Photonic waveguides",
+      "Supersymmetry",
+      "Adiabatic passage"
+    ]
+  },
+  "title:roadmap on atomtronics state of the art and perspective": {
+    "title": "Roadmap on Atomtronics: State of the art and perspective",
+    "keywords": [
+      "Ultracold atoms",
+      "Quantum technologies"
+    ]
+  },
+  "title:a resource efficient approach for quantum and classical simulations of gauge theories in particle physics": {
+    "title": "A resource efficient approach for quantum and classical simulations of gauge theories in particle physics",
+    "keywords": [
+      "Lattice gauge theories",
+      "Quantum simulation"
+    ]
+  },
+  "doi:10.1103/physreva.104.l031305": {
+    "title": "Dynamical preparation of stripe states in spin-orbit-coupled gases",
+    "keywords": [
+      "Ultracold atoms",
+      "Spin–orbit coupling",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1103/physrevresearch.3.043215": {
+    "title": "Excited-state quantum phase transitions in spin-orbit-coupled Bose gases",
+    "keywords": [
+      "Ultracold atoms",
+      "Spin–orbit coupling",
+      "Many-body physics"
+    ]
+  },
+  "title:polarimetric data based model for tissue recognition": {
+    "title": "Polarimetric data-based model for tissue recognition",
+    "keywords": [
+      "Polarimetry",
+      "Biomedical imaging"
+    ]
+  },
+  "title:unraveling the physical information of depolarizers": {
+    "title": "Unraveling the physical information of depolarizers",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Depolarization"
+    ]
+  },
+  "title:super broadband geometric phase devices based on circular polarization converter with mirror symmetry": {
+    "title": "Super-broadband geometric phase devices based on circular polarization converter with mirror symmetry",
+    "keywords": [
+      "Polarization optics",
+      "Structured light",
+      "Diffractive optics"
+    ]
+  },
+  "title:polarimetric imaging microscopy for advanced inspection of vegetal tissues": {
+    "title": "Polarimetric imaging microscopy for advanced inspection of vegetal tissues",
+    "keywords": [
+      "Polarimetry",
+      "Plant imaging"
+    ]
+  },
+  "title:development of optical digital interferometry for visualizing and modelling the mass diffusion of ammonia in water in an absorption process": {
+    "title": "Development of optical digital interferometry for visualizing and modelling the mass diffusion of ammonia in water in an absorption process",
+    "keywords": [
+      "Optical metrology",
+      "Diffusion"
+    ]
+  },
+  "title:customized depolarization spatial patterns with dynamic retardance functions": {
+    "title": "Customized depolarization spatial patterns with dynamic retardance functions",
+    "keywords": [
+      "Depolarization",
+      "Polarization optics",
+      "Spatial light modulators"
+    ]
+  },
+  "title:4 domain twisted liquid crystal micropolarizer array for visible linear polarization imaging": {
+    "title": "4-domain twisted liquid crystal micropolarizer array for visible linear polarization imaging",
+    "keywords": [
+      "Polarimetry",
+      "Liquid crystals"
+    ]
+  },
+  "doi:10.1038/s42005-020-0316-4": {
+    "title": "Topological state engineering via supersymmetric transformations",
+    "keywords": [
+      "Topological phases",
+      "Topological photonics",
+      "Photonic waveguides",
+      "Supersymmetry"
+    ]
+  },
+  "doi:10.1103/physreva.102.023331": {
+    "title": "Orbital angular momentum dynamics of Bose-Einstein condensates trapped in two stacked rings",
+    "keywords": [
+      "Ultracold atoms",
+      "Bose–Einstein condensates",
+      "Orbital angular momentum"
+    ]
+  },
+  "doi:10.1103/physrevresearch.2.033267": {
+    "title": "Interaction-induced topological properties of two bosons in flat-band systems",
+    "keywords": [
+      "Ultracold atoms",
+      "Topological phases",
+      "Flat bands"
+    ]
+  },
+  "doi:10.1140/epjd/e2020-10129-1": {
+    "title": "Effective triangular ladders with staggered flux from spin-orbit coupling in 1D optical lattices",
+    "keywords": [
+      "Ultracold atoms",
+      "Synthetic gauge fields",
+      "Spin–orbit coupling",
+      "Optical lattices"
+    ]
+  },
+  "doi:10.1038/s41377-020-00385-6": {
+    "title": "Artificial gauge field switching using orbital angular momentum modes in optical waveguides",
+    "keywords": [
+      "Orbital angular momentum",
+      "Synthetic gauge fields",
+      "Photonic waveguides"
+    ]
+  },
+  "doi:10.1364/oe.385623": {
+    "title": "Influence of temporal averaging in the performance of a rotating retarder imaging Stokes polarimeter",
+    "keywords": [
+      "Polarimetry",
+      "Polarization optics"
+    ]
+  },
+  "doi:10.1002/jbio.202000083": {
+    "title": "Depolarization metric spaces for biological tissues classification",
+    "keywords": [
+      "Polarimetry",
+      "Depolarization",
+      "Biomedical imaging"
+    ]
+  },
+  "doi:10.1364/oe.403013": {
+    "title": "Displacement-free stereoscopic phase measuring deflectometry based on phase difference minimization",
+    "keywords": [
+      "Optical metrology"
+    ]
+  },
+  "doi:10.1103/physrevx.10.021057": {
+    "title": "Emerging Two-Dimensional Gauge Theories in Rydberg Configurable Arrays",
+    "keywords": [
+      "Ultracold atoms",
+      "Lattice gauge theories",
+      "Quantum simulation"
+    ]
+  },
+  "doi:10.1103/physrevlett.125.030504": {
+    "title": "Simulating Twistronics without a Twist",
+    "keywords": [
+      "Ultracold atoms",
+      "Synthetic gauge fields",
+      "Quantum simulation"
+    ]
+  },
+  "doi:10.3390/cryst10121155": {
+    "title": "Mueller Matrix Polarimetric Imaging Analysis of Optical Components for the Generation of Cylindrical Vector Beams",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Structured light"
+    ]
+  },
+  "doi:10.1140/epjd/e2020-100571-8": {
+    "title": "Simulating lattice gauge theories within quantum technologies",
+    "keywords": [
+      "Lattice gauge theories",
+      "Quantum simulation",
+      "Quantum technologies"
+    ]
+  },
+  "doi:10.1103/physreva.99.023612": {
+    "title": "Topological edge states with ultracold atoms carrying orbital angular momentum in a diamond chain",
+    "keywords": [
+      "Ultracold atoms",
+      "Orbital angular momentum",
+      "Topological phases",
+      "Flat bands",
+      "Optical lattices"
+    ]
+  },
+  "doi:10.1103/physrevb.100.205109": {
+    "title": "Second-order topological corner states with ultracold atoms carrying orbital angular momentum in optical lattices",
+    "keywords": [
+      "Ultracold atoms",
+      "Orbital angular momentum",
+      "Topological phases",
+      "Optical lattices"
+    ]
+  },
+  "doi:10.1103/physreva.100.063633": {
+    "title": "Coherent spin mixing via spin-orbit coupling in Bose gases",
+    "keywords": [
+      "Ultracold atoms",
+      "Spin–orbit coupling"
+    ]
+  },
+  "doi:10.1117/12.2523772": {
+    "title": "Training in polarization through a virtual learning environment",
+    "keywords": [
+      "Polarization optics",
+      "Optics education"
+    ]
+  },
+  "doi:10.1371/journal.pone.0213909": {
+    "title": "Depolarizing metrics for plant samples imaging",
+    "keywords": [
+      "Polarimetry",
+      "Depolarization",
+      "Plant imaging"
+    ]
+  },
+  "doi:10.1364/osac.2.001565": {
+    "title": "Misalignment error analysis in polychromatic division of focal plane Stokes polarimeters",
+    "keywords": [
+      "Polarimetry"
+    ]
+  },
+  "doi:10.1063/1.5057768": {
+    "title": "Deflectometry encoding the measured angle in a time-dependent intensity signal",
+    "keywords": [
+      "Optical metrology"
+    ]
+  },
+  "doi:10.3389/fphy.2019.00031": {
+    "title": "Diffusion Through a Network of Compartments Separated by Partially-Transmitting Boundaries",
+    "keywords": [
+      "Diffusion"
+    ]
+  },
+  "doi:10.1038/s41566-019-0450-2": {
+    "title": "Knotting fractional-order knots with the polarization state of light",
+    "keywords": [
+      "Polarization optics",
+      "Structured light"
+    ]
+  },
+  "doi:10.1088/1361-6455/ab3995": {
+    "title": "Roadmap on STIRAP applications",
+    "keywords": [
+      "Adiabatic passage",
+      "Quantum optics"
+    ]
+  },
+  "doi:10.1103/physreva.100.023615": {
+    "title": "Quantum magnetism with ultracold bosons carrying orbital angular momentum",
+    "keywords": [
+      "Ultracold atoms",
+      "Orbital angular momentum",
+      "Optical lattices",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1016/j.optlaseng.2018.10.003": {
+    "title": "Wavefront imaging by using an inline holographic microscopy system based on a double-sideband filter",
+    "keywords": [
+      "Holography"
+    ]
+  },
+  "doi:10.3390/app9153049": {
+    "title": "Special Issue on Liquid Crystal on Silicon Devices: Modeling and Advanced Spatial Light Modulation Applications",
+    "keywords": [
+      "Liquid crystals",
+      "Spatial light modulators"
+    ]
+  },
+  "doi:10.1364/oe.26.033797": {
+    "title": "Integrated photonic devices based on adiabatic transitions between supersymmetric structures",
+    "keywords": [
+      "Photonic waveguides",
+      "Supersymmetry",
+      "Adiabatic passage"
+    ]
+  },
+  "doi:10.1103/physrevlett.121.090404": {
+    "title": "Damping of Josephson Oscillations in Strongly Correlated One-Dimensional Atomic Gases",
+    "keywords": [
+      "Ultracold atoms",
+      "Many-body physics"
+    ]
+  },
+  "doi:10.1103/physreva.98.043834": {
+    "title": "Atomic-frequency-comb quantum memory via piecewise adiabatic passage",
+    "keywords": [
+      "Adiabatic passage",
+      "Quantum optics",
+      "Quantum technologies"
+    ]
+  },
+  "doi:10.3390/app8112310": {
+    "title": "Microparticle Manipulation and Imaging through a Self-Calibrated Liquid Crystal on Silicon Display",
+    "keywords": [
+      "Liquid crystals",
+      "Spatial light modulators",
+      "Optical trapping"
+    ]
+  },
+  "doi:10.1038/s41598-018-29540-1": {
+    "title": "Generation of reconfigurable optical traps for microparticles spatial manipulation through dynamic split lens inspired light structures",
+    "keywords": [
+      "Structured light",
+      "Diffractive optics",
+      "Optical trapping"
+    ]
+  },
+  "doi:10.1016/j.optlaseng.2018.02.019": {
+    "title": "LCoS display phase self-calibration method based on diffractive lens schemes",
+    "keywords": [
+      "Liquid crystals",
+      "Spatial light modulators",
+      "Diffractive optics",
+      "Optical metrology"
+    ]
+  },
+  "doi:10.1364/oe.26.027212": {
+    "title": "Completeness condition for unambiguous profile reconstruction by sub-aperture stitching",
+    "keywords": [
+      "Optical metrology"
+    ]
+  },
+  "doi:10.1088/1367-2630/aae107": {
+    "title": "Quantum sensing using imbalanced counter-rotating Bose–Einstein condensate modes",
+    "keywords": [
+      "Ultracold atoms",
+      "Bose–Einstein condensates",
+      "Orbital angular momentum",
+      "Quantum technologies"
+    ]
+  },
+  "doi:10.1002/jbio.201700189": {
+    "title": "Polarimetric imaging of biological tissues based on the indices of polarimetric purity",
+    "keywords": [
+      "Polarimetry",
+      "Mueller matrix",
+      "Depolarization",
+      "Biomedical imaging"
+    ]
+  }
+}
