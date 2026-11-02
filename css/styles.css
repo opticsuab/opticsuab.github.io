@@ -361,7 +361,7 @@ body.maint .site-header,body.maint .site-footer,body.maint .progress,body.maint 
 
 /* 3D model of Edifici C (How to reach us) */
 .bldg{margin:18px 0 34px}
-.bldg-stage{position:relative;background:var(--grad);overflow:hidden;border:1px solid var(--navy-800)}
+.bldg-stage{position:relative;background:radial-gradient(120% 90% at 50% 18%,#0e3a68 0%,#071d3c 55%,#040f20 100%);overflow:hidden;border:1px solid var(--navy-800)}
 .bldg-stage canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:pan-y;outline-offset:-4px}
 .bldg.grabbing canvas{cursor:grabbing}
 .bldg-stage canvas:focus-visible{outline:2px solid var(--green-l)}
@@ -387,7 +387,22 @@ body.maint .site-header,body.maint .site-footer,body.maint .progress,body.maint 
 .bldg-ico{width:36px;padding:8px 0;font-size:.95rem;line-height:1}
 .prose .bldg-help{font-size:.82rem;color:var(--muted);margin-top:8px}
 .bldg-static .bldg-stage{background:#fff}.bldg-static img{margin:0;border:0;max-height:none}
-@media (max-width:640px){.bldg-card{padding:6px 10px;bottom:34px}.bldg-card b{font-size:.82rem}.bldg-us::before{height:34px}}
+.bldg-road{position:absolute;left:0;top:0;font:500 .66rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#d9efff;background:rgba(17,64,118,.78);border:1px solid rgba(127,196,255,.55);border-radius:999px;padding:3px 9px;white-space:nowrap;transition:opacity .2s}
+.bldg-road-s{font-size:.6rem;color:#b7d3ef;background:rgba(7,29,60,.72);border-color:rgba(127,196,255,.28)}
+.bldg-pin{position:absolute;left:0;top:0;font:600 .68rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#04210f;background:var(--green-l);border-radius:4px;padding:4px 8px;white-space:nowrap;box-shadow:0 0 0 4px rgba(95,211,154,.22),0 10px 24px -12px rgba(0,0,0,.7);transition:opacity .2s}
+.bldg-pin::after{content:"";position:absolute;left:50%;bottom:-5px;width:8px;height:8px;background:inherit;transform:translateX(-50%) rotate(45deg)}
+.bldg-pin-serra{background:#7cd0ff;color:#04182c;box-shadow:0 0 0 4px rgba(124,208,255,.22),0 10px 24px -12px rgba(0,0,0,.7)}
+.bldg-pin-cross{background:#fff;color:var(--navy-900);font-size:.6rem;box-shadow:0 10px 24px -12px rgba(0,0,0,.7)}
+.bldg-pin-bridge{background:rgba(4,15,32,.85);color:var(--green-l);border:1px solid var(--green-l);font-size:.6rem;box-shadow:none}
+.bldg-pin-bridge::after{display:none}
+.bldg-compass{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(127,196,255,.45);background:rgba(4,15,32,.6);display:grid;place-items:center}
+.bldg-compass i{position:absolute;inset:6px;transition:none}.bldg-compass i::before{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);border:5px solid transparent;border-bottom:13px solid var(--green-l);border-top:0}
+.bldg-compass b{font:600 .6rem var(--mono);color:#fff;margin-top:8px}
+.bldg-routes{display:inline-flex;flex-wrap:wrap;gap:8px}
+.bldg-route[aria-pressed=true]{background:var(--green-d);border-color:var(--green-d);color:#fff}
+.bldg-route-serra[aria-pressed=true]{background:#0b6aa8;border-color:#0b6aa8}
+.prose .bldg-help a{color:inherit}
+@media (max-width:640px){.bldg-card{padding:6px 10px;bottom:34px}.bldg-card b{font-size:.82rem}.bldg-us::before{height:34px}.bldg-road{font-size:.56rem;padding:2px 7px}.bldg-pin{font-size:.58rem;padding:3px 6px}.bldg-mod{display:none}}
 
 /* plain-HTML copy of each page written by tools/build-pages.mjs: for crawlers and if scripts fail */
 .static-page{padding:calc(var(--hh) + 40px) 0 60px}.static-page h1{font-size:2rem;margin-bottom:12px}.static-page ul{padding-left:1.2em}.static-page img{max-width:320px;margin:12px 0}

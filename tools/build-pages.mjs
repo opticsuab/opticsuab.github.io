@@ -76,7 +76,7 @@ function body(path, lang) {
   const people = groups => `<ul>${data.people.filter(p => p && p.name && (!groups || groups.includes(p.group))).map(p => `<li>${esc(p.name)}${p.position ? ` · ${esc(T(p.position))}` : ''}</li>`).join('')}</ul>`;
   switch (path) {
     case 'research/lines': return head + (site.research_lines || []).map(l => `<h2>${esc(tr(lang, 'site', l.title))}</h2><p>${esc(tr(lang, 'site', l.description))}</p>`).join('');
-    case 'research/publications': return head + refList(data.pubs, lang);
+    case 'research/publications': return head + refList(data.pubs.filter(r => r && r.text && !r.hold), lang);
     case 'research/patents': return head + refList(data.patents, lang);
     case 'research/theses': return head + refList(data.theses, lang);
     case 'teaching/master-thesis': return head + refList(data.master, lang);

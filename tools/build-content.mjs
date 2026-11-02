@@ -3,6 +3,10 @@
  * Content pipeline. Runs on every change to main (see .github/workflows/publish.yml) and can be run
  * locally with `node tools/build-content.mjs`.
  *
+ * 0. Publications: an entry with only a DOI (or arXiv id) and its title gets the full reference, year and link
+ *    from the DOI's metadata (Crossref, or DataCite for arXiv), in the site's format. The title written in the
+ *    panel is checked against the DOI's: if they do not match, the entry is held back (only shown with ?preview,
+ *    with a note). A reference written by hand in the panel always wins.
  * 1. Keywords: every publication gets keywords automatically from the keyword bank and the paper's
  *    metadata on OpenAlex (title, abstract, indexed keywords); new terms join the bank. Keywords set in
  *    data/publication-keywords.json always win (see the keywords section below).
@@ -167,7 +171,7 @@ async function translate(text, from, to) {
   return out.join('');
 }
 /* arXiv papers: "arxiv.org/abs/2401.01234" or "arXiv:2401.01234" (their DOI is 10.48550/arXiv.<id>) */
-const arxivOf = s => { const m = String(s || '').match(/arxiv(?:\.org\/(?:abs|pdf)\/|:\s*)([a-z-]+\/\d{7}|\d{4}\.\d{4,5})/i); return m ? m[1] : null; };
+const arxivOf = s => { const m = String(s || '').trim().match(/arxiv(?:\.org\/(?:abs|pdf)\/|:\s*)([a-z-]+\/\d{7}|\d{4}\.\d{4,5})/i) || String(s || '').trim().match(/^(\d{4}\.\d{4,5})(v\d+)?$/); return m ? m[1] : null; };
 async function openAlex(pub) {
   if (OFFLINE) return null;
   const pick = 'select=title,keywords,topics,abstract_inverted_index';
@@ -245,6 +249,116 @@ async function suggestKeywords(pub) {
 }
 
 const pubsDoc = readJSON('data/publications.json', { publications: [] });
+
+/* ---------- 0. publications from their DOI ----------
+ * <cache>/publications-meta.json  metadata already fetched for each DOI, so it is looked up only once */
+const PUB_META_REL = 'data/publications-meta.json';
+const metaOld = readCache(PUB_META_REL, {}), metaNew = {};
+const pubDoi = s => { const d = doiOf(s); if (d) return d.toLowerCase(); const a = arxivOf(s); return a ? `10.48550/arxiv.${a}`.toLowerCase() : null; };
+const plain = s => String(s || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim().replace(/\.$/, '');
+const first = v => Array.isArray(v) ? v[0] : v;
+const yearOf = d => d && d['date-parts'] && d['date-parts'][0] && d['date-parts'][0][0];
+async function doiMeta(doi) {
+  const ua = { 'User-Agent': 'opticsuab.eu site builder (https://opticsuab.eu)' };
+  if (!doi.startsWith('10.48550/')) {
+    try {
+      const m = (await getJSON(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, { headers: ua })).message;
+      return { title: plain(first(m.title)), authors: m.author || [], journal: plain(first(m['short-container-title'])), journalFull: plain(first(m['container-title'])),
+        volume: m.volume || '', issue: m.issue || '', page: m.page || '', article: m['article-number'] || '',
+        year: yearOf(m['published-print']) || yearOf(m.issued) || yearOf(m['published-online']) || null, publisher: m.publisher || '' };
+    } catch (e) { if (!/HTTP 404/.test(e.message)) throw e; }
+  }
+  /* DataCite (arXiv, Zenodo…) and anything Crossref does not know: the DOI's own citation data */
+  const r = await fetch(`https://doi.org/${doi}`, { headers: { ...ua, Accept: 'application/vnd.citationstyles.csl+json' }, signal: AbortSignal.timeout(20000) });
+  if (r.status === 404) return { missing: true };
+  if (!r.ok) throw new Error(`HTTP ${r.status} for https://doi.org/${doi}`);
+  const c = await r.json();
+  return { title: plain(first(c.title)), authors: c.author || [], journal: plain(c['container-title-short'] || c.journalAbbreviation), journalFull: plain(first(c['container-title'])),
+    volume: c.volume || '', issue: c.issue || '', page: c.page || '', article: c.number || '', year: yearOf(c.issued) || null, publisher: c.publisher || '',
+    arxiv: doi.startsWith('10.48550/arxiv.') ? doi.slice('10.48550/arxiv.'.length) : '' };
+}
+/* Journal names as the site writes them. Crossref's short titles are used, with the full stops added
+   ("Sci Rep" → "Sci. Rep."); journals whose short title is their full name are listed here. */
+const JOURNALS = {
+  'applied sciences': 'Appl. Sci.', 'optics and lasers in engineering': 'Opt. Lasers Eng.', 'optics & laser technology': 'Opt. Laser Technol.',
+  'nature photonics': 'Nat. Photonics', 'optics express': 'Opt. Express', 'optics letters': 'Opt. Lett.', 'biomedical optics express': 'Biomed. Opt. Express',
+  'physical review a': 'Phys. Rev. A', 'physical review b': 'Phys. Rev. B', 'physical review x': 'Phys. Rev. X', 'physical review letters': 'Phys. Rev. Lett.',
+  'physical review research': 'Phys. Rev. Research', 'new journal of physics': 'New J. Phys.', 'journal of biophotonics': 'J. Biophotonics',
+  'results in physics': 'Results Phys.', 'ieee sensors journal': 'IEEE Sens. J.', 'applied physics letters': 'Appl. Phys. Lett.',
+  'review of scientific instruments': 'Rev. Sci. Instrum.', 'advanced optical materials': 'Adv. Optical Mater.', 'plos one': 'PLoS ONE',
+  'the european physical journal d': 'Eur. Phys. J. D', 'europhysics letters': 'EPL', 'frontiers in physics': 'Front. Phys.', 'avs quantum science': 'AVS Quantum Sci.',
+};
+const journalOf = m => {
+  const full = m.journalFull || '', short = m.journal || '';
+  const known = JOURNALS[full.toLowerCase()] || JOURNALS[short.toLowerCase()];
+  if (known) return known;
+  if (!short) return full || m.publisher || '';
+  const words = full.toLowerCase().split(/[\s-]+/);
+  /* a word of the short title that only starts a word of the full title is an abbreviation: add its full stop */
+  return short.split(' ').map(w => !/\.$/.test(w) && w.length > 1 && words.some(f => f !== w.toLowerCase() && f.startsWith(w.toLowerCase())) ? `${w}.` : w).join(' ');
+};
+/* "Jean-Luc" → "J.-L.", "María José" → "M. J.", "J.J." → "J. J." */
+const initialsOf = given => String(given || '').replace(/\./g, '. ').split(/\s+/).filter(Boolean)
+  .map(w => w.split('-').map(p => p ? p[0].toUpperCase() + '.' : '').join('-')).join(' ');
+const caseName = s => (s === s.toUpperCase() && /\p{Lu}{3}/u.test(s) ? s.toLowerCase().replace(/(^|[\s'’-])\p{L}/gu, c => c.toUpperCase()) : s);
+const authorList = authors => {
+  const names = authors.map(a => a.literal || a.name || [initialsOf(a.given), caseName(a.family || '')].filter(Boolean).join(' ')).filter(Boolean);
+  if (names.length > 15) return `${names.slice(0, 10).join(', ')}, et al.`;
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+};
+/* «Title». A. Author, B. Author, and C. Author, Journal Vol (Issue), Article (Year). — the format used on the site */
+function formatReference(m) {
+  const year = m.year ? ` (${m.year})` : '';
+  let where;
+  if (m.arxiv) where = `arXiv:${m.arxiv}${year}`;
+  else {
+    const page = m.article || (m.page ? (/[-–]/.test(m.page) ? `pp. ${m.page.replace('–', '-')}` : m.page) : '');
+    where = `${journalOf(m)}${m.volume ? ` ${m.volume}` : ''}${m.issue ? ` (${m.issue})` : ''}${page ? `, ${page}` : ''}${year}`;
+  }
+  const who = authorList(m.authors || []);
+  return `«${m.title}». ${who ? `${who}, ` : ''}${where}.`;
+}
+const titleWords = s => norm(s).split(' ').filter(w => w.length > 2);
+const sameTitle = (written, real) => {
+  const a = titleWords(written), b = new Set(titleWords(real));
+  if (!a.length || !b.size) return false;
+  const hits = a.filter(w => b.has(w)).length;
+  return hits / a.length >= 0.75 && hits >= Math.min(3, a.length);
+};
+for (const pub of pubsDoc.publications || []) {
+  if (!pub || String(pub.text || '').trim()) continue;          // a reference written by hand wins
+  const doi = pubDoi(pub.doi) || pubDoi(pub.link);
+  const title = String(pub.title || '').trim();
+  if (!doi) {
+    if (title) { pub.text = `«${title.replace(/\.$/, '')}».`; pub.hold = true; pub.warning = 'Falta el DOI: añádelo en el panel para completar la referencia.'; }
+    continue;
+  }
+  let meta = metaOld[doi] || null;
+  if (!meta && !OFFLINE) {
+    try { meta = await doiMeta(doi); if (meta.title) log(`publication · ${doi} → ${meta.title.slice(0, 70)}`); }
+    catch (e) { warn(`metadata lookup failed for ${doi}: ${e.message}`); }
+  }
+  pub.link = pub.link || `https://doi.org/${doi}`;
+  if (!meta) {                                                   // not looked up yet: show what we have, try again next time
+    pub.text = `«${(title || doi).replace(/\.$/, '')}».`;
+    continue;
+  }
+  if (meta.missing) {
+    pub.text = `«${title || doi}».`; pub.hold = true; pub.warning = `El DOI ${doi} no existe. Revísalo en el panel.`;
+    warn(`publication "${title}": DOI ${doi} does not exist`);
+    continue;
+  }
+  metaNew[doi] = meta;
+  if (title && !sameTitle(title, meta.title)) {
+    pub.text = `«${title}».`; pub.hold = true;
+    pub.warning = `El DOI ${doi} corresponde a «${meta.title}», no al título escrito. Revisa el DOI o el título en el panel.`;
+    warn(`publication "${title}": DOI ${doi} is "${meta.title}"`);
+    continue;
+  }
+  pub.text = formatReference(meta);
+  pub.year = meta.year || pub.year || new Date().getFullYear();
+}
+writeJSON(PUB_META_REL, metaNew);
 const fixed = readJSON('data/publication-keywords.json', {});
 const autoOld = readCache(AUTO_REL, {}), autoNew = {};
 const pubKey = pub => { const doi = doiOf(pub.link) || doiOf(pub.text); return doi ? `doi:${doi.toLowerCase()}` : `title:${norm(titleOf(pub.text)).trim()}`; };

@@ -246,25 +246,31 @@ content:
     fields:
       - name: publications
         label: Publicaciones (la web las ordena sola por año)
+        description: Para añadir una, basta con el título y el DOI. Al guardar, la web completa sola autores, revista, año y enlace (1–2 minutos) con el mismo formato que las demás.
         type: object
         list:
           collapsible:
             collapsed: true
-            summary: "{year} · {short_title}"
+            summary: "{title}"
         fields:
-          - name: year
-            label: Año
-            type: number
-            required: true
-          - name: short_title
-            label: Título corto (solo sirve para encontrarla en esta lista)
+          - name: title
+            label: Título
+            description: Sirve para comprobar que el DOI es el correcto. Si no coinciden, la publicación no se muestra hasta que lo corrijas (con ?preview verás el aviso).
             type: string
-          - name: text
-            label: Referencia completa
-            type: text
             required: true
+          - name: doi
+            label: DOI
+            description: "Por ejemplo 10.1103/PhysRevA.107.013707, o el enlace https://doi.org/… En arXiv vale el identificador: arXiv:2605.04338."
+            type: string
+          - name: year
+            label: Año (opcional, se rellena solo)
+            type: number
+          - name: text
+            label: Referencia completa (opcional, se rellena sola)
+            description: Déjala vacía. Escríbela solo si quieres una referencia distinta de la automática; si la escribes, manda sobre la automática.
+            type: text
           - name: link
-            label: Enlace (DOI o URL, opcional)
+            label: Enlace (opcional, se rellena solo con el DOI)
             type: string
 
   - name: theses

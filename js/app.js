@@ -65,7 +65,12 @@ const safeUrl = (u, kind) => {
   if (/^[a-z][a-z0-9+.-]*:/i.test(u) || /\s/.test(u) || !/\.[a-z]{2,}/i.test(u)) return '';
   return `https://${u.replace(/^\/+/, '')}`;
 };
-const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String) })).sort((a, b) => b.y - a.y);
+const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String), w: r.warning || '' })).sort((a, b) => b.y - a.y);
+/* Publications entered with only a title and a DOI: the publish process fills in the reference (tools/build-content.mjs).
+   Until then (or in a local copy) the title and the DOI link are shown. Entries whose DOI does not match their title
+   are held back: only shown with ?preview, with the reason. */
+const pubDoiLink = r => { const m = String(r.doi || '').match(/10\.\d{4,9}\/\S+/) || String(r.doi || '').match(/^(?:arxiv:)?\s*(\d{4}\.\d{4,5})/i); return !m ? '' : m[1] ? `https://doi.org/10.48550/arXiv.${m[1]}` : `https://doi.org/${m[0]}`; };
+const readyPub = r => r && (r.text || r.title) ? Object.assign({}, r, { text: r.text || `«${String(r.title).trim().replace(/\.$/, '')}».`, link: r.link || pubDoiLink(r) }) : null;
 const RECORD_TERMS = {
   es: [
     ['PhD in Physics', 'Doctorado en Física'], ['Phd in Physics', 'Doctorado en Física'],
@@ -149,7 +154,7 @@ function buildData(ov, en = {}) {
       scholar: safeUrl(p.scholar), orcid: safeUrl(p.orcid, 'orcid'), scopus: safeUrl(p.scopus), wos: safeUrl(p.wos), rid: safeUrl(p.researcherid),
       linkedin: safeUrl(p.linkedin), web: safeUrl(p.web) };
   });
-  PUBS = byYear(pubs.publications || []); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
+  PUBS = byYear((pubs.publications || []).map(readyPub).filter(r => r && (!r.hold || PREVIEW))); THESES = byYear(theses.theses || []); PATENTS = byYear(patents.patents || []); MASTER = byYear(master.master_theses || []);
   /* keywords: one entry per keyword used in the publications, most used first */
   KW_MEM = ov.keywords || {};
   const counts = new Map();
@@ -217,7 +222,7 @@ document.addEventListener('click', e => { const c = e.target.closest('.person[da
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
 const rowSearch = r => fold([localizeRecord(r.t), ...r.kw.map(kwLabel), ...membersIn(r.t)].join(' '));
 const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}" data-q="${esc(rowSearch(r))}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}><span class="yr">${r.y}</span>
-  <div class="t">${esc(localizeRecord(r.t))}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
+  <div class="t">${esc(localizeRecord(r.t))}${r.w && PREVIEW ? `<div class="note">${esc(r.w)}</div>` : ''}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
 /* Title and description of a fixed page (PAGE_META in js/routes.js). */
 const metaOf = (key, vars) => { const m = PAGE_META[key] || ['', '']; return [m[0], m[1] ? t(m[1], vars) : '']; };
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
@@ -242,13 +247,14 @@ function listPage(rows, label, { search = true, linkLabel, searchValue = '', sea
 const prosePage = html => `<div class="prose">${String(html || '').replace(/(src|href)="(img\/)/g, '$1="/$2')}</div>`;
 /* "How to reach us": the floor-plan image of Edifici C becomes an interactive 3D model (js/building3d.js). */
 const buildingWidget = () => `<figure class="bldg" data-building>
-  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D model of Edifici C. The Optics Group is in C3 Parell, floor 0/−1, half a level below the ground floor. Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
+  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D map of Edifici C. The Optics Group is in C3 Parell, floor 0/−1: enter through C3B Parell and cross the bridge. Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
     <div class="bldg-labels" aria-hidden="true"></div><div class="bldg-tip" hidden></div>
     <div class="bldg-hint" aria-hidden="true">${t('Use Ctrl or ⌘ + scroll to zoom')}</div>
     <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript></div>
   <figcaption class="bldg-bar">
     <span class="bldg-key"><i></i>${t('Optics Group')} · ${t('C3 Parell · floor 0/−1')}</span>
     <span class="bldg-btns">
+      <span class="bldg-routes" role="group" aria-label="${esc(t('How to get here'))}"><button type="button" class="bldg-btn bldg-route bldg-route-main" data-b="route-main" aria-pressed="true">${t('From the main entrance')}</button><button type="button" class="bldg-btn bldg-route bldg-route-serra" data-b="route-serra" aria-pressed="false">${t('From Av. de Serragalliners')}</button></span>
       <button type="button" class="bldg-btn" data-b="us">${t('Show us')}</button>
       <button type="button" class="bldg-btn" data-b="top">${t('Top view')}</button>
       <button type="button" class="bldg-btn" data-b="home">${t('Reset')}</button>
@@ -257,7 +263,7 @@ const buildingWidget = () => `<figure class="bldg" data-building>
       <button type="button" class="bldg-btn bldg-ico" data-b="auto" aria-pressed="false" aria-label="${esc(t('Rotate automatically'))}">⟳</button>
     </span>
   </figcaption>
-  <p class="bldg-help">${t('Drag to rotate · schematic model, not to scale')}</p>
+  <p class="bldg-help">${t('Drag to rotate · approximate heights')} · ${t('Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>
 </figure>`;
 const reachPage = () => prosePage(PAGES_HTML.reach).replace(/<img[^>]*foto-mapa[^>]*>/, buildingWidget());
 let disposeBuilding = null;
@@ -267,9 +273,10 @@ function mountBuilding(root) {
   const fallback = () => { el.classList.add('bldg-static'); $('.bldg-stage', el).innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
   const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
   if (!gl) return fallback();
-  const start = () => import('/js/building3d.js?v=63').then(m => {
+  const start = () => import('/js/building3d.js?v=65').then(m => {
     if (!el.isConnected) return;
-    disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), names: { 'Central corridor': t('Central corridor'), 'C3B Parell ala': `${t('Optics Group')} · C3 Parell 0/−1` } } });
+    disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), main: t('Main entrance'),
+      serra: t('Entrance from Av. de Serragalliners'), cross: t("Cross C. de l'Albareda"), bridge: t('Bridge to C3 Parell'), access: t('C3B Parell · way in'), north: t('N') } });
   }).catch(err => { console.error(err); fallback(); });
   const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); start(); } }, { rootMargin: '300px' });
   io.observe(el);
