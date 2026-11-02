@@ -247,8 +247,9 @@ function listPage(rows, label, { search = true, linkLabel, searchValue = '', sea
 const prosePage = html => `<div class="prose">${String(html || '').replace(/(src|href)="(img\/)/g, '$1="/$2')}</div>`;
 /* "How to reach us": the floor-plan image of Edifici C becomes an interactive 3D model (js/building3d.js). */
 const buildingWidget = gmap => `<figure class="bldg" data-building>
-  <div class="bldg-stage"><canvas role="img" aria-label="${esc(t('3D map of Edifici C. The Optics Group is in C3 Parell, floor 0/−1: enter through C3B Parell and cross the bridge.'))}"></canvas>
+  <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D map of Edifici C. The Optics Group is in C3 Parell, floor 0/−1: enter through C3B Parell and cross the bridge.'))} ${esc(t('Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
     <div class="bldg-labels" aria-hidden="true"></div>
+    <div class="bldg-hint" aria-hidden="true">${t('Use Ctrl or ⌘ + scroll to zoom')}</div>
     <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript>
     ${gmap ? `<a class="bldg-gmap" href="${esc(gmap)}" target="_blank" rel="noopener"><img src="/img/content/34a9b7_google-maps-web.png" alt="" loading="lazy"><span>${t('Open in Google Maps')} ${I_EXT}</span></a>` : ''}</div>
   <figcaption class="bldg-bar">
@@ -258,7 +259,7 @@ const buildingWidget = gmap => `<figure class="bldg" data-building>
       <button type="button" class="bldg-btn" data-b="view" aria-pressed="false">${t('Top view')}</button>
     </span>
   </figcaption>
-  <p class="bldg-help">${t('Approximate heights')} · ${t('Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>
+  <p class="bldg-help">${t('Drag to rotate · approximate heights')} · ${t('Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>
 </figure>`;
 /* The Google Maps picture of the page becomes a small link in a corner of the 3D map. */
 const GMAP_LINK = /<a[^>]*href="([^"]*)"[^>]*>\s*<img[^>]*google-maps-web[^>]*>\s*<\/a>\s*/;
@@ -274,7 +275,7 @@ function mountBuilding(root) {
   const fallback = () => { el.classList.add('bldg-static'); const st = $('.bldg-stage', el), g = $('.bldg-gmap', st); st.innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; if (g) st.appendChild(g); $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
   const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
   if (!gl) return fallback();
-  const start = () => import('/js/building3d.js?v=66').then(m => {
+  const start = () => import('/js/building3d.js?v=67').then(m => {
     if (!el.isConnected) return;
     disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), main: t('Main entrance'),
       serra: t('Entrance from Av. de Serragalliners'), bridge: t('Bridge to C3 Parell'), cafe: t('Sciences cafeteria'), north: t('N') } });

@@ -362,7 +362,7 @@ body.maint .site-header,body.maint .site-footer,body.maint .progress,body.maint 
 /* 3D model of Edifici C (How to reach us) */
 .bldg{margin:18px 0 34px}
 .bldg-stage{position:relative;background:radial-gradient(120% 90% at 50% 18%,#0e3a68 0%,#071d3c 55%,#040f20 100%);overflow:hidden;border:1px solid var(--navy-800)}
-.bldg-stage canvas{display:block;width:100%;height:auto}
+.bldg-stage canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:pan-y;outline-offset:-4px}
 .bldg.grabbing canvas{cursor:grabbing}
 .bldg-stage canvas:focus-visible{outline:2px solid var(--green-l)}
 .bldg-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}

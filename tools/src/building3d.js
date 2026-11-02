@@ -3,7 +3,7 @@
    Footprints and streets come from OpenStreetMap (tools/src/campus-data.js, © OpenStreetMap contributors, ODbL);
    heights are approximate. The Optics Group is in C3 Parell, floor 0/−1; the way in is through C3B Parell and the
    bridge between the two wings. Two routes are drawn: from the main entrance and from Av. de Serragalliners.
-   The view is fixed (no dragging): the destination stays in the centre; buttons switch the route and the 3D/top view.
+   The camera orbits around the destination, which always stays in the centre; buttons switch the route and the 3D/top view.
 
    mountBuilding(container, { labels }) builds the scene inside `container` and returns a function that frees it. */
 import {
@@ -55,6 +55,7 @@ export function mountBuilding(container, opts = {}) {
     tower: std({ color: C.tower, roughness: 0.7, metalness: 0.05 }),
     link: std({ color: C.link, roughness: 0.8 }),
     c0: std({ color: C.c0, roughness: 0.75 }),
+    plaza: std({ color: 0xb9cde4, roughness: 0.9 }),
     ctx: std({ color: C.ctx, roughness: 0.9, transparent: true, opacity: 0.75 }),
     access: std({ color: C.access, roughness: 0.7, emissive: new Color(C.main), emissiveIntensity: 0.06 }),
     us: std({ color: C.us, roughness: 0.4, metalness: 0.1, emissive: new Color(C.usGlow), emissiveIntensity: 0.35, transparent: true, opacity: 0.94 }),
@@ -120,8 +121,7 @@ export function mountBuilding(container, opts = {}) {
   };
   let usTop = 0, c0Top = 0;
   for (const b of BUILDINGS) {
-    const bridgeRoad = b.c === 'bridgeroad';
-    addSolid(extrude(b.p, bridgeRoad ? 9 : b.h, bridgeRoad ? 5 : 0), bridgeRoad ? mats.c0 : (mats[b.c] || mats.fac),
+    addSolid(extrude(b.p, b.h, b.y || 0), mats[b.c] || mats.fac,
       b.c === 'us' ? mats.usEdge : b.c === 'ctx' ? mats.ctxEdge : mats.edge, b.c !== 'ctx');
     if (b.c === 'us') usTop = b.h;
     if (b.c === 'c0') c0Top = b.h;
@@ -159,7 +159,7 @@ export function mountBuilding(container, opts = {}) {
     g.position.copy(p); world.add(g);
     return { g, m, ring };
   };
-  const beams = { main: beam(W(SPOTS.main), C.main), serra: beam(W(SPOTS.serra), C.serra) };
+  const beams = { main: beam(W(SPOTS.main, 5), C.main), serra: beam(W(SPOTS.serra), C.serra) };   /* the main entrance is the square over Eix Central */
 
   /* ---------- routes: glowing tubes with moving chevrons, drawn over the buildings ---------- */
   const routes = {};
@@ -209,16 +209,18 @@ export function mountBuilding(container, opts = {}) {
   const compass = document.createElement('span'); compass.className = 'bldg-compass'; compass.innerHTML = '<i></i><b></b>';
   compass.querySelector('b').textContent = L.north; layer.appendChild(compass);
 
-  /* ---------- fixed camera, centred on the destination ---------- */
-  const VIEWS = { '3d': { az: 2.05, el: 0.62, dist: 430 }, top: { az: Math.PI / 2, el: 1.53, dist: 500 } };
-  let view = '3d', active = 'main', raf = 0, visible = true, dirty = true;
+  /* ---------- camera: orbits around the destination, which stays in the centre ---------- */
+  const VIEWS = { '3d': { az: 2.05, el: 0.62, zoom: 1 }, top: { az: Math.PI / 2, el: 1.53, zoom: 1.12 } };
+  const BASE = 430;
+  let active = 'main', raf = 0, visible = true, dirty = true, dragging = false, last = null, pinch = null;
   const target = usPos.clone();
+  const cur = { ...VIEWS['3d'] }, goal = { ...VIEWS['3d'] };
   const placeCamera = () => {
-    const v = VIEWS[view], aspect = camera.aspect || 1;
-    const dist = v.dist * Math.max(1, 1.15 / aspect);           /* narrow (portrait) screens: step back to keep both avenues */
-    camera.position.set(target.x + dist * Math.cos(v.el) * Math.cos(v.az), target.y + dist * Math.sin(v.el), target.z + dist * Math.cos(v.el) * Math.sin(v.az));
+    const dist = BASE * cur.zoom * Math.max(1, 1.15 / (camera.aspect || 1));   /* portrait screens: step back to keep both avenues */
+    camera.position.set(target.x + dist * Math.cos(cur.el) * Math.cos(cur.az), target.y + dist * Math.sin(cur.el), target.z + dist * Math.cos(cur.el) * Math.sin(cur.az));
     camera.lookAt(target); camera.updateMatrixWorld();
   };
+  const setView = name => { Object.assign(goal, VIEWS[name]); container.querySelector('[data-b="view"]')?.setAttribute('aria-pressed', String(name === 'top')); kick(); };
   const showRoute = k => {
     active = k;
     for (const [r, o] of Object.entries(routes)) { o.tube.visible = o.dot.visible = r === k; beams[r].g.visible = r === k; }
@@ -237,6 +239,10 @@ export function mountBuilding(container, opts = {}) {
   const frame = t => {
     raf = 0;
     const time = reduced ? 0 : (t || 0) / 1000;
+    const k = reduced ? 1 : 0.14;
+    let moving = false;
+    for (const key of ['az', 'el', 'zoom']) { const d = goal[key] - cur[key]; if (Math.abs(d) > 1e-4) { cur[key] += d * k; moving = true; } else cur[key] = goal[key]; }
+    if (moving) { placeCamera(); dirty = true; }
     for (const o of Object.values(routes)) {
       o.m.uniforms.time.value = time;
       o.dot.position.copy(o.path.getPointAt(reduced ? 1 : (time / Math.max(6, o.len / 45)) % 1));
@@ -259,16 +265,42 @@ export function mountBuilding(container, opts = {}) {
       compass.firstElementChild.style.transform = `rotate(${Math.atan2(s3.x - s2.x, -(s3.y - s2.y))}rad)`;
       dirty = false;
     }
-    if (visible && !reduced) raf = requestAnimationFrame(frame);
+    if (visible && (!reduced || moving || dragging)) raf = requestAnimationFrame(frame);
   };
   function kick() { if (!raf && visible) raf = requestAnimationFrame(frame); }
 
+  /* ---------- input: drag to rotate, Ctrl/⌘ + wheel or pinch to zoom, arrow keys ---------- */
+  const clampEl = v => MathUtils.clamp(v, 0.18, 1.53), clampZoom = v => MathUtils.clamp(v, 0.35, 1.8);
+  const onDown = e => { if (e.pointerType === 'touch' && pinch) return; dragging = true; last = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); container.classList.add('grabbing'); kick(); };
+  const onMove = e => {
+    if (!dragging || !last) return;
+    goal.az += (e.clientX - last.x) * 0.008; goal.el = clampEl(goal.el + (e.clientY - last.y) * 0.006); last = { x: e.clientX, y: e.clientY }; kick();
+  };
+  const onUp = e => { dragging = false; last = null; container.classList.remove('grabbing'); try { canvas.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ } };
+  const onWheel = e => {
+    if (!(e.ctrlKey || e.metaKey)) { container.classList.add('hinting'); clearTimeout(onWheel.t); onWheel.t = setTimeout(() => container.classList.remove('hinting'), 1400); return; }
+    e.preventDefault(); goal.zoom = clampZoom(goal.zoom * (1 + Math.sign(e.deltaY) * 0.1)); kick();
+  };
+  const dist2 = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  const onTouchStart = e => { if (e.touches.length === 2) { pinch = dist2(e); dragging = false; } };
+  const onTouchMove = e => { if (e.touches.length !== 2 || !pinch) return; e.preventDefault(); const d = dist2(e); goal.zoom = clampZoom(goal.zoom * pinch / d); pinch = d; kick(); };
+  const onTouchEnd = e => { if (e.touches.length < 2) pinch = null; };
+  const onKey = e => {
+    const step = { ArrowLeft: [-0.2, 0], ArrowRight: [0.2, 0], ArrowUp: [0, -0.12], ArrowDown: [0, 0.12] }[e.key];
+    if (step) { e.preventDefault(); goal.az += step[0]; goal.el = clampEl(goal.el + step[1]); kick(); }
+    else if (e.key === '+' || e.key === '=') { goal.zoom = clampZoom(goal.zoom * 0.88); kick(); }
+    else if (e.key === '-' || e.key === '_') { goal.zoom = clampZoom(goal.zoom * 1.12); kick(); }
+    else if (e.key === '0' || e.key === 'Home') setView('3d');
+  };
   const onButton = e => {
     const b = e.target.closest('[data-b]'); if (!b) return;
     const a = b.dataset.b;
     if (a.startsWith('route-') && routes[a.slice(6)]) showRoute(a.slice(6));
-    else if (a === 'view') { view = view === '3d' ? 'top' : '3d'; b.setAttribute('aria-pressed', String(view === 'top')); placeCamera(); dirty = true; kick(); }
+    else if (a === 'view') setView(b.getAttribute('aria-pressed') === 'true' ? '3d' : 'top');
   };
+  const listeners = [['pointerdown', onDown], ['pointermove', onMove], ['pointerup', onUp], ['pointercancel', onUp], ['wheel', onWheel, { passive: false }],
+    ['touchstart', onTouchStart, { passive: true }], ['touchmove', onTouchMove, { passive: false }], ['touchend', onTouchEnd], ['keydown', onKey]];
+  listeners.forEach(([n, f, o]) => canvas.addEventListener(n, f, o));
   container.addEventListener('click', onButton);
   const ro = new ResizeObserver(size); ro.observe(container);
   const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) kick(); });
@@ -279,6 +311,7 @@ export function mountBuilding(container, opts = {}) {
   return function dispose() {
     cancelAnimationFrame(raf); ro.disconnect(); io.disconnect();
     container.removeEventListener('click', onButton);
+    listeners.forEach(([n, f]) => canvas.removeEventListener(n, f));
     disposables.forEach(d => d.dispose && d.dispose());
     renderer.dispose();
     layer.replaceChildren();
