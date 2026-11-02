@@ -178,7 +178,7 @@ section{padding:clamp(64px,9vw,120px) 0;position:relative}
 .fchip{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;transition:background .25s,color .25s,border-color .25s,transform .2s var(--ease)}
 .fchip:hover{border-color:var(--navy-700)}.fchip:active{transform:scale(.94)}
 .fchip.on{background:var(--navy-900);color:#fff;border-color:var(--navy-900)}
-.search{margin-left:auto;padding:9px 16px;border:1px solid var(--line);border-radius:999px;font:400 .9rem var(--font);min-width:220px;background:#fff}
+.search{margin-left:auto;padding:9px 16px 9px 38px;border:1px solid var(--line);border-radius:999px;font:400 .9rem var(--font);min-width:220px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230B1B30' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='M21 21l-4.35-4.35'%3E%3C/path%3E%3C/svg%3E") no-repeat 12px center}
 .search:focus{outline:2px solid var(--green);border-color:transparent}
 .row{display:grid;grid-template-columns:90px 1fr auto;gap:22px;padding:22px 0;border-top:1px dashed var(--line);align-items:start;position:relative}
 .row::before{content:"";position:absolute;inset:0 -14px;background:#fff;opacity:0;transition:opacity .3s;z-index:-1}
