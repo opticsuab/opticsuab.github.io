@@ -169,7 +169,7 @@ const openProfile = el => {
   const p = PEOPLE[+el.dataset.p]; if (!p) return;
   let d = $('#pm'); if (!d) { d = document.createElement('dialog'); d.id = 'pm'; d.setAttribute('aria-labelledby', 'pm-t'); document.body.appendChild(d);
     d.addEventListener('click', e => { if (e.target === d || e.target.closest('.pm-x')) d.close(); }); d.addEventListener('close', () => { document.body.style.overflow = ''; pmLast && pmLast.focus(); }); }
-  pmLast = el; d.innerHTML = `<button class="pm-x" aria-label="${t('Close')}">×</button><div class="pm">${profile(p)}</div>`; d.showModal(); document.body.style.overflow = 'hidden';
+  pmLast = el; d.innerHTML = `<button class="pm-x" aria-label="${t('Close')}">×</button><div class="pm">${profile(p)}</div>`; document.body.style.overflow = 'hidden'; d.showModal();
 };
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
