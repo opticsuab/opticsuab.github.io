@@ -40,6 +40,8 @@ const fold = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '
 const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /* Group members (current and former) as they appear in references: "Adam Vallés" is cited as "A. Vallés", so a
    reference that cites him can be found by "Adam", "Vallés" or "Adam Vallés". */
+/* "POLO, JOAN" or "polo, joan" → "Polo, Joan"; words already in mixed case (Van Eeckhout, McX) are kept. */
+const nameCase = n => String(n || '').trim().replace(/[^\s,-]+/gu, w => (w === w.toLowerCase() || w === w.toUpperCase()) ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w);
 const memberOf = full => {
   const [last, given] = full.includes(',') ? full.split(',', 2) : [null, full]; /* former members are written "Surname, Name" */
   const words = fold(`${given} ${last || ''}`.replace(/^\s*(dr|prof)\.?\s+/i, '')).split(' ').filter(Boolean);
@@ -65,7 +67,7 @@ const safeUrl = (u, kind) => {
   if (/^[a-z][a-z0-9+.-]*:/i.test(u) || /\s/.test(u) || !/\.[a-z]{2,}/i.test(u)) return '';
   return `https://${u.replace(/^\/+/, '')}`;
 };
-const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String), w: r.warning || '' })).sort((a, b) => b.y - a.y);
+const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String), w: r.warning || '', ln: r.line || '' })).sort((a, b) => b.y - a.y);
 /* Publications entered with only a title and a DOI: the publish process fills in the reference (tools/build-content.mjs).
    Until then (or in a local copy) the title and the DOI link are shown. Entries whose DOI does not match their title
    are held back: only shown with ?preview, with the reason. */
@@ -161,13 +163,22 @@ function buildData(ov, en = {}) {
   PUBS.forEach(r => new Set(r.kw).forEach(k => counts.set(k, (counts.get(k) || 0) + 1)));
   KEYWORDS = [...counts].map(([k, n]) => ({ k, n, label: kwLabel(k) })).sort((a, b) => (b.n - a.n) || a.label.localeCompare(b.label, LANG));
   MEMBERS = [...new Set([...(people.people || []).map(p => p && p.name), ...(former.groups || []).flatMap(g => asList(g.names))].filter(Boolean))].map(memberOf).filter(Boolean);
-  FORMER = (former.groups || []).map(g => `<h2>${esc(T('site', g.title))}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(n)}</h3>`).join('\n')}`).join('\n');
+  FORMER = (former.groups || []).map(g => `<h2>${esc(T('site', g.title))}</h2>${asList(g.names).map(n => `<h3 class="yr">${esc(nameCase(n))}</h3>`).join('\n')}`).join('\n');
   INTERVIEWS = pages.interviews || ''; GENDER_TALKS = pages.talks || '';
   PAGES_HTML = { outreach: pages.outreach, reach: pages.how_to_reach_us, gender: pages.gender, collaborations: pages.collaborations, links: pages.links, societies: pages.societies, courses: pages.courses, datasets: pages.datasets };
   MAINT = Object.assign({}, RAW.maint, { title: T('site', RAW.maint.title), message: T('site', RAW.maint.message) });
 }
 const kwLabel = k => tr(KW_MEM, k);
 const kwHref = k => `#/research/publications?${new URLSearchParams({ kw: k })}`;
+/* Research lines: card i of the home page / Research ↔ id given to each paper by the publish step (data/research-lines.json).
+   A paper of "both" lines appears under each of them. */
+const LINE_IDS = ['classical', 'quantum'];
+const lineHref = i => `#/research/publications?${new URLSearchParams({ line: LINE_IDS[i] })}`;
+const inLine = (r, id) => r.ln === id || r.ln === 'both';
+const lineCount = i => PUBS.filter(r => inLine(r, LINE_IDS[i])).length;
+const lineLabel = id => { const i = LINE_IDS.indexOf(id); return i >= 0 && LINES[i] ? LINES[i].t : ''; };
+const lineCard = (l, i, extra = '') => `<a class="line rv" style="--i:${i}${extra}" href="${lineHref(i)}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+  <span class="line-go">${t('See publications')}${lineCount(i) ? ` <b>${lineCount(i)}</b>` : ''} ${ARR}</span></a>`;
 const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slice(0, 2).join('');
 /* Open calls (PhD, postdoc…): news marked "Convocatoria abierta" in the panel, until the day after their deadline. */
 const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -221,7 +232,7 @@ const openProfile = el => {
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
 const rowSearch = r => fold([localizeRecord(r.t), ...r.kw.map(kwLabel), ...membersIn(r.t)].join(' '));
-const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}" data-q="${esc(rowSearch(r))}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}><span class="yr">${r.y}</span>
+const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}" data-q="${esc(rowSearch(r))}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}${r.ln ? ` data-line="${esc(r.ln)}"` : ''}><span class="yr">${r.y}</span>
   <div class="t">${esc(localizeRecord(r.t))}${r.w && PREVIEW ? `<div class="note">${esc(r.w)}</div>` : ''}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
 /* Title and description of a fixed page (PAGE_META in js/routes.js). */
 const metaOf = (key, vars) => { const m = PAGE_META[key] || ['', '']; return [m[0], m[1] ? t(m[1], vars) : '']; };
@@ -236,46 +247,53 @@ function subnav(path) {
 }
 const wrapPage = (head, body) => `${head}<section><div class="wrap">${body}</div></section>`;
 const years = rows => [...new Set(rows.map(r => r.y))].sort((a, b) => b - a);
-function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '', keyword = '' } = {}) {
+function listPage(rows, label, { search = true, linkLabel, searchValue = '', searchMatch = '', keyword = '', line = '' } = {}) {
   const ys = years(rows);
   const kwFilter = keyword ? `<a class="fchip on kwfilter" href="#/research/publications" data-kw-filter="${esc(keyword)}" aria-label="${esc(t('Remove keyword filter: {x}', { x: kwLabel(keyword) }))}">${esc(kwLabel(keyword))}<span aria-hidden="true">×</span></a>` : '';
+  const lineName = lineLabel(line);
+  const lineFilter = lineName ? `<a class="fchip on kwfilter linefilter" href="#/research/publications" data-line-filter="${esc(line)}" aria-label="${esc(t('Remove research line filter: {x}', { x: lineName }))}">${esc(lineName)}<span aria-hidden="true">×</span></a>` : '';
   return `<div class="tools" data-list><button class="fchip on" data-y="all">${t('All')}</button>${ys.map(y => `<button class="fchip" data-y="${y}">${y}</button>`).join('')}
-    ${kwFilter}${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
+    ${lineFilter}${kwFilter}${search ? `<input class="search" type="search" value="${esc(searchValue)}"${searchMatch ? ` data-match="${esc(searchMatch)}"` : ''} placeholder="${esc(t('Search {x}…', { x: t(label) }))}" aria-label="${esc(t('Search'))}">` : ''}</div>
     <div id="rows">${rows.map((r, i) => pubRow(r, i, linkLabel, keyword)).join('')}</div><div class="empty" id="none" hidden>${t('No results.')}</div>`;
 }
 /* Long pages (data/pages.json): image paths are made absolute so they work at any address. */
 const prosePage = html => `<div class="prose">${String(html || '').replace(/(src|href)="(img\/)/g, '$1="/$2')}</div>`;
 /* "How to reach us": the floor-plan image of Edifici C becomes an interactive 3D model (js/building3d.js). */
-const buildingWidget = gmap => `<figure class="bldg" data-building>
+const buildingWidget = () => `<figure class="bldg" data-building>
   <div class="bldg-stage"><canvas tabindex="0" role="img" aria-label="${esc(t('3D map of Edifici C. The Optics Group is in C3 Parell, floor 0/−1: enter through C3B Parell and cross the bridge.'))} ${esc(t('Use the arrow keys to rotate and + / − to zoom.'))}"></canvas>
     <div class="bldg-labels" aria-hidden="true"></div>
     <div class="bldg-hint" aria-hidden="true">${t('Use Ctrl or ⌘ + scroll to zoom')}</div>
-    <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript>
-    ${gmap ? `<a class="bldg-gmap" href="${esc(gmap)}" target="_blank" rel="noopener"><img src="/img/content/34a9b7_google-maps-web.png" alt="" loading="lazy"><span>${t('Open in Google Maps')} ${I_EXT}</span></a>` : ''}</div>
+    <noscript><img src="/img/content/696ea6_foto-mapa.png" alt=""></noscript></div>
   <figcaption class="bldg-bar">
     <span class="bldg-key"><i></i>${t('Optics Group')} · ${t('C3 Parell · floor 0/−1')}</span>
     <span class="bldg-btns">
       <span class="bldg-routes" role="group" aria-label="${esc(t('How to get here'))}"><button type="button" class="bldg-btn bldg-route bldg-route-main" data-b="route-main" aria-pressed="true">${t('From the main entrance')}</button><button type="button" class="bldg-btn bldg-route bldg-route-serra" data-b="route-serra" aria-pressed="false">${t('From Av. de Serragalliners')}</button></span>
       <button type="button" class="bldg-btn" data-b="view" aria-pressed="false">${t('Top view')}</button>
+      <button type="button" class="bldg-btn bldg-spin" data-b="spin" aria-pressed="false"><span aria-hidden="true">⟳</span> ${t('Auto-rotate')}</button>
     </span>
   </figcaption>
   <p class="bldg-help">${t('Drag to rotate · approximate heights')} · ${t('Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>
 </figure>`;
-/* The Google Maps picture of the page becomes a small link in a corner of the 3D map. */
+/* The Google Maps picture of the page becomes a small card next to the postal address, above the 3D map. */
 const GMAP_LINK = /<a[^>]*href="([^"]*)"[^>]*>\s*<img[^>]*google-maps-web[^>]*>\s*<\/a>\s*/;
+const gmapCard = gmap => gmap ? `<a class="bldg-gmap" href="${esc(gmap)}" target="_blank" rel="noopener"><img src="/img/content/34a9b7_google-maps-web.png" alt="" loading="lazy"><span>${t('Open in Google Maps')} ${I_EXT}</span></a>` : '';
 const reachPage = () => {
   const html = PAGES_HTML.reach || '', m = html.match(GMAP_LINK);
   const gmap = m ? m[1].replace(/&amp;/g, '&') : '';
-  return prosePage(html.replace(GMAP_LINK, '')).replace(/<img[^>]*foto-mapa[^>]*>/, buildingWidget(gmap));
+  let body = html.replace(GMAP_LINK, '');
+  body = /<blockquote>[\s\S]*?<\/blockquote>/.test(body)
+    ? body.replace(/<blockquote>[\s\S]*?<\/blockquote>/, b => `<div class="reach-top">${b}${gmapCard(gmap)}</div>`)
+    : gmapCard(gmap) + body;
+  return prosePage(body).replace(/<img[^>]*foto-mapa[^>]*>/, buildingWidget());
 };
 let disposeBuilding = null;
 function mountBuilding(root) {
   if (disposeBuilding) { disposeBuilding(); disposeBuilding = null; }
   const el = $('[data-building]', root); if (!el) return;
-  const fallback = () => { el.classList.add('bldg-static'); const st = $('.bldg-stage', el), g = $('.bldg-gmap', st); st.innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; if (g) st.appendChild(g); $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
+  const fallback = () => { el.classList.add('bldg-static'); $('.bldg-stage', el).innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
   const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
   if (!gl) return fallback();
-  const start = () => import('/js/building3d.js?v=67').then(m => {
+  const start = () => import('/js/building3d.js?v=68').then(m => {
     if (!el.isConnected) return;
     disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), main: t('Main entrance'),
       serra: t('Entrance from Av. de Serragalliners'), bridge: t('Bridge to C3 Parell'), cafe: t('Sciences cafeteria'), north: t('N') } });
@@ -326,7 +344,7 @@ const ROUTES = {
     <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Latest')}</div><h2 class="sec">${t('News')}</h2></div><a class="btn btn-line" href="#/news">${t('All news')} ${ARR}</a></div>
       ${newsBanner(bannerItems())}</div></section>
     <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">${t('Research')}</div><h2 class="sec">${t('Two research lines, one shared language')}</h2>
-      <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => `<div class="line rv" style="--i:${i}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div></div></section>
+      <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => lineCard(l, i)).join('')}</div></div></section>
     <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t('Recent events')}</h2></div><a class="btn btn-line" href="#/news?cat=Event">${t('All events')} ${ARR}</a></div>
       <p class="lead">${t('Workshops, conferences and visits hosted or attended by the group.')}</p>
       <div>${events.map((n, i) => `<a class="row rv" style="--i:${i};text-decoration:none" href="#/news/${newsId(n)}"><span class="yr">${MON[n.m]} ${n.y}</span><div class="t"><b>${esc(n.title)}</b></div><span class="go">${t('Details')}</span></a>`).join('')}</div></div></section>
@@ -341,14 +359,15 @@ const ROUTES = {
     const k = p[1] || 'lines', h = key => { const [ti, s] = metaOf(`research/${key}`); return pageHead(p, ti, s, [['Research', '#/research/lines'], [ti]]); };
     if (k === 'publications') return wrapPage(h('publications'), listPage(PUBS, 'publications', {
       linkLabel: 'Paper', searchValue: query.get('search') || '', searchMatch: query.get('match') || '', keyword: query.get('kw') || '',
+      line: LINE_IDS.includes(query.get('line')) ? query.get('line') : '',
     }));
     if (k === 'patents') return wrapPage(h('patents'), listPage(PATENTS, 'patents', { linkLabel: 'Link' }));
     if (k === 'theses') return wrapPage(h('theses'), listPage(THESES, 'theses', { linkLabel: 'Thesis' }));
     if (k === 'datasets') return wrapPage(h('datasets'), prosePage(PAGES_HTML.datasets));
     if (k === 'collaborations') return wrapPage(h('collaborations'), prosePage(PAGES_HTML.collaborations));
     return `${h('lines')}<section><div class="wrap"><div class="grid g2">
-      ${LINES.map((l, i) => `<div class="line rv" style="--i:${i};background:var(--navy-900);color:#fff"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
-      <p style="margin-top:34px"><a class="btn" href="#/research/publications">${t('See publications')} ${ARR}</a></p></div></section>`;
+      ${LINES.map((l, i) => lineCard(l, i, ';background:var(--navy-900);color:#fff')).join('')}</div>
+      <p class="lines-all"><a class="btn" href="#/research/publications">${t('See all publications (both lines)')} ${ARR}</a></p></div></section>`;
   },
   people(p) {
     const k = p[1] || 'current', h = key => { const [ti, s] = metaOf(`people/${key}`, { n: PEOPLE.length }); return pageHead(p, ti, s, [['People', '#/people/current'], [ti]]); };
@@ -601,7 +620,8 @@ function mount(root) {
     const syncSearch = currentRoute().path.join('/') === 'research/publications';
     let y = 'all', q = fold(input?.value), match = fold(input?.dataset.match);
     const kw = $('[data-kw-filter]', lst)?.dataset.kwFilter || '';
-    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.dataset.q || fold(r.textContent); const queryMatch = !q || q.split(' ').every(w => text.includes(w)) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    const line = $('[data-line-filter]', lst)?.dataset.lineFilter || '';
+    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.dataset.q || fold(r.textContent); const queryMatch = !q || q.split(' ').every(w => text.includes(w)) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const lineMatch = !line || r.dataset.line === line || r.dataset.line === 'both'; const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch && lineMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
     lst.addEventListener('click', e => { const b = e.target.closest('.fchip[data-y]'); if (!b) return; $$('.fchip[data-y]', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
     input?.addEventListener('input', e => {
       const value = e.target.value.trim();

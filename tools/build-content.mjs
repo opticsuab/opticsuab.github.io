@@ -382,6 +382,43 @@ for (const pub of pubsDoc.publications || []) {
     if (!canonical.has(norm(k))) { vocab.push({ name: k, match: [k.toLowerCase()], auto: true }); canonical.set(norm(k), k); }
   }
 }
+/* ---------- 1b. research lines ----------
+ * data/research-lines.json  the two research lines of the home page (same order as research_lines in site.json):
+ *   lines[i].authors  group members whose papers usually belong to that line
+ *   lines[i].terms    words of the title or keywords that point to that line (accent-free, matched at word start)
+ *   papers            curated line of specific papers ("classical", "quantum" or "both"), by DOI or by title; it always wins
+ * Words shared by both lines (spatial light modulator, structured light, orbital angular momentum…) are not listed:
+ * they do not tell one line from the other. A paper gets "both" when it scores clearly on both lines. */
+const RL = readJSON('data/research-lines.json', { lines: [], papers: {} });
+const lineKey = pub => { const doi = pubDoi(pub.doi) || pubDoi(pub.link) || doiOf(pub.text); return doi ? `doi:${doi.toLowerCase()}` : `title:${norm(titleOf(pub.text)).trim()}`; };
+const authorsOf = text => norm(String(text || '').replace(/«[^»]*»/, ' '));   /* the reference without its title */
+function lineOf(pub) {
+  const c = (RL.papers || {})[lineKey(pub)], curatedLine = c && (typeof c === 'string' ? c : c.line);
+  if (curatedLine) return curatedLine;
+  const title = norm(titleOf(pub.text)), kws = norm((pub.keywords || []).join(' · ')), authors = authorsOf(pub.text);
+  const score = (RL.lines || []).map(l => {
+    const people = (l.authors || []).filter(a => hasTerm(authors, a)).length;
+    const words = (l.terms || []).reduce((n, w) => n + (hasTerm(title, w) ? 2 : 0) + (hasTerm(kws, w) ? 1 : 0), 0);
+    return Math.min(people, 2) * 3 + Math.min(words, 6);
+  });
+  if (score.length < 2 || Math.max(...score) === 0) return '';
+  const [a, b] = score, ids = RL.lines.map(l => l.id);
+  if (a && b && Math.min(a, b) / Math.max(a, b) >= 0.6) return 'both';
+  return a >= b ? ids[0] : ids[1];
+}
+const lineCounts = {};
+for (const pub of pubsDoc.publications || []) {
+  if (!pub || !pub.text) continue;
+  pub.line = lineOf(pub);
+  lineCounts[pub.line || 'none'] = (lineCounts[pub.line || 'none'] || 0) + 1;
+}
+log(`research lines · ${Object.entries(lineCounts).map(([k, n]) => `${k} ${n}`).join(', ')}`);
+if (process.env.LINES_DUMP) log(JSON.stringify(Object.fromEntries((pubsDoc.publications || []).filter(p => p && p.text).map(p => [lineKey(p), { title: titleOf(p.text), line: p.line }])), null, 2));
+if (process.env.LINES_CHECK) for (const pub of pubsDoc.publications || []) if (pub && pub.text) {
+  const saved = RL.papers; RL.papers = {}; const auto = lineOf(pub); RL.papers = saved;
+  if (auto !== pub.line) log(`  line check · curated ${pub.line} · automatic ${auto || '—'} · ${titleOf(pub.text).slice(0, 80)}`);
+}
+
 const bank = vocab
   .filter(k => !k.auto || counts.get(k.name))
   .map(k => ({ name: k.name, papers: counts.get(k.name) || 0, shared: (counts.get(k.name) || 0) >= 2, ...(k.auto ? { auto: true } : {}), match: k.match || [] }))

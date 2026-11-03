@@ -212,7 +212,12 @@ export function mountBuilding(container, opts = {}) {
   /* ---------- camera: orbits around the destination, which stays in the centre ---------- */
   const VIEWS = { '3d': { az: 2.05, el: 0.62, zoom: 1 }, top: { az: Math.PI / 2, el: 1.53, zoom: 1.12 } };
   const BASE = 430;
-  let active = 'main', raf = 0, visible = true, dirty = true, dragging = false, last = null, pinch = null;
+  let active = 'main', raf = 0, visible = true, dirty = true, dragging = false, last = null, pinch = null, lastT = 0;
+  /* Slow automatic turn around the destination: on by default (off with reduced motion); any manual move stops it. */
+  let spin = !reduced;
+  const SPIN = 0.11;                                            /* rad/s: one turn in about a minute */
+  const setSpin = on => { spin = on; container.querySelector('[data-b="spin"]')?.setAttribute('aria-pressed', String(on)); lastT = 0; kick(); };
+  const stopSpin = () => { if (spin) setSpin(false); };
   const target = usPos.clone();
   const cur = { ...VIEWS['3d'] }, goal = { ...VIEWS['3d'] };
   const placeCamera = () => {
@@ -241,6 +246,8 @@ export function mountBuilding(container, opts = {}) {
     const time = reduced ? 0 : (t || 0) / 1000;
     const k = reduced ? 1 : 0.14;
     let moving = false;
+    if (spin && !dragging) { const dt = lastT ? Math.min(0.1, ((t || 0) - lastT) / 1000) : 0; goal.az += SPIN * dt; moving = true; }
+    lastT = spin ? (t || 0) : 0;
     for (const key of ['az', 'el', 'zoom']) { const d = goal[key] - cur[key]; if (Math.abs(d) > 1e-4) { cur[key] += d * k; moving = true; } else cur[key] = goal[key]; }
     if (moving) { placeCamera(); dirty = true; }
     for (const o of Object.values(routes)) {
@@ -265,7 +272,7 @@ export function mountBuilding(container, opts = {}) {
       compass.firstElementChild.style.transform = `rotate(${Math.atan2(s3.x - s2.x, -(s3.y - s2.y))}rad)`;
       dirty = false;
     }
-    if (visible && (!reduced || moving || dragging)) raf = requestAnimationFrame(frame);
+    if (visible && (!reduced || moving || dragging || spin)) raf = requestAnimationFrame(frame); else lastT = 0;
   };
   function kick() { if (!raf && visible) raf = requestAnimationFrame(frame); }
 
@@ -274,19 +281,21 @@ export function mountBuilding(container, opts = {}) {
   const onDown = e => { if (e.pointerType === 'touch' && pinch) return; dragging = true; last = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); container.classList.add('grabbing'); kick(); };
   const onMove = e => {
     if (!dragging || !last) return;
+    if (Math.abs(e.clientX - last.x) + Math.abs(e.clientY - last.y) > 1) stopSpin();
     goal.az += (e.clientX - last.x) * 0.008; goal.el = clampEl(goal.el + (e.clientY - last.y) * 0.006); last = { x: e.clientX, y: e.clientY }; kick();
   };
   const onUp = e => { dragging = false; last = null; container.classList.remove('grabbing'); try { canvas.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ } };
   const onWheel = e => {
     if (!(e.ctrlKey || e.metaKey)) { container.classList.add('hinting'); clearTimeout(onWheel.t); onWheel.t = setTimeout(() => container.classList.remove('hinting'), 1400); return; }
-    e.preventDefault(); goal.zoom = clampZoom(goal.zoom * (1 + Math.sign(e.deltaY) * 0.1)); kick();
+    e.preventDefault(); stopSpin(); goal.zoom = clampZoom(goal.zoom * (1 + Math.sign(e.deltaY) * 0.1)); kick();
   };
   const dist2 = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-  const onTouchStart = e => { if (e.touches.length === 2) { pinch = dist2(e); dragging = false; } };
+  const onTouchStart = e => { if (e.touches.length === 2) { stopSpin(); pinch = dist2(e); dragging = false; } };
   const onTouchMove = e => { if (e.touches.length !== 2 || !pinch) return; e.preventDefault(); const d = dist2(e); goal.zoom = clampZoom(goal.zoom * pinch / d); pinch = d; kick(); };
   const onTouchEnd = e => { if (e.touches.length < 2) pinch = null; };
   const onKey = e => {
     const step = { ArrowLeft: [-0.2, 0], ArrowRight: [0.2, 0], ArrowUp: [0, -0.12], ArrowDown: [0, 0.12] }[e.key];
+    if (step || '+=-_'.includes(e.key)) stopSpin();
     if (step) { e.preventDefault(); goal.az += step[0]; goal.el = clampEl(goal.el + step[1]); kick(); }
     else if (e.key === '+' || e.key === '=') { goal.zoom = clampZoom(goal.zoom * 0.88); kick(); }
     else if (e.key === '-' || e.key === '_') { goal.zoom = clampZoom(goal.zoom * 1.12); kick(); }
@@ -297,6 +306,7 @@ export function mountBuilding(container, opts = {}) {
     const a = b.dataset.b;
     if (a.startsWith('route-') && routes[a.slice(6)]) showRoute(a.slice(6));
     else if (a === 'view') setView(b.getAttribute('aria-pressed') === 'true' ? '3d' : 'top');
+    else if (a === 'spin') setSpin(!spin);
   };
   const listeners = [['pointerdown', onDown], ['pointermove', onMove], ['pointerup', onUp], ['pointercancel', onUp], ['wheel', onWheel, { passive: false }],
     ['touchstart', onTouchStart, { passive: true }], ['touchmove', onTouchMove, { passive: false }], ['touchend', onTouchEnd], ['keydown', onKey]];
@@ -306,6 +316,7 @@ export function mountBuilding(container, opts = {}) {
   const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) kick(); });
   io.observe(container);
   showRoute('main');
+  setSpin(spin);
   size();
 
   return function dispose() {

@@ -234,6 +234,7 @@ content:
             required: true
           - name: names
             label: Nombres
+            description: "Formato «Apellido, Nombre», con mayúscula solo en la primera letra (p. ej. Van Eeckhout, Albert)."
             type: string
             list: true
 
