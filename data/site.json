@@ -4,23 +4,47 @@
   "hero_subtitle": "The Optics Group studies light-matter and quantum systems: from liquid crystals and polarimetric imaging to ultracold atoms and topological photonics.",
   "research_lines": [
     {
-      "title": "Classical optics",
-      "description": "Polarimetry, liquid-crystal devices, diffractive optics and structured light, with applications in biomedical imaging and metrology.",
+      "title": "Imaging",
+      "image": "/img/lines/imaging.svg",
+      "description": "Polarimetric, holographic and microscopy imaging, diffractive optics with liquid-crystal displays, and optical metrology, with applications in biomedicine and plant science.",
+      "tags": [
+        "Polarimetric imaging",
+        "Holographic microscopy",
+        "Liquid-crystal displays",
+        "Optical metrology"
+      ]
+    },
+    {
+      "title": "Polarimetry",
+      "image": "/img/lines/polarimetry.svg",
+      "description": "Mueller and Stokes polarimeters, depolarization metrics and polarization devices: from calibration and design to the classification of biological samples.",
       "tags": [
         "Mueller polarimetry",
-        "Liquid crystals",
-        "Structured light",
-        "Biomedicine"
+        "Depolarization",
+        "Stokes polarimeters",
+        "Biophotonics"
+      ]
+    },
+    {
+      "title": "Simulations",
+      "image": "/img/lines/simulations.svg",
+      "description": "Quantum simulation of gauge theories and many-body physics with ultracold atoms and Rydberg arrays, topological phases in lattices and photonic simulators, and quantum algorithms.",
+      "tags": [
+        "Lattice gauge theories",
+        "Ultracold atoms",
+        "Topological phases",
+        "Quantum algorithms"
       ]
     },
     {
       "title": "Quantum optics & photonics",
-      "description": "Ultracold atoms in optical lattices, topological photonics, quantum thermodynamics and quantum simulation of gauge theories.",
+      "image": "/img/lines/quantum.svg",
+      "description": "Adiabatic passage and atomic coherence, supersymmetric and topological photonic waveguides, quantum structured light, high-dimensional quantum communication and quantum sensing.",
       "tags": [
-        "Ultracold atoms",
-        "Topological photonics",
-        "Quantum simulation",
-        "Quantum technologies"
+        "Quantum communications",
+        "Structured light",
+        "Photonic waveguides",
+        "Quantum sensing"
       ]
     }
   ]

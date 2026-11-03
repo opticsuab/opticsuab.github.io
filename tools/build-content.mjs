@@ -383,40 +383,50 @@ for (const pub of pubsDoc.publications || []) {
   }
 }
 /* ---------- 1b. research lines ----------
- * data/research-lines.json  the two research lines of the home page (same order as research_lines in site.json):
- *   lines[i].authors  group members whose papers usually belong to that line
- *   lines[i].terms    words of the title or keywords that point to that line (accent-free, matched at word start)
- *   papers            curated line of specific papers ("classical", "quantum" or "both"), by DOI or by title; it always wins
- * Words shared by both lines (spatial light modulator, structured light, orbital angular momentum…) are not listed:
- * they do not tell one line from the other. A paper gets "both" when it scores clearly on both lines. */
-const RL = readJSON('data/research-lines.json', { lines: [], papers: {} });
-const lineKey = pub => { const doi = pubDoi(pub.doi) || pubDoi(pub.link) || doiOf(pub.text); return doi ? `doi:${doi.toLowerCase()}` : `title:${norm(titleOf(pub.text)).trim()}`; };
+ * Four lines, same order as research_lines in site.json: imaging, polarimetry, simulations, quantum.
+ * Every paper belongs to at least one. The editor picks them in the panel (field "lines" of each publication);
+ * when the field is empty, they are guessed here with data/research-lines.json:
+ *   lines[i].authors  group members whose papers usually belong to that line (+2)
+ *   lines[i].terms    words of the title (+2 each) or keywords (+1 each), accent-free, matched at word start
+ * A line is kept when it has words and scores at least half of the best line; with no words at all, the line(s)
+ * with the best author score. Guessed lines are marked (linesAuto) and shown as a note with ?preview. */
+const RL = readJSON('data/research-lines.json', { lines: [] });
+const LINE_IDS = (RL.lines || []).map(l => l.id);
 const authorsOf = text => norm(String(text || '').replace(/«[^»]*»/, ' '));   /* the reference without its title */
-function lineOf(pub) {
-  const c = (RL.papers || {})[lineKey(pub)], curatedLine = c && (typeof c === 'string' ? c : c.line);
-  if (curatedLine) return curatedLine;
+function guessLines(pub) {
   const title = norm(titleOf(pub.text)), kws = norm((pub.keywords || []).join(' · ')), authors = authorsOf(pub.text);
-  const score = (RL.lines || []).map(l => {
-    const people = (l.authors || []).filter(a => hasTerm(authors, a)).length;
+  const s = (RL.lines || []).map(l => {
+    const people = (l.authors || []).some(a => hasTerm(authors, a)) ? 2 : 0;
     const words = (l.terms || []).reduce((n, w) => n + (hasTerm(title, w) ? 2 : 0) + (hasTerm(kws, w) ? 1 : 0), 0);
-    return Math.min(people, 2) * 3 + Math.min(words, 6);
+    return { id: l.id, people, words: Math.min(words, 8), total: people + Math.min(words, 8) };
   });
-  if (score.length < 2 || Math.max(...score) === 0) return '';
-  const [a, b] = score, ids = RL.lines.map(l => l.id);
-  if (a && b && Math.min(a, b) / Math.max(a, b) >= 0.6) return 'both';
-  return a >= b ? ids[0] : ids[1];
+  const best = Math.max(...s.map(x => x.total), 0);
+  if (!best) return [];
+  let picked = s.filter(x => x.words && x.total >= best / 2);
+  if (!picked.length) { const top = Math.max(...s.map(x => x.people)); picked = s.filter(x => x.people === top); }
+  return picked.map(x => x.id);
 }
+const validLines = list => [...new Set((Array.isArray(list) ? list : list ? [list] : []).map(String).filter(id => LINE_IDS.includes(id)))];
 const lineCounts = {};
 for (const pub of pubsDoc.publications || []) {
   if (!pub || !pub.text) continue;
-  pub.line = lineOf(pub);
-  lineCounts[pub.line || 'none'] = (lineCounts[pub.line || 'none'] || 0) + 1;
+  const chosen = validLines(pub.lines);
+  if (chosen.length) pub.lines = chosen;
+  else {
+    pub.lines = guessLines(pub); pub.linesAuto = true;
+    log(`research lines · guessed ${pub.lines.join(', ') || '—'} · ${titleOf(pub.text).slice(0, 70)}`);
+  }
+  for (const l of pub.lines.length ? pub.lines : ['none']) lineCounts[l] = (lineCounts[l] || 0) + 1;
 }
 log(`research lines · ${Object.entries(lineCounts).map(([k, n]) => `${k} ${n}`).join(', ')}`);
-if (process.env.LINES_DUMP) log(JSON.stringify(Object.fromEntries((pubsDoc.publications || []).filter(p => p && p.text).map(p => [lineKey(p), { title: titleOf(p.text), line: p.line }])), null, 2));
-if (process.env.LINES_CHECK) for (const pub of pubsDoc.publications || []) if (pub && pub.text) {
-  const saved = RL.papers; RL.papers = {}; const auto = lineOf(pub); RL.papers = saved;
-  if (auto !== pub.line) log(`  line check · curated ${pub.line} · automatic ${auto || '—'} · ${titleOf(pub.text).slice(0, 80)}`);
+if (process.env.LINES_CHECK) {
+  let same = 0, overlap = 0, n = 0;
+  for (const pub of pubsDoc.publications || []) if (pub && pub.text && !pub.linesAuto) {
+    const auto = guessLines(pub), cur = pub.lines; n++;
+    if (auto.length === cur.length && auto.every(x => cur.includes(x))) same++;
+    else { if (auto.some(x => cur.includes(x))) overlap++; log(`  line check · chosen ${cur.join('+')} · guessed ${auto.join('+') || '—'} · ${titleOf(pub.text).slice(0, 70)}`); }
+  }
+  log(`  line check · ${same}/${n} identical, ${overlap} partly`);
 }
 
 const bank = vocab

@@ -165,6 +165,9 @@ section{padding:clamp(64px,9vw,120px) 0;position:relative}
 .line p{color:#b9cbe3}
 a.line{display:flex;flex-direction:column;color:#fff;text-decoration:none}
 a.line ul{margin-bottom:24px}
+.line-art{display:flex;align-items:center;justify-content:center;height:150px;margin:-6px 0 22px;padding:12px;background:rgba(4,15,32,.42);border:1px dashed rgba(127,196,255,.28);position:relative;z-index:1}
+.line-art img{display:block;width:100%;height:100%;min-width:0;object-fit:contain;image-rendering:pixelated;transition:transform .5s var(--ease)}
+a.line:hover .line-art img{transform:scale(1.03)}
 a.line:focus-visible{outline:2px solid var(--green-l);outline-offset:3px}
 .line-go{display:inline-flex;align-self:flex-start;align-items:center;gap:8px;margin-top:auto;font:500 .74rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--green-l);border-bottom:1px solid rgba(95,211,154,.45);padding-bottom:4px;transition:gap .25s var(--ease),border-color .25s}
 .line-go b{font-weight:600;color:#fff;background:rgba(95,211,154,.18);border-radius:999px;padding:2px 8px;letter-spacing:.02em}
@@ -426,7 +429,7 @@ body.maint .site-header,body.maint .site-footer,body.maint .progress,body.maint 
 @keyframes bldgspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.bldg-spin[aria-pressed=true] span{animation:none}}
 .bldg-static .bldg-stage{position:relative}
-@media (max-width:640px){.prose a.bldg-gmap,.bldg-gmap{width:190px}.prose .bldg-gmap img,.bldg-gmap img{height:72px}.bldg-gmap span{font-size:.58rem;padding:5px 8px;letter-spacing:.04em}.bldg-card{padding:6px 10px;bottom:34px}.bldg-card b{font-size:.82rem}.bldg-us::before{height:34px}.bldg-road{font-size:.56rem;padding:2px 7px}.bldg-pin{font-size:.58rem;padding:3px 6px}.bldg-mod{display:none}}
+@media (max-width:640px){.line-art{height:112px;padding:8px}.prose a.bldg-gmap,.bldg-gmap{width:190px}.prose .bldg-gmap img,.bldg-gmap img{height:72px}.bldg-gmap span{font-size:.58rem;padding:5px 8px;letter-spacing:.04em}.bldg-card{padding:6px 10px;bottom:34px}.bldg-card b{font-size:.82rem}.bldg-us::before{height:34px}.bldg-road{font-size:.56rem;padding:2px 7px}.bldg-pin{font-size:.58rem;padding:3px 6px}.bldg-mod{display:none}}
 
 /* plain-HTML copy of each page written by tools/build-pages.mjs: for crawlers and if scripts fail */
 .static-page{padding:calc(var(--hh) + 40px) 0 60px}.static-page h1{font-size:2rem;margin-bottom:12px}.static-page ul{padding-left:1.2em}.static-page img{max-width:320px;margin:12px 0}

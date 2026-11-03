@@ -19,7 +19,7 @@ const NAV_TREE = [
 ];
 /* Title and description (English; translated with js/i18n.js) of every fixed page, by path. */
 const PAGE_META = {
-  'research/lines': ['Research lines', 'Two complementary lines of investigation: classical and quantum.'],
+  'research/lines': ['Research lines', 'Four complementary lines: imaging, polarimetry, simulations, and quantum optics and photonics.'],
   'research/publications': ['Publications', 'Peer-reviewed articles by the group, by year.'],
   'research/patents': ['Patents', 'Registered inventions and technology transfer.'],
   'research/theses': ['PhD theses', 'Doctoral theses defended in the group.'],

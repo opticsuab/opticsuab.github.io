@@ -67,7 +67,7 @@ const safeUrl = (u, kind) => {
   if (/^[a-z][a-z0-9+.-]*:/i.test(u) || /\s/.test(u) || !/\.[a-z]{2,}/i.test(u)) return '';
   return `https://${u.replace(/^\/+/, '')}`;
 };
-const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String), w: r.warning || '', ln: r.line || '' })).sort((a, b) => b.y - a.y);
+const byYear = rows => rows.map(r => ({ y: +r.year || 0, t: r.text || '', u: safeUrl(r.link) || null, kw: asList(r.keywords).map(String), w: r.warning || '', ln: asList(r.lines).map(String), la: !!r.linesAuto })).sort((a, b) => b.y - a.y);
 /* Publications entered with only a title and a DOI: the publish process fills in the reference (tools/build-content.mjs).
    Until then (or in a local copy) the title and the DOI link are shown. Entries whose DOI does not match their title
    are held back: only shown with ?preview, with the reason. */
@@ -142,8 +142,8 @@ function buildData(ov, en = {}) {
   const pages = Object.assign({}, RAW.pages, ov.pages || {});
   const site = RAW.site || {};
   SITE = { hero_eyebrow: T('site', site.hero_eyebrow || ''), hero_title: T('site', site.hero_title || ''), hero_subtitle: T('site', site.hero_subtitle || ''),
-    research_lines: asList(site.research_lines).map(l => ({ title: T('site', l.title), description: T('site', l.description), tags: asList(l.tags).map(x => T('site', x)) })) };
-  LINES = SITE.research_lines.map(l => ({ t: l.title || '', d: l.description || '', tags: l.tags }));
+    research_lines: asList(site.research_lines).map(l => ({ title: T('site', l.title), description: T('site', l.description), tags: asList(l.tags).map(x => T('site', x)), image: safeUrl(l.image) || '' })) };
+  LINES = SITE.research_lines.map(l => ({ t: l.title || '', d: l.description || '', tags: l.tags, img: l.image }));
   NEWS = (news.news || []).filter(n => n && n.title).map(n => {
     const [y, m] = String(n.date || '').split('-').map(Number);
     return { y: y || 0, m: m || 1, cat: n.category || 'News', src: n.title, en: tr(en.news, n.title), title: T('news', n.title), text: paras(T('news', n.text)), img: asList(n.images), link: safeUrl(n.link),
@@ -170,14 +170,14 @@ function buildData(ov, en = {}) {
 }
 const kwLabel = k => tr(KW_MEM, k);
 const kwHref = k => `#/research/publications?${new URLSearchParams({ kw: k })}`;
-/* Research lines: card i of the home page / Research ↔ id given to each paper by the publish step (data/research-lines.json).
-   A paper of "both" lines appears under each of them. */
-const LINE_IDS = ['classical', 'quantum'];
+/* Research lines: card i of the home page / Research (site.json, in this order) ↔ ids in the "lines" of each paper,
+   chosen in the panel or guessed by the publish step (data/research-lines.json). A paper can be in several lines. */
+const LINE_IDS = ['imaging', 'polarimetry', 'simulations', 'quantum'];
 const lineHref = i => `#/research/publications?${new URLSearchParams({ line: LINE_IDS[i] })}`;
-const inLine = (r, id) => r.ln === id || r.ln === 'both';
+const inLine = (r, id) => r.ln.includes(id);
 const lineCount = i => PUBS.filter(r => inLine(r, LINE_IDS[i])).length;
 const lineLabel = id => { const i = LINE_IDS.indexOf(id); return i >= 0 && LINES[i] ? LINES[i].t : ''; };
-const lineCard = (l, i, extra = '') => `<a class="line rv" style="--i:${i}${extra}" href="${lineHref(i)}"><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+const lineCard = (l, i, extra = '') => `<a class="line rv" style="--i:${i}${extra}" href="${lineHref(i)}"><span class="line-art">${l.img ? `<img src="${esc(l.img)}" alt="" loading="lazy">` : ''}</span><span class="mono">0${i + 1}</span><h3>${esc(l.t)}</h3><p>${esc(l.d)}</p><ul>${l.tags.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
   <span class="line-go">${t('See publications')}${lineCount(i) ? ` <b>${lineCount(i)}</b>` : ''} ${ARR}</span></a>`;
 const initials = n => n.replace(/^Dr\.\s*/, '').split(/\s+/).map(w => w[0]).slice(0, 2).join('');
 /* Open calls (PhD, postdoc…): news marked "Convocatoria abierta" in the panel, until the day after their deadline. */
@@ -232,8 +232,8 @@ const openProfile = el => {
 document.addEventListener('click', e => { const c = e.target.closest('.person[data-p]'); if (c) openProfile(c); });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.person[data-p]')) { e.preventDefault(); openProfile(e.target); } });
 const rowSearch = r => fold([localizeRecord(r.t), ...r.kw.map(kwLabel), ...membersIn(r.t)].join(' '));
-const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}" data-q="${esc(rowSearch(r))}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}${r.ln ? ` data-line="${esc(r.ln)}"` : ''}><span class="yr">${r.y}</span>
-  <div class="t">${esc(localizeRecord(r.t))}${r.w && PREVIEW ? `<div class="note">${esc(r.w)}</div>` : ''}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
+const pubRow = (r, i = 0, label, activeKw = '') => `<div class="row rv" style="--i:${i % 6}" data-q="${esc(rowSearch(r))}"${r.kw && r.kw.length ? ` data-kw="${esc(r.kw.join('|'))}"` : ''}${r.ln.length ? ` data-line="${esc(r.ln.join('|'))}"` : ''}><span class="yr">${r.y}</span>
+  <div class="t">${esc(localizeRecord(r.t))}${r.w && PREVIEW ? `<div class="note">${esc(r.w)}</div>` : ''}${r.la && PREVIEW ? `<div class="note">${esc(`Líneas asignadas automáticamente: ${r.ln.map(lineLabel).join(', ') || 'ninguna'}. Elígelas en el panel (campo «Líneas de investigación»).`)}</div>` : ''}${r.kw && r.kw.length ? `<div class="kws">${r.kw.map(k => `<a class="kw${k === activeKw ? ' on' : ''}" href="${esc(kwHref(k))}">${esc(kwLabel(k))}</a>`).join('')}</div>` : ''}</div>${r.u ? `<a class="go" href="${esc(r.u)}" target="_blank" rel="noopener">${t(label || 'Open')} ${I_EXT}</a>` : '<span></span>'}</div>`;
 /* Title and description of a fixed page (PAGE_META in js/routes.js). */
 const metaOf = (key, vars) => { const m = PAGE_META[key] || ['', '']; return [m[0], m[1] ? t(m[1], vars) : '']; };
 const pageHead = (path, title, sub, crumbs) => `<header class="phead"><canvas class="bg"></canvas>
@@ -293,7 +293,7 @@ function mountBuilding(root) {
   const fallback = () => { el.classList.add('bldg-static'); $('.bldg-stage', el).innerHTML = '<img src="/img/content/696ea6_foto-mapa.png" alt="" loading="lazy">'; $('.bldg-btns', el)?.remove(); $('.bldg-help', el)?.remove(); };
   const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
   if (!gl) return fallback();
-  const start = () => import('/js/building3d.js?v=68').then(m => {
+  const start = () => import('/js/building3d.js?v=69').then(m => {
     if (!el.isConnected) return;
     disposeBuilding = m.mountBuilding(el, { labels: { us: t('Optics Group'), usSub: t('C3 Parell · floor 0/−1'), main: t('Main entrance'),
       serra: t('Entrance from Av. de Serragalliners'), bridge: t('Bridge to C3 Parell'), cafe: t('Sciences cafeteria'), north: t('N') } });
@@ -343,7 +343,7 @@ const ROUTES = {
     </div></div></section>
     <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Latest')}</div><h2 class="sec">${t('News')}</h2></div><a class="btn btn-line" href="#/news">${t('All news')} ${ARR}</a></div>
       ${newsBanner(bannerItems())}</div></section>
-    <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">${t('Research')}</div><h2 class="sec">${t('Two research lines, one shared language')}</h2>
+    <section class="dark grad"><canvas class="bg"></canvas><div class="wrap" style="position:relative"><div class="eyebrow">${t('Research')}</div><h2 class="sec">${t('Four research lines, one shared language')}</h2>
       <div class="grid g2" style="margin-top:34px">${LINES.map((l, i) => lineCard(l, i)).join('')}</div></div></section>
     <section><div class="wrap"><div class="head"><div><div class="eyebrow">${t('Events')}</div><h2 class="sec">${t('Recent events')}</h2></div><a class="btn btn-line" href="#/news?cat=Event">${t('All events')} ${ARR}</a></div>
       <p class="lead">${t('Workshops, conferences and visits hosted or attended by the group.')}</p>
@@ -367,7 +367,7 @@ const ROUTES = {
     if (k === 'collaborations') return wrapPage(h('collaborations'), prosePage(PAGES_HTML.collaborations));
     return `${h('lines')}<section><div class="wrap"><div class="grid g2">
       ${LINES.map((l, i) => lineCard(l, i, ';background:var(--navy-900);color:#fff')).join('')}</div>
-      <p class="lines-all"><a class="btn" href="#/research/publications">${t('See all publications (both lines)')} ${ARR}</a></p></div></section>`;
+      <p class="lines-all"><a class="btn" href="#/research/publications">${t('See all publications (all lines)')} ${ARR}</a></p></div></section>`;
   },
   people(p) {
     const k = p[1] || 'current', h = key => { const [ti, s] = metaOf(`people/${key}`, { n: PEOPLE.length }); return pageHead(p, ti, s, [['People', '#/people/current'], [ti]]); };
@@ -621,7 +621,7 @@ function mount(root) {
     let y = 'all', q = fold(input?.value), match = fold(input?.dataset.match);
     const kw = $('[data-kw-filter]', lst)?.dataset.kwFilter || '';
     const line = $('[data-line-filter]', lst)?.dataset.lineFilter || '';
-    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.dataset.q || fold(r.textContent); const queryMatch = !q || q.split(' ').every(w => text.includes(w)) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const lineMatch = !line || r.dataset.line === line || r.dataset.line === 'both'; const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch && lineMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
+    const apply = () => { let n = 0; $$('#rows .row').forEach(r => { const text = r.dataset.q || fold(r.textContent); const queryMatch = !q || q.split(' ').every(w => text.includes(w)) || (!!match && text.includes(match)); const kwMatch = !kw || (r.dataset.kw || '').split('|').includes(kw); const lineMatch = !line || (r.dataset.line || '').split('|').includes(line); const ok = (y === 'all' || r.firstElementChild.textContent === y) && queryMatch && kwMatch && lineMatch; r.hidden = !ok; n += ok; }); $('#none').hidden = n > 0; };
     lst.addEventListener('click', e => { const b = e.target.closest('.fchip[data-y]'); if (!b) return; $$('.fchip[data-y]', lst).forEach(x => x.classList.toggle('on', x === b)); y = b.dataset.y; apply(); });
     input?.addEventListener('input', e => {
       const value = e.target.value.trim();

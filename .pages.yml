@@ -10,6 +10,10 @@ media:
     label: Fotos de personas
     input: img/people
     output: /img/people
+  - name: lines
+    label: Ilustraciones de las líneas de investigación
+    input: img/lines
+    output: /img/lines
 
 content:
   # ---------------------------------------------------------- MANTENIMIENTO
@@ -58,6 +62,11 @@ content:
             label: Título
             type: string
             required: true
+          - name: image
+            label: Ilustración (horizontal, unas 3 veces más ancha que alta)
+            type: image
+            options:
+              media: lines
           - name: description
             label: Descripción
             type: text
@@ -247,7 +256,6 @@ content:
     fields:
       - name: publications
         label: Publicaciones (la web las ordena sola por año)
-        description: Para añadir una, basta con el título y el DOI. Al guardar, la web completa sola autores, revista, año y enlace (1–2 minutos) con el mismo formato que las demás.
         type: object
         list:
           collapsible:
@@ -263,6 +271,20 @@ content:
             label: DOI
             description: "Por ejemplo 10.1103/PhysRevA.107.013707, o el enlace https://doi.org/… En arXiv vale el identificador: arXiv:2605.04338."
             type: string
+          - name: lines
+            label: Líneas de investigación (elige una o varias)
+            type: select
+            options:
+              multiple: true
+              values:
+                - value: imaging
+                  label: Imaging
+                - value: polarimetry
+                  label: Polarimetry
+                - value: simulations
+                  label: Simulations
+                - value: quantum
+                  label: Quantum optics & photonics
           - name: year
             label: Año (opcional, se rellena solo)
             type: number
