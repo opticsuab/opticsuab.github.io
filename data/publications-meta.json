@@ -1,0 +1,227 @@
+{
+  "10.48550/arxiv.2605.04338": {
+    "title": "Robust certification of high-dimensional quantum devices",
+    "authors": [
+      {
+        "family": "Fernández",
+        "given": "Javier"
+      },
+      {
+        "family": "Rico",
+        "given": "Albert"
+      },
+      {
+        "family": "Viedma",
+        "given": "David"
+      },
+      {
+        "family": "Ortega",
+        "given": "Evelyn A."
+      },
+      {
+        "family": "Pruneri",
+        "given": "Valerio"
+      },
+      {
+        "family": "Vallés",
+        "given": "Adam"
+      },
+      {
+        "family": "Ahufinger",
+        "given": "Verònica"
+      },
+      {
+        "family": "Sanpera",
+        "given": "Anna"
+      },
+      {
+        "family": "Bhattacharya",
+        "given": "Some S."
+      }
+    ],
+    "journal": "",
+    "journalFull": "",
+    "volume": "",
+    "issue": "",
+    "page": "",
+    "article": "",
+    "year": 2026,
+    "publisher": "arXiv",
+    "arxiv": "2605.04338"
+  },
+  "10.1103/7nmy-zflj": {
+    "title": "Topological bound states in a lattice of rings with nearest-neighbor interactions",
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0009-0004-0235-2592",
+        "authenticated-orcid": true,
+        "given": "Yunjia",
+        "family": "Zhai",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "id": [
+              {
+                "id": "https://ror.org/052g8jq94",
+                "id-type": "ROR",
+                "asserted-by": "publisher"
+              }
+            ],
+            "name": "Universitat Autònoma de Barcelona"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-2326-3917",
+        "authenticated-orcid": true,
+        "given": "Ayaka",
+        "family": "Usui",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "id": [
+              {
+                "id": "https://ror.org/052g8jq94",
+                "id-type": "ROR",
+                "asserted-by": "publisher"
+              }
+            ],
+            "name": "Universitat Autònoma de Barcelona"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-4228-6604",
+        "authenticated-orcid": true,
+        "given": "Anselmo M.",
+        "family": "Marques",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "id": [
+              {
+                "id": "https://ror.org/00nt41z93",
+                "id-type": "ROR",
+                "asserted-by": "publisher"
+              }
+            ],
+            "name": "University of Aveiro"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-5128-5531",
+        "authenticated-orcid": true,
+        "given": "Ricardo G.",
+        "family": "Dias",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "id": [
+              {
+                "id": "https://ror.org/00nt41z93",
+                "id-type": "ROR",
+                "asserted-by": "publisher"
+              }
+            ],
+            "name": "University of Aveiro"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-6628-9930",
+        "authenticated-orcid": true,
+        "given": "Verònica",
+        "family": "Ahufinger",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "id": [
+              {
+                "id": "https://ror.org/052g8jq94",
+                "id-type": "ROR",
+                "asserted-by": "publisher"
+              }
+            ],
+            "name": "Universitat Autònoma de Barcelona"
+          },
+          {
+            "name": "The Barcelona Institute of Science and Technology"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": "Phys. Rev. A",
+    "journalFull": "Physical Review A",
+    "volume": "113",
+    "issue": "3",
+    "page": "",
+    "article": "033303",
+    "year": 2026,
+    "publisher": "American Physical Society (APS)"
+  },
+  "10.48550/arxiv.2605.05002": {
+    "title": "Geometrical control of topology with orbital angular momentum modes",
+    "authors": [
+      {
+        "family": "Zhai",
+        "given": "Yunjia"
+      },
+      {
+        "family": "Marques",
+        "given": "Anselmo M."
+      },
+      {
+        "family": "Dias",
+        "given": "Ricardo G."
+      },
+      {
+        "family": "Ahufinger",
+        "given": "Verònica"
+      },
+      {
+        "family": "Viedma",
+        "given": "David"
+      }
+    ],
+    "journal": "",
+    "journalFull": "",
+    "volume": "",
+    "issue": "",
+    "page": "",
+    "article": "",
+    "year": 2026,
+    "publisher": "arXiv",
+    "arxiv": "2605.05002"
+  }
+}
